@@ -20,8 +20,8 @@ DEFAULT_OUTPUT = Path("data/raw/generated_dataset.json")
 DEFAULT_SEED = Path("data/raw/v1_seed_dataset.json")
 DEFAULT_PROMPT_TEMPLATE = Path("prompts/teacher_generation_prompt_v1.md")
 DEFAULT_ENV_FILE = Path(".env")
-DEFAULT_MODEL = "gpt-4.1-mini"
-DEFAULT_API_BASE_URL = "https://api.openai.com/v1"
+DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
 
 DIRECT_ANSWER_TOPICS = [
     "budget",
