@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import random
+import socket
 import sys
 import time
 import urllib.error
@@ -135,6 +136,24 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=250,
         help="Max completion tokens sent to the teacher model.",
+    )
+    parser.add_argument(
+        "--request-delay",
+        type=float,
+        default=1.5,
+        help="Delay in seconds between successful requests.",
+    )
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=5,
+        help="Maximum retries for retryable API failures such as rate limits.",
+    )
+    parser.add_argument(
+        "--retry-backoff-seconds",
+        type=float,
+        default=2.0,
+        help="Initial backoff in seconds for retryable API failures.",
     )
     parser.add_argument(
         "--dry-run",
@@ -342,6 +361,16 @@ def call_teacher_model(
     return json.loads(strip_code_fences(content))
 
 
+def is_retryable_error(exc: Exception) -> bool:
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code in {408, 429, 500, 502, 503, 504}
+    if isinstance(exc, urllib.error.URLError):
+        return True
+    if isinstance(exc, socket.timeout):
+        return True
+    return False
+
+
 def main() -> int:
     args = parse_args()
     random.seed(11)
@@ -382,23 +411,39 @@ def main() -> int:
     generated = []
     for index, prompt in enumerate(prompts, start=1):
         messages = render_teacher_messages(prompt_template, few_shot_examples, prompt)
-        try:
-            raw_record = call_teacher_model(
-                api_base_url=args.api_base_url,
-                api_key=api_key,
-                model=args.teacher_model,
-                messages=messages,
-                temperature=args.temperature,
-                max_output_tokens=args.max_output_tokens,
-            )
-            clean_record = validate_record(raw_record, prompt)
-            clean_record["teacher_model"] = args.teacher_model
-            clean_record["prompt_version"] = args.prompt_template.stem
-            clean_record["date_generated"] = time.strftime("%Y-%m-%d")
-            generated.append(clean_record)
-            print(f"[{index}/{len(prompts)}] generated: {prompt}")
-        except (ValueError, urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError) as exc:
-            print(f"[{index}/{len(prompts)}] failed: {prompt} :: {exc}", file=sys.stderr)
+        attempt = 0
+        while True:
+            try:
+                raw_record = call_teacher_model(
+                    api_base_url=args.api_base_url,
+                    api_key=api_key,
+                    model=args.teacher_model,
+                    messages=messages,
+                    temperature=args.temperature,
+                    max_output_tokens=args.max_output_tokens,
+                )
+                clean_record = validate_record(raw_record, prompt)
+                clean_record["teacher_model"] = args.teacher_model
+                clean_record["prompt_version"] = args.prompt_template.stem
+                clean_record["date_generated"] = time.strftime("%Y-%m-%d")
+                generated.append(clean_record)
+                print(f"[{index}/{len(prompts)}] generated: {prompt}")
+                if args.request_delay > 0:
+                    time.sleep(args.request_delay)
+                break
+            except (ValueError, urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, socket.timeout) as exc:
+                if is_retryable_error(exc) and attempt < args.max_retries:
+                    wait_seconds = args.retry_backoff_seconds * (2 ** attempt)
+                    attempt += 1
+                    print(
+                        f"[{index}/{len(prompts)}] retrying after {wait_seconds:.1f}s: {prompt} :: {exc}",
+                        file=sys.stderr,
+                    )
+                    time.sleep(wait_seconds)
+                    continue
+
+                print(f"[{index}/{len(prompts)}] failed: {prompt} :: {exc}", file=sys.stderr)
+                break
 
     all_records = existing_records + generated
     save_json_array(args.output, all_records)

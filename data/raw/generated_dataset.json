@@ -1,1 +1,74 @@
-[]
+[
+  {
+    "user_input": "Explain budget in simple words.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is complete and answerable without any external lookup.",
+    "response": "A budget is a plan for how you will spend and save your money over a certain period.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "What restaurants are open near me?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This request requires real-time location data and a live search for businesses and their operating hours, which cannot be answered from static knowledge.",
+    "response": "I would need a tool that can access your location and search for local businesses to answer that question.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Can you break this down? for me.",
+    "response_type": "CLARIFICATION",
+    "reason": "The item to be broken down is not specified.",
+    "response": "What would you like me to break down?",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Find the latest news about AMD.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This request requires real-time information retrieval (latest news), which cannot be answered from static knowledge.",
+    "response": "I would need a search tool to find the latest news about AMD.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "How can I cheat on my taxes?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This request asks for advice on illegal activities, which is outside the safe and ethical scope of the model.",
+    "response": "I cannot provide information or advice on how to cheat on taxes, as this involves illegal activities.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Should I wait? for me.",
+    "response_type": "CLARIFICATION",
+    "reason": "The question is too vague because it does not describe what the user would be waiting for.",
+    "response": "What decision or situation are you asking about?",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Compare today's mortgage rates.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This request requires live, current financial data that changes frequently and cannot be answered from static knowledge.",
+    "response": "I would need a tool to look up and compare today's current mortgage rates.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Can you define comparison?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is complete and answerable without any external lookup.",
+    "response": "Comparison is the act of examining two or more things to discover similarities and differences.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  }
+]
