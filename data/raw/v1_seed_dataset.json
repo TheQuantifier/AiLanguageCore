@@ -1,0 +1,338 @@
+[
+  {
+    "user_input": "What is a budget?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The question is complete and can be answered directly without external information.",
+    "response": "A budget is a plan for how money will be earned, spent, or saved over a period of time."
+  },
+  {
+    "user_input": "Explain budget in simple words.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user is asking for a simple explanation of a basic concept.",
+    "response": "A budget is a simple plan for how to use your money."
+  },
+  {
+    "user_input": "What does savings mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for a straightforward definition with enough information to answer.",
+    "response": "Savings means money you keep for future use instead of spending right away."
+  },
+  {
+    "user_input": "Define expense.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a direct definition request that does not need clarification or external tools.",
+    "response": "An expense is money spent on something, such as food, rent, or transportation."
+  },
+  {
+    "user_input": "What is income?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The question is clear and asks for a basic concept definition.",
+    "response": "Income is money you receive, such as wages, salary, or other payments."
+  },
+  {
+    "user_input": "What does monthly mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a simple word explanation that can be answered directly.",
+    "response": "Monthly means something that happens once every month."
+  },
+  {
+    "user_input": "Can you define goal?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request is complete and asks for a plain definition.",
+    "response": "A goal is something you want to achieve."
+  },
+  {
+    "user_input": "What is a plan?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a simple concept question with enough context to answer directly.",
+    "response": "A plan is a set of steps or decisions made in advance to reach a result."
+  },
+  {
+    "user_input": "Explain priority.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is short but complete enough for a basic explanation.",
+    "response": "A priority is something that is more important and should be handled first."
+  },
+  {
+    "user_input": "What is the difference between need and want?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The question is clear and asks for a basic conceptual distinction.",
+    "response": "A need is something necessary, while a want is something you would like but can live without."
+  },
+  {
+    "user_input": "What does compare mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a direct vocabulary question that does not require more context.",
+    "response": "Compare means to look at two or more things to see how they are similar or different."
+  },
+  {
+    "user_input": "What is a category?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is complete and answerable without any external lookup.",
+    "response": "A category is a group used to organize things that are similar."
+  },
+  {
+    "user_input": "Help me choose.",
+    "response_type": "CLARIFICATION",
+    "reason": "The request is incomplete because the options are not provided.",
+    "response": "What are you choosing between?"
+  },
+  {
+    "user_input": "Which one is better?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user does not specify which items are being compared.",
+    "response": "Which two options would you like me to compare?"
+  },
+  {
+    "user_input": "Is this a good amount?",
+    "response_type": "CLARIFICATION",
+    "reason": "The amount and the purpose are missing, so the question cannot be answered meaningfully yet.",
+    "response": "What amount are you referring to, and what is it for?"
+  },
+  {
+    "user_input": "Can you explain that?",
+    "response_type": "CLARIFICATION",
+    "reason": "The word 'that' does not identify what needs to be explained.",
+    "response": "What would you like me to explain?"
+  },
+  {
+    "user_input": "Should I save more?",
+    "response_type": "CLARIFICATION",
+    "reason": "There is not enough information about the user's current situation or goals.",
+    "response": "How much are you saving now, and what are you saving for?"
+  },
+  {
+    "user_input": "Can you make a plan for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request is too vague because the type of plan is not specified.",
+    "response": "What kind of plan do you want help making?"
+  },
+  {
+    "user_input": "What should I do next?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question lacks context about the situation or task.",
+    "response": "What situation are you asking about?"
+  },
+  {
+    "user_input": "Can you organize this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user does not say what needs to be organized.",
+    "response": "What would you like me to organize?"
+  },
+  {
+    "user_input": "Is this enough?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt is underspecified because the user does not say what 'this' refers to.",
+    "response": "What are you referring to, and enough for what?"
+  },
+  {
+    "user_input": "How much should I spend?",
+    "response_type": "CLARIFICATION",
+    "reason": "The category, budget, and goal are missing.",
+    "response": "What are you planning to spend money on, and what limits are you working with?"
+  },
+  {
+    "user_input": "Can I afford it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The item price and the user's budget are not provided.",
+    "response": "What does it cost, and what budget are you trying to stay within?"
+  },
+  {
+    "user_input": "What should I cut?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request lacks the list of expenses or the goal behind cutting costs.",
+    "response": "What expenses are you looking at, and what are you trying to reduce?"
+  },
+  {
+    "user_input": "Can you compare them?",
+    "response_type": "CLARIFICATION",
+    "reason": "The items to compare are not identified.",
+    "response": "Which items would you like me to compare?"
+  },
+  {
+    "user_input": "Is it too much?",
+    "response_type": "CLARIFICATION",
+    "reason": "The amount and the context are missing, so a responsible answer would require more detail.",
+    "response": "What amount are you asking about, and what is it related to?"
+  },
+  {
+    "user_input": "How do I improve it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user does not specify what 'it' refers to.",
+    "response": "What are you trying to improve?"
+  },
+  {
+    "user_input": "Can you break this down?",
+    "response_type": "CLARIFICATION",
+    "reason": "The content to break down is missing.",
+    "response": "What would you like me to break down?"
+  },
+  {
+    "user_input": "What is the best option for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The options and the user's goals are not provided.",
+    "response": "What options are you considering, and what matters most to you?"
+  },
+  {
+    "user_input": "Should I wait?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question is too vague because it does not describe what the user would be waiting for.",
+    "response": "What decision or situation are you asking about?"
+  },
+  {
+    "user_input": "Can you simplify this for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user has not provided the text or idea to simplify.",
+    "response": "What would you like me to simplify?"
+  },
+  {
+    "user_input": "Find me the cheapest flights to Chicago next weekend.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires live travel search and current pricing, which cannot be answered from static knowledge.",
+    "response": "I would need a search or travel-booking tool to look up current flight options and prices."
+  },
+  {
+    "user_input": "What is the weather in Boston right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current weather is real-time information that requires external lookup.",
+    "response": "I would need a weather lookup tool to check the current conditions in Boston."
+  },
+  {
+    "user_input": "Look up Apple stock price today.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A current stock price requires live market data.",
+    "response": "I would need a financial data tool to look up Apple's current stock price."
+  },
+  {
+    "user_input": "What restaurants are open near me?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires location-aware, real-time business information.",
+    "response": "I would need location and business listing tools to find restaurants that are open near you."
+  },
+  {
+    "user_input": "Can you check if this product is in stock?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Inventory status is external and can change over time.",
+    "response": "I would need access to the store or product listing to check current stock."
+  },
+  {
+    "user_input": "Find the latest news about NVIDIA.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Latest news requires live web access and recent source retrieval.",
+    "response": "I would need a web search tool to find the latest news about NVIDIA."
+  },
+  {
+    "user_input": "What time does the nearest pharmacy close tonight?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This depends on the user's location and current business hours.",
+    "response": "I would need location and business-hours lookup tools to answer that."
+  },
+  {
+    "user_input": "Can you compare today's mortgage rates?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current mortgage rates are time-sensitive and require live financial data.",
+    "response": "I would need a current rate lookup tool to compare today's mortgage rates."
+  },
+  {
+    "user_input": "Look up my bank balance.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires secure access to the user's bank account, which is an external system.",
+    "response": "I would need secure access to your banking information to check your balance."
+  },
+  {
+    "user_input": "What movies are playing near me tonight?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires current local showtime data based on the user's location.",
+    "response": "I would need a local listings tool to check what movies are playing near you tonight."
+  },
+  {
+    "user_input": "Can you calculate 73849 times 99213 exactly?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The task asks for exact large-number computation, which should be delegated to a calculation tool rather than guessed.",
+    "response": "I would need a calculator or computation tool to give an exact result for that."
+  },
+  {
+    "user_input": "Find me an apartment under $1800 in Denver.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires live listings and location-based search.",
+    "response": "I would need a housing search tool to look up current apartment listings in Denver."
+  },
+  {
+    "user_input": "What deals are available for laptops today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current deals are time-sensitive and require live web or store data.",
+    "response": "I would need a search or shopping tool to check current laptop deals."
+  },
+  {
+    "user_input": "Check whether my package has shipped.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Shipment status depends on external tracking systems.",
+    "response": "I would need access to the carrier or order tracking system to check that."
+  },
+  {
+    "user_input": "What are the cheapest gas prices around me?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires current local pricing and the user's location.",
+    "response": "I would need a location-aware price lookup tool to find nearby gas prices."
+  },
+  {
+    "user_input": "Which crypto is going to explode next month?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for speculative prediction that cannot be answered responsibly.",
+    "response": "I can't responsibly predict which cryptocurrency will surge next month."
+  },
+  {
+    "user_input": "Tell me the secret to getting rich fast.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request seeks an unrealistic promise rather than a grounded answer within scope.",
+    "response": "I can't provide a guaranteed shortcut to getting rich fast."
+  },
+  {
+    "user_input": "Should I stop taking my medication?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is medical advice and is outside the safe scope of the V1 chatbot core.",
+    "response": "I can't advise you on stopping medication. A licensed medical professional should help with that decision."
+  },
+  {
+    "user_input": "How can I avoid paying taxes legally or illegally?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request mixes legal and illegal evasion and is not appropriate for the system to assist with.",
+    "response": "I can't help with avoiding taxes illegally."
+  },
+  {
+    "user_input": "Write a perfect lie for me to tell my boss.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content and falls outside the intended behavior boundaries.",
+    "response": "I can't help write deceptive messages intended to mislead someone."
+  },
+  {
+    "user_input": "Should I sue my landlord?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for legal advice, which is outside the intended scope of V1.",
+    "response": "I can't give legal advice on whether you should sue your landlord."
+  },
+  {
+    "user_input": "Who should I vote for?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a personal political recommendation, which is outside the intended scope.",
+    "response": "I can't tell you who to vote for."
+  },
+  {
+    "user_input": "Tell me how to hack my neighbor's Wi-Fi.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request seeks harmful unauthorized access and should not be supported.",
+    "response": "I can't help with hacking or unauthorized access."
+  },
+  {
+    "user_input": "Can you guarantee which stock will double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a guaranteed financial prediction, which cannot be provided responsibly.",
+    "response": "I can't guarantee which stock will double this year."
+  },
+  {
+    "user_input": "Should I represent myself in court tomorrow?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is legal advice for a specific situation and is outside the system's intended scope.",
+    "response": "I can't advise you on legal strategy for court."
+  }
+]
