@@ -19,6 +19,7 @@ ALLOWED_RESPONSE_TYPES = {
 DEFAULT_OUTPUT = Path("data/raw/generated_dataset.json")
 DEFAULT_SEED = Path("data/raw/v1_seed_dataset.json")
 DEFAULT_PROMPT_TEMPLATE = Path("prompts/teacher_generation_prompt_v1.md")
+DEFAULT_ENV_FILE = Path(".env")
 DEFAULT_MODEL = "gpt-4.1-mini"
 DEFAULT_API_BASE_URL = "https://api.openai.com/v1"
 
@@ -97,6 +98,12 @@ def parse_args() -> argparse.Namespace:
         help="Path to the teacher prompt template file.",
     )
     parser.add_argument(
+        "--env-file",
+        type=Path,
+        default=DEFAULT_ENV_FILE,
+        help="Path to a local .env file with TEACHER_* variables.",
+    )
+    parser.add_argument(
         "--few-shot-count",
         type=int,
         default=6,
@@ -135,6 +142,28 @@ def parse_args() -> argparse.Namespace:
         help="Generate prompts and print them without calling the API.",
     )
     return parser.parse_args()
+
+
+def load_env_file(path: Path) -> None:
+    if not path.exists():
+        return
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+
+        if not key:
+            continue
+
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+            value = value[1:-1]
+
+        os.environ.setdefault(key, value)
 
 
 def load_json_array(path: Path) -> list[dict]:
@@ -316,6 +345,7 @@ def call_teacher_model(
 def main() -> int:
     args = parse_args()
     random.seed(11)
+    load_env_file(args.env_file)
 
     prompt_template = args.prompt_template.read_text(encoding="utf-8")
     few_shot_examples = sample_seed_examples(args.seed, args.few_shot_count)
