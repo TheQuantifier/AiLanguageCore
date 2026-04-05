@@ -22,6 +22,12 @@ REQUIRED_FIELDS = {
 MIN_REASON_LENGTH = 10
 MIN_RESPONSE_LENGTH = 10
 MIN_REASON_WORDS = 5
+GENERIC_PHRASES = [
+    "it depends",
+    "i can help",
+    "that varies",
+    "it varies",
+]
 
 
 def parse_args() -> argparse.Namespace:
@@ -50,10 +56,13 @@ def load_dataset(path: Path) -> list[dict]:
     return data
 
 
-def validate_record(record: object, index: int, strict_extra_fields: bool) -> list[str]:
+def validate_record(
+    record: object, index: int, strict_extra_fields: bool
+) -> tuple[list[str], list[str]]:
     errors = []
+    warnings = []
     if not isinstance(record, dict):
-        return [f"Record {index}: record must be a JSON object."]
+        return [f"Record {index}: record must be a JSON object."], []
 
     missing = sorted(REQUIRED_FIELDS - set(record.keys()))
     if missing:
@@ -101,7 +110,10 @@ def validate_record(record: object, index: int, strict_extra_fields: bool) -> li
             f"Record {index}: TOOL_NEEDED response should indicate external data requirement"
         )
 
-    return errors
+    if any(phrase in normalized_response for phrase in GENERIC_PHRASES):
+        warnings.append(f"Record {index}: response may be too generic")
+
+    return errors, warnings
 
 
 def summarize_response_types(records: list[dict]) -> Counter:
@@ -137,8 +149,11 @@ def validate_dataset(path: Path, strict_extra_fields: bool) -> int:
         return 1
 
     errors = []
+    record_warnings = []
     for index, record in enumerate(records, start=1):
-        errors.extend(validate_record(record, index, strict_extra_fields))
+        record_errors, new_warnings = validate_record(record, index, strict_extra_fields)
+        errors.extend(record_errors)
+        record_warnings.extend(new_warnings)
 
     duplicates = find_duplicate_inputs(records)
     response_counts = summarize_response_types(records)
@@ -169,6 +184,12 @@ def validate_dataset(path: Path, strict_extra_fields: bool) -> int:
     if warnings:
         print("Warnings:")
         for warning in warnings:
+            print(f"  {warning}")
+        for warning in record_warnings:
+            print(f"  {warning}")
+    elif record_warnings:
+        print("Warnings:")
+        for warning in record_warnings:
             print(f"  {warning}")
     else:
         print("Warnings: none")
