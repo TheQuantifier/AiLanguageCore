@@ -23,6 +23,7 @@ DEFAULT_PROMPT_TEMPLATE = Path("prompts/teacher_generation_prompt_v1.md")
 DEFAULT_ENV_FILE = Path(".env")
 DEFAULT_MODEL = "gemini-2.5-flash"
 DEFAULT_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
+DEFAULT_BATCH_SIZE = 50
 
 DIRECT_ANSWER_TOPICS = [
     "budget",
@@ -35,32 +36,52 @@ DIRECT_ANSWER_TOPICS = [
     "category",
     "comparison",
     "needs versus wants",
+    "spending limit",
+    "emergency fund",
+    "financial goal",
+    "monthly expense",
+    "fixed cost",
+    "variable cost",
+    "short-term goal",
+    "long-term goal",
+    "trade-off",
+    "opportunity cost",
 ]
 
-CLARIFICATION_STARTERS = [
+CLARIFICATION_BASES = [
     "Help me choose",
-    "Is this enough?",
-    "Can I afford it?",
-    "What should I do next?",
-    "Can you explain that?",
-    "How much should I spend?",
-    "Which one is better?",
-    "Can you break this down?",
-    "Should I wait?",
-    "What is the best option for me?",
+    "Is this enough",
+    "Can I afford it",
+    "What should I do next",
+    "Can you explain that",
+    "How much should I spend",
+    "Which one is better",
+    "Can you break this down",
+    "Should I wait",
+    "What is the best option for me",
+    "Can you organize this",
+    "Is it too much",
+    "What should I cut",
+    "Can you simplify this",
+    "Is this a good amount",
 ]
 
 TOOL_NEEDED_PROMPTS = [
-    "Find me the cheapest flights to Seattle next month.",
-    "What is the weather in Dallas right now?",
-    "Look up Tesla stock price today.",
-    "What restaurants are open near me?",
-    "Check whether this item is in stock online.",
-    "Find the latest news about AMD.",
-    "What time does the nearest grocery store close tonight?",
+    "Find me the cheapest flights to {city} {timeframe}.",
+    "What is the weather in {city} right now?",
+    "Look up {company} stock price today.",
+    "What restaurants are open near me {timeframe}?",
+    "Check whether {product} is in stock online.",
+    "Find the latest news about {company}.",
+    "What time does the nearest {store_type} close {timeframe}?",
     "Compare today's mortgage rates.",
-    "Check whether my package has shipped.",
-    "What movies are playing near me tonight?",
+    "Check whether my {package_type} has shipped.",
+    "What movies are playing near me {timeframe}?",
+    "Find me an apartment under {price} in {city}.",
+    "What are the cheapest gas prices around me {timeframe}?",
+    "Can you calculate {large_number_a} times {large_number_b} exactly?",
+    "What deals are available for {product_plural} today?",
+    "Look up the score of the {sports_team} game today.",
 ]
 
 OUT_OF_SCOPE_PROMPTS = [
@@ -72,6 +93,109 @@ OUT_OF_SCOPE_PROMPTS = [
     "Should I sue my employer?",
     "Tell me the fastest way to get rich with no risk.",
     "How can I cheat on my taxes?",
+    "What is the best way to hide income from the government?",
+    "Should I represent myself in court tomorrow?",
+    "Tell me which crypto will make me rich next month.",
+    "Write a false excuse that my boss will believe.",
+]
+
+CITY_OPTIONS = [
+    "Seattle",
+    "Dallas",
+    "Chicago",
+    "Denver",
+    "Boston",
+    "Atlanta",
+    "Phoenix",
+    "Miami",
+    "Portland",
+    "Austin",
+]
+
+TIMEFRAME_OPTIONS = [
+    "right now",
+    "tonight",
+    "this weekend",
+    "next weekend",
+    "next month",
+    "today",
+]
+
+COMPANY_OPTIONS = [
+    "Tesla",
+    "AMD",
+    "NVIDIA",
+    "Apple",
+    "Microsoft",
+    "Amazon",
+]
+
+PRODUCT_OPTIONS = [
+    "this laptop",
+    "that phone",
+    "this TV",
+    "that gaming console",
+    "this refrigerator",
+]
+
+PRODUCT_PLURAL_OPTIONS = [
+    "laptops",
+    "phones",
+    "TVs",
+    "headphones",
+    "gaming consoles",
+]
+
+STORE_TYPE_OPTIONS = [
+    "grocery store",
+    "pharmacy",
+    "hardware store",
+    "bank branch",
+    "coffee shop",
+]
+
+PACKAGE_TYPE_OPTIONS = [
+    "package",
+    "order",
+    "delivery",
+]
+
+SPORTS_TEAM_OPTIONS = [
+    "Lakers",
+    "Yankees",
+    "Cowboys",
+    "Celtics",
+    "Dodgers",
+]
+
+PRICE_OPTIONS = [
+    "$1200",
+    "$1500",
+    "$1800",
+    "$2200",
+]
+
+LARGE_NUMBER_OPTIONS = [
+    ("73849", "99213"),
+    ("54821", "77654"),
+    ("91327", "44812"),
+]
+
+DIRECT_TEMPLATES = [
+    "Define {topic}.",
+    "Can you define {topic}?",
+    "Explain {topic} in simple words.",
+    "What is {topic}?",
+    "What does {topic} mean?",
+    "Give me a simple explanation of {topic}.",
+]
+
+CLARIFICATION_SUFFIXES = [
+    "?",
+    " for me?",
+    " right now?",
+    " in my situation?",
+    "? I am not sure.",
 ]
 
 
@@ -80,6 +204,12 @@ def parse_args() -> argparse.Namespace:
         description="Generate structured training examples using a teacher model."
     )
     parser.add_argument("--count", type=int, default=50, help="Number of examples to request.")
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=DEFAULT_BATCH_SIZE,
+        help="Number of prompts to request per API call.",
+    )
     parser.add_argument(
         "--output",
         type=Path,
@@ -140,8 +270,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--request-delay",
         type=float,
-        default=1.5,
-        help="Delay in seconds between successful requests.",
+        default=6.0,
+        help="Delay in seconds between successful batches.",
     )
     parser.add_argument(
         "--max-retries",
@@ -231,51 +361,63 @@ def sample_seed_examples(seed_path: Path, count: int) -> list[dict]:
 
 
 def generate_candidate_prompts(count: int) -> list[str]:
-    prompts = []
+    prompts = set()
+    target_count = max(count, 1)
+    max_attempts = target_count * 40
+    attempts = 0
 
-    direct_templates = [
-        "What is {topic}?",
-        "Explain {topic} in simple words.",
-        "Can you define {topic}?",
-        "What does {topic} mean?",
-    ]
+    while len(prompts) < target_count and attempts < max_attempts:
+        attempts += 1
 
-    clarification_templates = [
-        "{starter}.",
-        "{starter} for me.",
-        "{starter} right now.",
-    ]
-
-    while len(prompts) < count:
         topic = random.choice(DIRECT_ANSWER_TOPICS)
-        prompts.append(random.choice(direct_templates).format(topic=topic))
-        if len(prompts) >= count:
-            break
+        prompts.add(random.choice(DIRECT_TEMPLATES).format(topic=topic))
 
-        starter = random.choice(CLARIFICATION_STARTERS)
-        prompts.append(random.choice(clarification_templates).format(starter=starter))
-        if len(prompts) >= count:
-            break
+        clarification_base = random.choice(CLARIFICATION_BASES)
+        clarification_suffix = random.choice(CLARIFICATION_SUFFIXES)
+        prompts.add(f"{clarification_base}{clarification_suffix}")
 
-        prompts.append(random.choice(TOOL_NEEDED_PROMPTS))
-        if len(prompts) >= count:
-            break
+        tool_template = random.choice(TOOL_NEEDED_PROMPTS)
+        large_number_a, large_number_b = random.choice(LARGE_NUMBER_OPTIONS)
+        prompts.add(
+            tool_template.format(
+                city=random.choice(CITY_OPTIONS),
+                timeframe=random.choice(TIMEFRAME_OPTIONS),
+                company=random.choice(COMPANY_OPTIONS),
+                product=random.choice(PRODUCT_OPTIONS),
+                product_plural=random.choice(PRODUCT_PLURAL_OPTIONS),
+                store_type=random.choice(STORE_TYPE_OPTIONS),
+                package_type=random.choice(PACKAGE_TYPE_OPTIONS),
+                sports_team=random.choice(SPORTS_TEAM_OPTIONS),
+                price=random.choice(PRICE_OPTIONS),
+                large_number_a=large_number_a,
+                large_number_b=large_number_b,
+            )
+        )
 
-        prompts.append(random.choice(OUT_OF_SCOPE_PROMPTS))
+        prompts.add(random.choice(OUT_OF_SCOPE_PROMPTS))
 
-    random.shuffle(prompts)
-    return prompts[:count]
+    prompt_list = list(prompts)
+    random.shuffle(prompt_list)
+    return prompt_list[:count]
 
 
 def render_teacher_messages(
-    prompt_template: str, few_shot_examples: list[dict], user_input: str
+    prompt_template: str, few_shot_examples: list[dict], user_inputs: list[str]
 ) -> list[dict]:
     examples_json = json.dumps(few_shot_examples, indent=2, ensure_ascii=True)
+    user_inputs_json = json.dumps(user_inputs, indent=2, ensure_ascii=True)
     user_message = (
         "Use the style and logic of these examples as the standard.\n\n"
         f"Few-shot examples:\n{examples_json}\n\n"
-        f"User input:\n{user_input}\n\n"
-        "Return one JSON object only."
+        "Classify every input independently.\n"
+        "Return exactly one JSON array containing one object per input, in the same order.\n\n"
+        f"User inputs:\n{user_inputs_json}\n\n"
+        "Each array item must have exactly these fields:\n"
+        "- user_input\n"
+        "- response_type\n"
+        "- reason\n"
+        "- response\n\n"
+        "Return the JSON array only."
     )
     return [
         {"role": "system", "content": prompt_template},
@@ -323,6 +465,24 @@ def validate_record(record: dict, expected_user_input: str) -> dict:
         "reason": record["reason"].strip(),
         "response": record["response"].strip(),
     }
+
+
+def validate_batch_records(records: object, expected_user_inputs: list[str]) -> list[dict]:
+    if not isinstance(records, list):
+        raise ValueError("Teacher response must be a JSON array")
+
+    if len(records) != len(expected_user_inputs):
+        raise ValueError(
+            f"Teacher returned {len(records)} records for {len(expected_user_inputs)} prompts"
+        )
+
+    clean_records = []
+    for record, expected_user_input in zip(records, expected_user_inputs):
+        if not isinstance(record, dict):
+            raise ValueError("Each batch item must be a JSON object")
+        clean_records.append(validate_record(record, expected_user_input))
+
+    return clean_records
 
 
 def call_teacher_model(
@@ -375,6 +535,9 @@ def main() -> int:
     args = parse_args()
     random.seed(11)
     load_env_file(args.env_file)
+    if args.batch_size < 1:
+        print("--batch-size must be at least 1", file=sys.stderr)
+        return 1
 
     prompt_template = args.prompt_template.read_text(encoding="utf-8")
     few_shot_examples = sample_seed_examples(args.seed, args.few_shot_count)
@@ -390,11 +553,13 @@ def main() -> int:
         )
 
     if args.dry_run:
-        for index, prompt in enumerate(prompts, start=1):
-            messages = render_teacher_messages(prompt_template, few_shot_examples, prompt)
+        for batch_start in range(0, len(prompts), args.batch_size):
+            batch_prompts = prompts[batch_start : batch_start + args.batch_size]
+            messages = render_teacher_messages(prompt_template, few_shot_examples, batch_prompts)
             preview = {
-                "prompt_number": index,
-                "user_input": prompt,
+                "batch_number": (batch_start // args.batch_size) + 1,
+                "batch_size": len(batch_prompts),
+                "user_inputs": batch_prompts,
                 "messages": messages,
             }
             print(json.dumps(preview, indent=2, ensure_ascii=True))
@@ -409,12 +574,14 @@ def main() -> int:
         return 1
 
     generated = []
-    for index, prompt in enumerate(prompts, start=1):
-        messages = render_teacher_messages(prompt_template, few_shot_examples, prompt)
+    batch_count = (len(prompts) + args.batch_size - 1) // args.batch_size
+    for batch_index, batch_start in enumerate(range(0, len(prompts), args.batch_size), start=1):
+        batch_prompts = prompts[batch_start : batch_start + args.batch_size]
+        messages = render_teacher_messages(prompt_template, few_shot_examples, batch_prompts)
         attempt = 0
         while True:
             try:
-                raw_record = call_teacher_model(
+                raw_records = call_teacher_model(
                     api_base_url=args.api_base_url,
                     api_key=api_key,
                     model=args.teacher_model,
@@ -422,12 +589,15 @@ def main() -> int:
                     temperature=args.temperature,
                     max_output_tokens=args.max_output_tokens,
                 )
-                clean_record = validate_record(raw_record, prompt)
-                clean_record["teacher_model"] = args.teacher_model
-                clean_record["prompt_version"] = args.prompt_template.stem
-                clean_record["date_generated"] = time.strftime("%Y-%m-%d")
-                generated.append(clean_record)
-                print(f"[{index}/{len(prompts)}] generated: {prompt}")
+                clean_records = validate_batch_records(raw_records, batch_prompts)
+                for clean_record in clean_records:
+                    clean_record["teacher_model"] = args.teacher_model
+                    clean_record["prompt_version"] = args.prompt_template.stem
+                    clean_record["date_generated"] = time.strftime("%Y-%m-%d")
+                    generated.append(clean_record)
+                print(
+                    f"[batch {batch_index}/{batch_count}] generated {len(clean_records)} records"
+                )
                 if args.request_delay > 0:
                     time.sleep(args.request_delay)
                 break
@@ -436,13 +606,16 @@ def main() -> int:
                     wait_seconds = args.retry_backoff_seconds * (2 ** attempt)
                     attempt += 1
                     print(
-                        f"[{index}/{len(prompts)}] retrying after {wait_seconds:.1f}s: {prompt} :: {exc}",
+                        f"[batch {batch_index}/{batch_count}] retrying after {wait_seconds:.1f}s :: {exc}",
                         file=sys.stderr,
                     )
                     time.sleep(wait_seconds)
                     continue
 
-                print(f"[{index}/{len(prompts)}] failed: {prompt} :: {exc}", file=sys.stderr)
+                print(
+                    f"[batch {batch_index}/{batch_count}] failed for {len(batch_prompts)} prompts :: {exc}",
+                    file=sys.stderr,
+                )
                 break
 
     all_records = existing_records + generated

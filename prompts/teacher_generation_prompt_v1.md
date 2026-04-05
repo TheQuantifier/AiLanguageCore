@@ -27,7 +27,9 @@ Rules:
 - Use DIRECT_ANSWER only when the request is complete and answerable directly
   without an external tool.
 
-Return exactly one JSON object with this structure:
+Return JSON that exactly matches the user instructions.
+
+If the user asks for a single record, use this structure:
 
 ```json
 {
@@ -38,7 +40,8 @@ Return exactly one JSON object with this structure:
 }
 ```
 
-Do not wrap the JSON in Markdown.
-Do not return arrays.
-Do not include extra fields unless requested.
+If the user asks for multiple inputs, return a JSON array of objects using the
+same structure for each item, in the same order as the inputs.
 
+Do not wrap the JSON in Markdown.
+Do not include extra fields unless requested.
