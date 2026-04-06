@@ -1,0 +1,194 @@
+{
+  "seed_records": 56,
+  "generated_records": 99,
+  "invalid_records_removed": 4,
+  "duplicates_found": 14,
+  "near_duplicates_found": 21,
+  "duplicate_resolution_events": [
+    {
+      "user_input": "Explain budget in simple words.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What restaurants are open near me?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What movies are playing near me tonight?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What should I do next?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Should I wait in my situation?",
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
+    },
+    {
+      "user_input": "What is the best option for me?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is it too much?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you organize this for me?",
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
+    },
+    {
+      "user_input": "Can I afford it? I am not sure.",
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
+    },
+    {
+      "user_input": "Can you explain that for me?",
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
+    },
+    {
+      "user_input": "Can you define goal?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you organize this?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What should I do next?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What restaurants are open near me right now?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you break this down in my situation?",
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
+    },
+    {
+      "user_input": "Can you break this down right now?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you guarantee which stock will double this year?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is the weather in Boston right now?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is this a good amount in my situation?",
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
+    },
+    {
+      "user_input": "Can I afford it right now?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is this enough for me?",
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
+    },
+    {
+      "user_input": "Is it too much right now?",
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
+    },
+    {
+      "user_input": "Is this a good amount for me?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you organize this in my situation?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Should I wait?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Should I wait right now?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you break this down for me?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you simplify this for me?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you organize this? I am not sure.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What should I cut? I am not sure.",
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
+    },
+    {
+      "user_input": "Is this a good amount? I am not sure.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What should I cut right now?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What deals are available for laptops today?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is this enough? I am not sure.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Help me choose?",
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
+    }
+  ],
+  "full_dataset_records": 126,
+  "train_records": 104,
+  "validation_records": 11,
+  "benchmark_records": 11,
+  "response_type_counts": {
+    "CLARIFICATION": 29,
+    "DIRECT_ANSWER": 41,
+    "OUT_OF_SCOPE": 20,
+    "TOOL_NEEDED": 36
+  }
+}
