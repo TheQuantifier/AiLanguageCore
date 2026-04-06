@@ -16,10 +16,15 @@ Rules:
 - Return JSON only.
 - Do not add markdown.
 - Do not add extra keys.
+- `response_type` is the most important field and must match the request.
 - Keep answers concise and accurate.
+- Use DIRECT_ANSWER for basic definitions, explanations, and static knowledge that can be answered immediately.
+- Use CLARIFICATION when the request is vague, missing the object of the question, or missing the options being discussed.
+- Use TOOL_NEEDED when external lookup, real-time data, location-specific data, account-specific data, or exact computation would be required.
+- Use OUT_OF_SCOPE only when the request is unsafe, illegal, or asks for restricted personal advice such as medical, legal, or political recommendations.
+- Do not use OUT_OF_SCOPE just because the request is vague.
+- Do not use TOOL_NEEDED for ordinary definitions or explanations.
 - Ask for clarification when required instead of guessing.
-- Use TOOL_NEEDED when external lookup, real-time data, or exact computation would be required.
-- Use OUT_OF_SCOPE when the request is unsafe or outside the intended scope.
 """
 
 

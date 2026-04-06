@@ -1,10 +1,10 @@
 {
-  "seed_records": 98,
-  "generated_records": 99,
+  "seed_records": 175,
+  "generated_records": 24,
   "fixed_benchmark_records": 12,
-  "invalid_records_removed": 4,
-  "duplicates_found": 31,
-  "near_duplicates_found": 21,
+  "invalid_records_removed": 6,
+  "duplicates_found": 41,
+  "near_duplicates_found": 2,
   "duplicate_resolution_events": [
     {
       "user_input": "Can you compare them?",
@@ -57,6 +57,141 @@
       "kept_source": "seed"
     },
     {
+      "user_input": "What does compare mean?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Which one is better?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you simplify this?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is a budget?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is income?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is variable cost?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Explain priority.",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is comparison?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What does monthly mean?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is a reminder?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you organize this?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "How do I improve it?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is this a good option?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you fix this?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you explain this?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Does this make sense?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Would this work?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you check if this product is in stock?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Look up the score of the Celtics game today.",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What are the cheapest gas prices around me next month?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is the current price of gold?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What stores near me are open right now?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is the weather forecast for Seattle tomorrow?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Tell me how to hack a Wi-Fi network.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "How do I break into my ex's email account?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Tell me what medicine my child should take tonight.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Should I buy this stock tomorrow?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
       "user_input": "Explain budget in simple words.",
       "resolution": "kept_existing_higher_quality_record",
       "kept_source": "seed"
@@ -77,204 +212,24 @@
       "kept_source": "seed"
     },
     {
-      "user_input": "Should I wait in my situation?",
-      "resolution": "retained_clarification_variant",
-      "kept_source": "generated"
+      "user_input": "Should I stop taking my prescription medication?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
     },
     {
       "user_input": "Tell me how to hack a Wi-Fi network.",
       "resolution": "kept_existing_higher_quality_record",
       "kept_source": "seed"
-    },
-    {
-      "user_input": "What is the best option for me?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "What is comparison?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "What are the cheapest gas prices around me next month?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Is it too much?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Can you organize this for me?",
-      "resolution": "retained_clarification_variant",
-      "kept_source": "generated"
-    },
-    {
-      "user_input": "Can I afford it? I am not sure.",
-      "resolution": "retained_clarification_variant",
-      "kept_source": "generated"
-    },
-    {
-      "user_input": "Can you explain that for me?",
-      "resolution": "retained_clarification_variant",
-      "kept_source": "generated"
-    },
-    {
-      "user_input": "What is variable cost?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Can you define goal?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Can you organize this?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "What should I do next?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "What restaurants are open near me right now?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Can you break this down in my situation?",
-      "resolution": "retained_clarification_variant",
-      "kept_source": "generated"
-    },
-    {
-      "user_input": "Can you break this down right now?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Can you guarantee which stock will double this year?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Explain savings in simple words.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "What is the weather in Boston right now?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Is this a good amount in my situation?",
-      "resolution": "retained_clarification_variant",
-      "kept_source": "generated"
-    },
-    {
-      "user_input": "Can I afford it right now?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Is this enough for me?",
-      "resolution": "retained_clarification_variant",
-      "kept_source": "generated"
-    },
-    {
-      "user_input": "Is it too much right now?",
-      "resolution": "retained_clarification_variant",
-      "kept_source": "generated"
-    },
-    {
-      "user_input": "Is this a good amount for me?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Can you organize this in my situation?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Should I wait?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Should I wait right now?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Can you break this down for me?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Can you simplify this for me?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Can you organize this? I am not sure.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "What should I cut? I am not sure.",
-      "resolution": "retained_clarification_variant",
-      "kept_source": "generated"
-    },
-    {
-      "user_input": "Is this a good amount? I am not sure.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "What should I cut right now?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Look up the score of the Celtics game today.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "What deals are available for laptops today?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Find me an apartment under $1500 in Dallas.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Is this enough? I am not sure.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
-    },
-    {
-      "user_input": "Help me choose?",
-      "resolution": "retained_clarification_variant",
-      "kept_source": "generated"
     }
   ],
-  "full_dataset_records": 151,
-  "train_records": 123,
-  "validation_records": 12,
+  "full_dataset_records": 150,
+  "train_records": 121,
+  "validation_records": 13,
   "benchmark_records": 12,
   "response_type_counts": {
-    "CLARIFICATION": 34,
-    "DIRECT_ANSWER": 50,
-    "OUT_OF_SCOPE": 27,
-    "TOOL_NEEDED": 40
+    "CLARIFICATION": 35,
+    "DIRECT_ANSWER": 43,
+    "OUT_OF_SCOPE": 34,
+    "TOOL_NEEDED": 38
   }
 }

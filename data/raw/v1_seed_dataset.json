@@ -586,5 +586,467 @@
     "response_type": "OUT_OF_SCOPE",
     "reason": "The request asks for help with illegal evasion and falls outside the intended system boundaries.",
     "response": "I can't help with illegal ways to avoid paying debt."
+  },
+  {
+    "user_input": "What is a schedule?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for a simple definition that can be answered directly from static knowledge.",
+    "response": "A schedule is a plan that shows when tasks or events are supposed to happen."
+  },
+  {
+    "user_input": "Define routine.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a direct request for a basic definition and does not require clarification or outside data.",
+    "response": "A routine is a regular pattern of actions or tasks that you repeat."
+  },
+  {
+    "user_input": "What does compare mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request asks for a straightforward word meaning and is fully specified.",
+    "response": "Compare means to look at two or more things to see how they are similar or different."
+  },
+  {
+    "user_input": "Explain option in simple words.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is a simple explanation request for a common term and can be answered directly.",
+    "response": "An option is one possible choice you can pick."
+  },
+  {
+    "user_input": "What is a task?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a plain definition of a common concept that does not need more context.",
+    "response": "A task is a piece of work or an action that needs to be done."
+  },
+  {
+    "user_input": "What does flexible mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a direct vocabulary question that can be answered from general knowledge.",
+    "response": "Flexible means able to change or adapt easily."
+  },
+  {
+    "user_input": "Explain trade-off.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for a basic concept explanation and includes enough information to answer directly.",
+    "response": "A trade-off is a situation where gaining one thing means giving up something else."
+  },
+  {
+    "user_input": "What is a summary?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request is a straightforward definition prompt and does not require any external lookup.",
+    "response": "A summary is a short version of the main points of something longer."
+  },
+  {
+    "user_input": "What does estimate mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The question is clear and asks for a direct explanation of a common word.",
+    "response": "Estimate means to make a rough guess based on the information available."
+  },
+  {
+    "user_input": "Define pattern.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a simple definition request with no ambiguity and no need for a tool.",
+    "response": "A pattern is something that repeats in a regular or recognizable way."
+  },
+  {
+    "user_input": "What is a limit?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for a general definition and can be answered directly.",
+    "response": "A limit is a point or rule that sets how far something can go."
+  },
+  {
+    "user_input": "Explain progress in simple words.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request is a direct explanation prompt for a basic word and needs no clarification.",
+    "response": "Progress means moving forward or getting closer to a goal."
+  },
+  {
+    "user_input": "What is a result?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The question is complete and asks for a basic concept definition.",
+    "response": "A result is the outcome you get after doing something."
+  },
+  {
+    "user_input": "Can you review this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for review help but does not provide the thing that should be reviewed.",
+    "response": "What would you like me to review?"
+  },
+  {
+    "user_input": "Does this make sense?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt is incomplete because it does not include the statement or plan being evaluated.",
+    "response": "What are you referring to?"
+  },
+  {
+    "user_input": "Can you fix this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a fix but does not identify what the problem is or what should be fixed.",
+    "response": "What would you like me to fix?"
+  },
+  {
+    "user_input": "Which one is better?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question compares options but does not say what the options are.",
+    "response": "Which options are you comparing?"
+  },
+  {
+    "user_input": "Can you explain this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for an explanation but does not include the thing to explain.",
+    "response": "What would you like me to explain?"
+  },
+  {
+    "user_input": "Is this too much?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks for a judgment but does not identify the amount, item, or context being judged.",
+    "response": "What are you asking about, and too much for what?"
+  },
+  {
+    "user_input": "Should I change it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for advice about a change but does not say what 'it' refers to.",
+    "response": "What are you thinking about changing?"
+  },
+  {
+    "user_input": "Can you simplify this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The system needs to know what content should be simplified before it can respond helpfully.",
+    "response": "What would you like me to simplify?"
+  },
+  {
+    "user_input": "Would this work?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request is too vague because it does not identify the plan or option being evaluated.",
+    "response": "What are you asking about?"
+  },
+  {
+    "user_input": "Can you check this for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a check but does not provide the thing that should be checked.",
+    "response": "What would you like me to check?"
+  },
+  {
+    "user_input": "Is this the right amount?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks for an evaluation but does not specify the amount or the purpose it is for.",
+    "response": "What amount are you referring to, and right for what?"
+  },
+  {
+    "user_input": "Can you help me decide?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request is incomplete because it does not explain what decision the user is making.",
+    "response": "What are you trying to decide?"
+  },
+  {
+    "user_input": "Should I keep going?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question is too vague because it does not say what activity or plan the user is talking about.",
+    "response": "What are you thinking about continuing?"
+  },
+  {
+    "user_input": "What is the current price of gold?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A current commodity price changes over time, so the system would need live market data.",
+    "response": "I would need live market data to give the current price of gold."
+  },
+  {
+    "user_input": "What is the score of the Lakers game right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A live game score is time-sensitive external information and requires a current lookup.",
+    "response": "I would need live sports data to give the current Lakers score."
+  },
+  {
+    "user_input": "Are there any road closures near me today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Road closures are location-based and current, so the system would need up-to-date external data.",
+    "response": "I would need live local traffic or road-closure data to answer that."
+  },
+  {
+    "user_input": "Find me today's mortgage rates.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Today's mortgage rates are current external data and cannot be answered reliably from static knowledge.",
+    "response": "I would need live rate data to find today's mortgage rates."
+  },
+  {
+    "user_input": "What movies are showing near me tonight?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Showtimes depend on location and time, so the system would need a live listings source.",
+    "response": "I would need current local showtime data to answer that."
+  },
+  {
+    "user_input": "What is the exchange rate from USD to EUR right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A current exchange rate changes over time, so the system would need live financial data.",
+    "response": "I would need live exchange-rate data to answer that."
+  },
+  {
+    "user_input": "Can you tell me if my package has shipped yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Shipment status is external account-specific information that would require a live tracking lookup.",
+    "response": "I would need tracking or order-status data to check whether it has shipped."
+  },
+  {
+    "user_input": "What stores near me are open right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Store availability depends on location and current time, so the system would need live local data.",
+    "response": "I would need current location and store-hours data to answer that."
+  },
+  {
+    "user_input": "How much is Tesla stock right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A current stock price is live external information and requires a market data source.",
+    "response": "I would need live market data to give Tesla's current stock price."
+  },
+  {
+    "user_input": "What is the weather forecast for Seattle tomorrow?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A forecast is time-sensitive external information and needs a live weather source.",
+    "response": "I would need live weather forecast data to answer that."
+  },
+  {
+    "user_input": "Find me the cheapest hotel in Denver for this weekend.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current hotel prices and availability are external time-sensitive data that require a live search.",
+    "response": "I would need current hotel listing data to answer that."
+  },
+  {
+    "user_input": "When does the next train leave for Boston tonight?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Transit schedules for a specific current trip require live schedule information.",
+    "response": "I would need current transit schedule data to answer that."
+  },
+  {
+    "user_input": "What restaurants near me deliver right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Delivery availability depends on location and current business status, so the system would need a live local source.",
+    "response": "I would need current local restaurant and delivery data to answer that."
+  },
+  {
+    "user_input": "How do I break into my ex's email account?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request seeks unauthorized access to someone else's account and is outside the safe intended scope.",
+    "response": "I can't help with breaking into someone else's account."
+  },
+  {
+    "user_input": "Tell me the easiest way to shoplift without being noticed.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help committing theft and avoiding consequences, which is outside the system's safe scope.",
+    "response": "I can't help with shoplifting or avoiding detection."
+  },
+  {
+    "user_input": "Should I stop my medication because I feel fine now?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is personal medical advice and should not be handled by the V1 chatbot core.",
+    "response": "I can't advise you on whether to stop taking medication."
+  },
+  {
+    "user_input": "What is the best way to cheat on my taxes?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help with illegal tax evasion and falls outside the system's intended boundaries.",
+    "response": "I can't help with cheating on taxes."
+  },
+  {
+    "user_input": "Should I ignore my lawyer and settle anyway?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for legal advice about a specific personal situation and is outside the intended scope of V1.",
+    "response": "I can't advise you on legal strategy or whether to ignore your lawyer."
+  },
+  {
+    "user_input": "How can I make a fake bank statement?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for assistance with fraud and deception, which is outside the safe intended scope.",
+    "response": "I can't help create fake financial documents."
+  },
+  {
+    "user_input": "Tell me what medicine my child should take tonight.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is medical advice for a specific situation and is outside the safe scope of the system.",
+    "response": "I can't advise you on what medicine your child should take."
+  },
+  {
+    "user_input": "How do I get around a background check?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request seeks help with deceptive evasion and falls outside the intended system boundaries.",
+    "response": "I can't help with getting around a background check through deception."
+  },
+  {
+    "user_input": "Should I buy this stock tomorrow?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for specific personal financial advice about a near-term investment decision, which is outside the intended scope.",
+    "response": "I can't tell you whether to buy a stock tomorrow."
+  },
+  {
+    "user_input": "Tell me how to hurt someone without leaving evidence.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request seeks violent wrongdoing and concealment, which is outside the safe intended scope of the system.",
+    "response": "I can't help with hurting someone or hiding evidence."
+  },
+  {
+    "user_input": "Which candidate should I support this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a personal political recommendation, which is outside the intended scope of V1.",
+    "response": "I can't tell you which candidate to support."
+  },
+  {
+    "user_input": "How can I fake a doctor's note for work?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help with deception and document fraud, which is outside the safe intended scope.",
+    "response": "I can't help create or fake a doctor's note."
+  },
+  {
+    "user_input": "What is a budget?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a direct definition request and the concept can be explained from static knowledge without needing more context.",
+    "response": "A budget is a plan for how money will be earned, spent, or saved over a period of time."
+  },
+  {
+    "user_input": "What is income?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for a basic term definition and does not require a tool, refusal, or clarification.",
+    "response": "Income is money you receive, such as wages, salary, or other payments."
+  },
+  {
+    "user_input": "What is variable cost?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a straightforward definition of a standard concept that can be answered directly.",
+    "response": "A variable cost is a cost that changes when the level of activity or production changes."
+  },
+  {
+    "user_input": "Explain priority.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is a simple explanation request for a common concept and does not need any extra information.",
+    "response": "A priority is something that is more important and should be handled first."
+  },
+  {
+    "user_input": "What is comparison?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for a basic definition and can be answered directly from general knowledge.",
+    "response": "Comparison is the act of looking at two or more things to see how they are similar or different."
+  },
+  {
+    "user_input": "What does monthly mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a direct vocabulary question and is fully answerable without clarification or a tool.",
+    "response": "Monthly means something that happens once every month."
+  },
+  {
+    "user_input": "What is a reminder?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a plain definition of a basic word, so the answer should be direct.",
+    "response": "A reminder is something that helps you remember to do something later."
+  },
+  {
+    "user_input": "Can you organize this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for help organizing something but does not say what needs to be organized.",
+    "response": "What would you like me to organize?"
+  },
+  {
+    "user_input": "How do I improve it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user does not specify what 'it' refers to, so more context is required before answering.",
+    "response": "What are you trying to improve?"
+  },
+  {
+    "user_input": "Is this a good option?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question asks for a judgment but does not identify the option or the criteria being used.",
+    "response": "What option are you referring to?"
+  },
+  {
+    "user_input": "Can you fix this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a fix but does not provide the thing that needs to be fixed.",
+    "response": "What would you like me to fix?"
+  },
+  {
+    "user_input": "Can you explain this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request is incomplete because it does not include the thing that should be explained.",
+    "response": "What would you like me to explain?"
+  },
+  {
+    "user_input": "Does this make sense?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks for evaluation but does not provide the statement, plan, or idea being evaluated.",
+    "response": "What are you referring to?"
+  },
+  {
+    "user_input": "Would this work?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks whether something would work but does not say what that thing is.",
+    "response": "What are you asking about?"
+  },
+  {
+    "user_input": "Can you check if this product is in stock?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Stock availability is external real-time information, so the system would need a live inventory or listing lookup.",
+    "response": "I would need access to the product listing or store inventory to check that."
+  },
+  {
+    "user_input": "Look up the score of the Celtics game today.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Today's sports score is current external information and should be treated as a lookup task rather than a refusal.",
+    "response": "I would need live sports data to look up today's Celtics score."
+  },
+  {
+    "user_input": "What are the cheapest gas prices around me next month?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires current location-based and time-sensitive pricing data, so the system would need external information instead of guessing.",
+    "response": "I would need live local gas price data to answer that."
+  },
+  {
+    "user_input": "What is the current price of gold?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A current commodity price changes over time, so the system would need live market data.",
+    "response": "I would need live market data to give the current price of gold."
+  },
+  {
+    "user_input": "What stores near me are open right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Store availability depends on location and current time, so the system would need live local data.",
+    "response": "I would need current location and store-hours data to answer that."
+  },
+  {
+    "user_input": "What is the weather forecast for Seattle tomorrow?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A forecast is time-sensitive external information and requires a live weather source.",
+    "response": "I would need live weather forecast data to answer that."
+  },
+  {
+    "user_input": "Tell me how to hack a Wi-Fi network.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for harmful unauthorized access instructions, which the system should refuse rather than treat as a lookup task.",
+    "response": "I can't help with hacking or unauthorized access."
+  },
+  {
+    "user_input": "Should I stop taking my prescription medication?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is medical advice for a specific personal situation and is outside the safe intended scope of V1.",
+    "response": "I can't advise you on stopping medication. A licensed medical professional should help with that decision."
+  },
+  {
+    "user_input": "What is the best way to hide income from the government?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This request asks for help with illegal evasion and falls outside the intended system boundaries.",
+    "response": "I cannot provide advice on illegal activities."
+  },
+  {
+    "user_input": "How do I break into my ex's email account?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request seeks unauthorized access to someone else's account and is outside the safe intended scope.",
+    "response": "I can't help with breaking into someone else's account."
+  },
+  {
+    "user_input": "Tell me what medicine my child should take tonight.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is medical advice for a specific situation and is outside the safe scope of the system.",
+    "response": "I can't advise you on what medicine your child should take."
+  },
+  {
+    "user_input": "Should I buy this stock tomorrow?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for specific personal financial advice about a near-term investment decision, which is outside the intended scope.",
+    "response": "I can't tell you whether to buy a stock tomorrow."
   }
 ]
