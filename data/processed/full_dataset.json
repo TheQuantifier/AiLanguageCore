@@ -975,10 +975,10 @@
     "id": "v1-0118",
     "user_input": "What is comparison?",
     "response_type": "DIRECT_ANSWER",
-    "reason": "The prompt asks for a basic definition and can be answered directly from general knowledge.",
+    "reason": "The prompt asks for a basic definition and does not need clarification, a tool, or refusal.",
     "response": "Comparison is the act of looking at two or more things to see how they are similar or different.",
     "source": "seed",
-    "quality_score": 2280
+    "quality_score": 2283
   },
   {
     "id": "v1-0119",
@@ -1137,10 +1137,10 @@
     "id": "v1-0139",
     "user_input": "What stores near me are open right now?",
     "response_type": "TOOL_NEEDED",
-    "reason": "Store availability depends on location and current time, so the system would need live local data.",
+    "reason": "Store availability depends on live location and time data, so the system would need an external source.",
     "response": "I would need current location and store-hours data to answer that.",
     "source": "seed",
-    "quality_score": 2274
+    "quality_score": 2282
   },
   {
     "id": "v1-0140",
