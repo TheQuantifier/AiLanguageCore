@@ -6,3 +6,5 @@ __pycache__/
 models/runs/*/checkpoint-*/
 models/runs/*/train_stdout.log
 models/runs/*/train_stderr.log
+models/runs/*/debug_run.log
+models/runs/*-*/
