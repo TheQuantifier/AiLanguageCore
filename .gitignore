@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 .python/
 .env
+.cache/
+models/runs/*/checkpoint-*/
+models/runs/*/train_stdout.log
+models/runs/*/train_stderr.log
