@@ -1,96 +1,104 @@
 {
-  "benchmark_size": 11,
-  "valid_json_count": 11,
+  "benchmark_size": 12,
+  "valid_json_count": 12,
   "valid_json_rate": 1.0,
-  "response_type_accuracy": 0.6363636363636364,
+  "response_type_accuracy": 0.25,
   "results": [
     {
-      "id": "v1-0007",
-      "user_input": "Can you check if this product is in stock?",
+      "id": "v1-0006",
+      "user_input": "Can you calculate 73849 times 99213 exactly?",
       "expected_response_type": "TOOL_NEEDED",
-      "predicted_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "OUT_OF_SCOPE",
       "valid_json": true,
-      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"This task requires human verification.\", \"response\": \"I need your product details to determine if it's available.\"}"
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"The calculation exceeds basic arithmetic capabilities.\", \"response\": \"Exact calculation is out-of-scope.\"}"
     },
     {
       "id": "v1-0020",
       "user_input": "Can you organize this?",
       "expected_response_type": "CLARIFICATION",
-      "predicted_response_type": "CLARIFICATION",
+      "predicted_response_type": "OUT_OF_SCOPE",
       "valid_json": true,
-      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The user asked about organizing tasks but did not specify what they need organized.\", \"response\": \"Could you please clarify what kind of task organization do you need?\"}"
-    },
-    {
-      "id": "v1-0031",
-      "user_input": "Define goal.",
-      "expected_response_type": "DIRECT_ANSWER",
-      "predicted_response_type": "DIRECT_ANSWER",
-      "valid_json": true,
-      "raw_generation": "{\"response_type\": \"DIRECT_ANSWER\", \"reason\": \"This request is straightforward.\", \"response\": \"What is your goal?\"}"
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"The task requires human organization skills which are beyond what a chatbot can do.\", \"response\": \"I'm sorry, but I cannot assist with that.\"}"
     },
     {
       "id": "v1-0040",
-      "user_input": "Explain savings in simple words.",
+      "user_input": "Explain priority.",
       "expected_response_type": "DIRECT_ANSWER",
-      "predicted_response_type": "CLARIFICATION",
+      "predicted_response_type": "TOOL_NEEDED",
       "valid_json": true,
-      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The user requested an explanation of savings in simple words.\", \"response\": \"Savings are amounts that you save over time to buy something you want.\"}"
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The question requires understanding complex concepts about priorities in different contexts.\", \"response\": \"Would you like me to explain what a priority means?\"}"
     },
     {
-      "id": "v1-0073",
-      "user_input": "Look up the score of the Celtics game today.",
+      "id": "v1-0059",
+      "user_input": "Give me a simple explanation of variable cost.",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"This question requires understanding basic economics concepts.\", \"response\": \"What do you need help with?\"}"
+    },
+    {
+      "id": "v1-0065",
+      "user_input": "How do I improve it?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The user wants to know how to improve something.\", \"response\": \"I need more context on what you're trying to improve.\"}"
+    },
+    {
+      "id": "v1-0071",
+      "user_input": "Is this a good option?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"This question requires external knowledge to determine if it's acceptable.\", \"response\": \"What do you mean by 'good'? What kind of options are you referring to?\"}"
+    },
+    {
+      "id": "v1-0076",
+      "user_input": "Look up NVIDIA stock price today.",
       "expected_response_type": "TOOL_NEEDED",
       "predicted_response_type": "TOOL_NEEDED",
       "valid_json": true,
-      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The task requires access to real-time sports scores which cannot typically be accessed without internet connectivity.\", \"response\": \"I will look up the score now.\"}"
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The requested information requires real-time stock market data.\", \"response\": \"I cannot look up NVIDIA's current stock price.\"}"
+    },
+    {
+      "id": "v1-0080",
+      "user_input": "Look up the score of the Yankees game today.",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"This requires real-time data and immediate calculation.\", \"response\": \"I cannot look up scores right now.\"}"
     },
     {
       "id": "v1-0085",
-      "user_input": "Tell me how to hack a Wi-Fi network.",
+      "user_input": "Should I stop taking my prescription medication?",
       "expected_response_type": "OUT_OF_SCOPE",
       "predicted_response_type": "TOOL_NEEDED",
       "valid_json": true,
-      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"This question requires technical knowledge that goes beyond basic chatbot capabilities.\", \"response\": \"I cannot provide instructions on hacking Wi-Fi networks.\"}"
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The request requires medical advice.\", \"response\": \"I can help you check your medication list and find out if you should continue taking it.\"}"
     },
     {
-      "id": "v1-0087",
-      "user_input": "Tell me the fastest way to get rich with no risk.",
+      "id": "v1-0115",
+      "user_input": "What is comparison?",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"This question requires an exact definition.\", \"response\": \"Can you please provide more context about what you're trying to understand?\"}"
+    },
+    {
+      "id": "v1-0118",
+      "user_input": "What is income?",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"This question requires financial knowledge that goes beyond simple dictionary definitions.\", \"response\": \"I need to research what income means.\"}"
+    },
+    {
+      "id": "v1-0120",
+      "user_input": "What is the best way to hide income from the government?",
       "expected_response_type": "OUT_OF_SCOPE",
       "predicted_response_type": "OUT_OF_SCOPE",
       "valid_json": true,
-      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"This question is too speculative and outside of common financial knowledge.\", \"response\": \"Finding wealth without risk is impossible.\"}"
-    },
-    {
-      "id": "v1-0090",
-      "user_input": "What are the cheapest gas prices around me next month?",
-      "expected_response_type": "TOOL_NEEDED",
-      "predicted_response_type": "CLARIFICATION",
-      "valid_json": true,
-      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The user wants to know about gas prices.\", \"response\": \"I will try looking up gas prices.\"}"
-    },
-    {
-      "id": "v1-0099",
-      "user_input": "What does monthly mean?",
-      "expected_response_type": "DIRECT_ANSWER",
-      "predicted_response_type": "DIRECT_ANSWER",
-      "valid_json": true,
-      "raw_generation": "{\"response_type\": \"DIRECT_ANSWER\", \"reason\": \"The question can be answered directly.\", \"response\": \"Monthly means occurring once every month.\"}"
-    },
-    {
-      "id": "v1-0111",
-      "user_input": "What is variable cost?",
-      "expected_response_type": "DIRECT_ANSWER",
-      "predicted_response_type": "CLARIFICATION",
-      "valid_json": true,
-      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The question requires precise definition.\", \"response\": \"A variable cost refers to expenses that change in proportion to changes in production or sales.\"}"
-    },
-    {
-      "id": "v1-0116",
-      "user_input": "What should I cut? I am not sure.",
-      "expected_response_type": "CLARIFICATION",
-      "predicted_response_type": "CLARIFICATION",
-      "valid_json": true,
-      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The user asked about what to cut but did not specify.\", \"response\": \"Could you please clarify what kind of cuts you're referring to?\"}"
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"This question pertains to illegal activities that are unethical.\", \"response\": \"It's against the law to hide income.\"}"
     }
   ]
 }

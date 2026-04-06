@@ -1,10 +1,61 @@
 {
-  "seed_records": 56,
+  "seed_records": 98,
   "generated_records": 99,
+  "fixed_benchmark_records": 12,
   "invalid_records_removed": 4,
-  "duplicates_found": 14,
+  "duplicates_found": 31,
   "near_duplicates_found": 21,
   "duplicate_resolution_events": [
+    {
+      "user_input": "Can you compare them?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you organize this?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What should I cut?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you break this down for me?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Should I wait?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is this enough?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can I afford it?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you check if this product is in stock?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Should I stop taking my medication?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What time does the nearest pharmacy close tonight?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
     {
       "user_input": "Explain budget in simple words.",
       "resolution": "kept_existing_higher_quality_record",
@@ -31,7 +82,22 @@
       "kept_source": "generated"
     },
     {
+      "user_input": "Tell me how to hack a Wi-Fi network.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
       "user_input": "What is the best option for me?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is comparison?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What are the cheapest gas prices around me next month?",
       "resolution": "kept_existing_higher_quality_record",
       "kept_source": "seed"
     },
@@ -54,6 +120,11 @@
       "user_input": "Can you explain that for me?",
       "resolution": "retained_clarification_variant",
       "kept_source": "generated"
+    },
+    {
+      "user_input": "What is variable cost?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
     },
     {
       "user_input": "Can you define goal?",
@@ -87,6 +158,11 @@
     },
     {
       "user_input": "Can you guarantee which stock will double this year?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Explain savings in simple words.",
       "resolution": "kept_existing_higher_quality_record",
       "kept_source": "seed"
     },
@@ -166,7 +242,17 @@
       "kept_source": "seed"
     },
     {
+      "user_input": "Look up the score of the Celtics game today.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
       "user_input": "What deals are available for laptops today?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Find me an apartment under $1500 in Dallas.",
       "resolution": "kept_existing_higher_quality_record",
       "kept_source": "seed"
     },
@@ -181,14 +267,14 @@
       "kept_source": "generated"
     }
   ],
-  "full_dataset_records": 126,
-  "train_records": 104,
-  "validation_records": 11,
-  "benchmark_records": 11,
+  "full_dataset_records": 151,
+  "train_records": 123,
+  "validation_records": 12,
+  "benchmark_records": 12,
   "response_type_counts": {
-    "CLARIFICATION": 29,
-    "DIRECT_ANSWER": 41,
-    "OUT_OF_SCOPE": 20,
-    "TOOL_NEEDED": 36
+    "CLARIFICATION": 34,
+    "DIRECT_ANSWER": 50,
+    "OUT_OF_SCOPE": 27,
+    "TOOL_NEEDED": 40
   }
 }

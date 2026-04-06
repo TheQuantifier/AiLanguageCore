@@ -49,6 +49,7 @@ OUTPUT_TRAIN = Path("data/processed/train.json")
 OUTPUT_VALIDATION = Path("data/processed/validation.json")
 OUTPUT_BENCHMARK = Path("data/processed/benchmark.json")
 OUTPUT_REPORT = Path("data/processed/preparation_report.json")
+OUTPUT_FIXED_BENCHMARK = Path("data/raw/v1_fixed_benchmark.json")
 
 
 def parse_args() -> argparse.Namespace:
@@ -66,6 +67,12 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("data/raw/generated_dataset.json"),
         help="Path to the generated dataset.",
+    )
+    parser.add_argument(
+        "--fixed-benchmark",
+        type=Path,
+        default=OUTPUT_FIXED_BENCHMARK,
+        help="Path to the fixed benchmark dataset that must be excluded from train and validation.",
     )
     parser.add_argument(
         "--full-output",
@@ -314,11 +321,13 @@ def main() -> int:
 
     seed_records = load_json_array(args.seed)
     generated_records = load_json_array(args.generated)
+    fixed_benchmark_records = load_json_array(args.fixed_benchmark)
 
     merged: dict[str, list[dict]] = {}
     report = {
         "seed_records": len(seed_records),
         "generated_records": len(generated_records),
+        "fixed_benchmark_records": len(fixed_benchmark_records),
         "invalid_records_removed": 0,
         "duplicates_found": 0,
         "near_duplicates_found": 0,
@@ -410,22 +419,51 @@ def main() -> int:
         record["quality_score"] = score_record(record, 2 if record["source"] == "seed" else 1)
         cleaned_records.append(reorder_record(record))
 
-    train_records, validation_records, benchmark_records = stratified_split(
-        cleaned_records,
+    fixed_benchmark_normalized = []
+    fixed_benchmark_keys = set()
+    for raw_record in fixed_benchmark_records:
+        normalized = normalize_record(raw_record, "benchmark")
+        errors = validate_normalized_record({**normalized, "source": "seed"})
+        if errors:
+            raise ValueError(f"Invalid fixed benchmark record for '{normalized['user_input']}': {errors}")
+        fixed_benchmark_keys.add(normalized_key(normalized["user_input"]))
+        fixed_benchmark_normalized.append(normalized)
+
+    benchmark_records = []
+    for index, record in enumerate(
+        sorted(fixed_benchmark_normalized, key=lambda item: item["user_input"].lower()), start=1
+    ):
+        prepared = {
+            "id": f"benchmark-{index:04d}",
+            "user_input": record["user_input"],
+            "response_type": record["response_type"],
+            "reason": record["reason"],
+            "response": record["response"],
+            "source": "benchmark",
+            "quality_score": score_record({**record, "source": "seed"}, 2),
+        }
+        benchmark_records.append(reorder_record(prepared))
+
+    train_validation_pool = [
+        record for record in cleaned_records if normalized_key(record["user_input"]) not in fixed_benchmark_keys
+    ]
+
+    train_records, validation_records, _unused_benchmark = stratified_split(
+        train_validation_pool,
         validation_ratio=args.validation_ratio,
-        benchmark_ratio=args.benchmark_ratio,
+        benchmark_ratio=0.0,
         seed_random=args.seed_random,
     )
 
-    report["full_dataset_records"] = len(cleaned_records)
+    report["full_dataset_records"] = len(train_validation_pool) + len(benchmark_records)
     report["train_records"] = len(train_records)
     report["validation_records"] = len(validation_records)
     report["benchmark_records"] = len(benchmark_records)
     report["response_type_counts"] = dict(
-        sorted(Counter(record["response_type"] for record in cleaned_records).items())
+        sorted(Counter(record["response_type"] for record in (train_validation_pool + benchmark_records)).items())
     )
 
-    write_json(args.full_output, cleaned_records)
+    write_json(args.full_output, train_validation_pool + benchmark_records)
     write_json(args.train_output, train_records)
     write_json(args.validation_output, validation_records)
     write_json(args.benchmark_output, benchmark_records)

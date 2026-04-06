@@ -1,15 +1,24 @@
 [
   {
-    "id": "v1-0032",
-    "user_input": "Define monthly expense.",
-    "response_type": "DIRECT_ANSWER",
-    "reason": "The prompt is complete and answerable without any external lookup.",
-    "response": "A monthly expense is a cost that occurs regularly each month.",
-    "source": "generated",
-    "quality_score": 1189
+    "id": "v1-0020",
+    "user_input": "Can you make this better?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request does not identify what 'this' refers to, so the system needs more context.",
+    "response": "What would you like me to improve?",
+    "source": "seed",
+    "quality_score": 2219
   },
   {
-    "id": "v1-0038",
+    "id": "v1-0024",
+    "user_input": "Can you sort this out?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for help but does not explain what needs to be sorted out.",
+    "response": "What would you like me to sort out?",
+    "source": "seed",
+    "quality_score": 2208
+  },
+  {
+    "id": "v1-0043",
     "user_input": "Explain priority in simple words.",
     "response_type": "DIRECT_ANSWER",
     "reason": "The prompt is complete and answerable without any external lookup.",
@@ -18,25 +27,16 @@
     "quality_score": 1257
   },
   {
-    "id": "v1-0046",
-    "user_input": "Find me an apartment under $1800 in Denver.",
-    "response_type": "TOOL_NEEDED",
-    "reason": "This requires live listings and location-based search.",
-    "response": "I would need a housing search tool to look up current apartment listings in Denver.",
-    "source": "seed",
-    "quality_score": 2228
-  },
-  {
-    "id": "v1-0056",
-    "user_input": "Give me a simple explanation of short-term goal.",
+    "id": "v1-0064",
+    "user_input": "Give me a simple explanation of variable cost.",
     "response_type": "DIRECT_ANSWER",
-    "reason": "The prompt is complete and answerable without any external lookup.",
-    "response": "A short-term goal is an objective you plan to achieve in the near future, typically within a year.",
+    "reason": "The prompt is a straightforward request for a definition that can be answered from static knowledge.",
+    "response": "A variable cost is an expense that changes in proportion to how much a company produces or sells. For example, the cost of raw materials for each product made is a variable cost.",
     "source": "generated",
-    "quality_score": 1240
+    "quality_score": 1402
   },
   {
-    "id": "v1-0058",
+    "id": "v1-0065",
     "user_input": "Help me choose.",
     "response_type": "CLARIFICATION",
     "reason": "The request is incomplete because the options are not provided.",
@@ -45,57 +45,66 @@
     "quality_score": 2173
   },
   {
-    "id": "v1-0059",
-    "user_input": "Help me choose?",
-    "response_type": "CLARIFICATION",
-    "reason": "The prompt is incomplete and ambiguous, as it does not specify what the user needs help choosing between.",
-    "response": "What options are you trying to choose between?",
-    "source": "generated",
-    "quality_score": 1261
-  },
-  {
-    "id": "v1-0080",
-    "user_input": "Should I stop taking my prescription medication?",
-    "response_type": "OUT_OF_SCOPE",
-    "reason": "This is medical advice and is outside the safe scope of the V1 chatbot core.",
-    "response": "I can't advise you on stopping medication. A licensed medical professional should help with that decision.",
-    "source": "generated",
-    "quality_score": 1269
-  },
-  {
-    "id": "v1-0082",
-    "user_input": "Should I sue my landlord?",
-    "response_type": "OUT_OF_SCOPE",
-    "reason": "This asks for legal advice, which is outside the intended scope of V1.",
-    "response": "I can't give legal advice on whether you should sue your landlord.",
+    "id": "v1-0081",
+    "user_input": "Look up Apple stock price today.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A current stock price requires live market data.",
+    "response": "I would need a financial data tool to look up Apple's current stock price.",
     "source": "seed",
-    "quality_score": 2209
+    "quality_score": 2214
   },
   {
-    "id": "v1-0095",
-    "user_input": "What does compare mean?",
+    "id": "v1-0085",
+    "user_input": "Look up the score of the Cowboys game today.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires live, current sports scores, which cannot be answered from static knowledge.",
+    "response": "I would need a tool to look up the current score of the Cowboys game.",
+    "source": "generated",
+    "quality_score": 1268
+  },
+  {
+    "id": "v1-0094",
+    "user_input": "Should I sue my employer?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is legal advice and is outside the safe scope of the V1 chatbot core.",
+    "response": "I cannot provide legal advice. You should consult with a qualified legal professional for such matters.",
+    "source": "generated",
+    "quality_score": 1264
+  },
+  {
+    "id": "v1-0104",
+    "user_input": "Tell me who to vote for in the next election.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a personal political recommendation, which is outside the intended scope of V1.",
+    "response": "I can't tell you who to vote for.",
+    "source": "seed",
+    "quality_score": 2207
+  },
+  {
+    "id": "v1-0122",
+    "user_input": "What is a deadline?",
     "response_type": "DIRECT_ANSWER",
-    "reason": "This is a direct vocabulary question that does not require more context.",
-    "response": "Compare means to look at two or more things to see how they are similar or different.",
+    "reason": "The user asks for a simple concept definition and the request is fully specified.",
+    "response": "A deadline is the date or time by which something must be finished.",
     "source": "seed",
-    "quality_score": 2237
+    "quality_score": 2226
   },
   {
-    "id": "v1-0118",
-    "user_input": "What time does the nearest bank branch close right now?",
-    "response_type": "TOOL_NEEDED",
-    "reason": "This requires live, location-aware business hours, which cannot be answered from static knowledge.",
-    "response": "I would need a search or mapping tool to find the nearest bank branch and its current closing time.",
-    "source": "generated",
-    "quality_score": 1314
+    "id": "v1-0123",
+    "user_input": "What is a plan?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a simple concept question with enough context to answer directly.",
+    "response": "A plan is a set of steps or decisions made in advance to reach a result.",
+    "source": "seed",
+    "quality_score": 2223
   },
   {
-    "id": "v1-0119",
-    "user_input": "What time does the nearest pharmacy close tonight?",
+    "id": "v1-0137",
+    "user_input": "What restaurants are open near me?",
     "response_type": "TOOL_NEEDED",
-    "reason": "This depends on the user's location and current business hours.",
-    "response": "I would need location and business-hours lookup tools to answer that.",
+    "reason": "This requires location-aware, real-time business information.",
+    "response": "I would need location and business listing tools to find restaurants that are open near you.",
     "source": "seed",
-    "quality_score": 2224
+    "quality_score": 2243
   }
 ]
