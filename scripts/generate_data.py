@@ -21,9 +21,11 @@ DEFAULT_OUTPUT = Path("data/raw/generated_dataset.json")
 DEFAULT_SEED = Path("data/raw/v1_seed_dataset.json")
 DEFAULT_PROMPT_TEMPLATE = Path("prompts/teacher_generation_prompt_v1.md")
 DEFAULT_ENV_FILE = Path(".env")
+DEFAULT_FAILED_RESPONSES_DIR = Path("data/raw/failed_responses")
 DEFAULT_MODEL = "gemini-2.5-flash"
 DEFAULT_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
-DEFAULT_BATCH_SIZE = 50
+DEFAULT_BATCH_SIZE = 100
+TOKENS_PER_RECORD_ESTIMATE = 120
 
 DIRECT_ANSWER_TOPICS = [
     "budget",
@@ -235,6 +237,12 @@ def parse_args() -> argparse.Namespace:
         help="Path to a local .env file with TEACHER_* variables.",
     )
     parser.add_argument(
+        "--failed-responses-dir",
+        type=Path,
+        default=DEFAULT_FAILED_RESPONSES_DIR,
+        help="Directory where raw failed model responses will be written for inspection.",
+    )
+    parser.add_argument(
         "--few-shot-count",
         type=int,
         default=6,
@@ -264,8 +272,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-output-tokens",
         type=int,
-        default=250,
-        help="Max completion tokens sent to the teacher model.",
+        default=0,
+        help="Max completion tokens sent to the teacher model. Use 0 to omit the limit and let the API decide.",
     )
     parser.add_argument(
         "--request-delay",
@@ -276,8 +284,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-retries",
         type=int,
-        default=5,
-        help="Maximum retries for retryable API failures such as rate limits.",
+        default=0,
+        help="Maximum retries for retryable API failures such as rate limits. Default is 0 for low daily quota use.",
     )
     parser.add_argument(
         "--retry-backoff-seconds",
@@ -405,20 +413,33 @@ def render_teacher_messages(
     prompt_template: str, few_shot_examples: list[dict], user_inputs: list[str]
 ) -> list[dict]:
     examples_json = json.dumps(few_shot_examples, indent=2, ensure_ascii=True)
-    user_inputs_json = json.dumps(user_inputs, indent=2, ensure_ascii=True)
-    user_message = (
-        "Use the style and logic of these examples as the standard.\n\n"
-        f"Few-shot examples:\n{examples_json}\n\n"
-        "Classify every input independently.\n"
-        "Return exactly one JSON array containing one object per input, in the same order.\n\n"
-        f"User inputs:\n{user_inputs_json}\n\n"
-        "Each array item must have exactly these fields:\n"
-        "- user_input\n"
-        "- response_type\n"
-        "- reason\n"
-        "- response\n\n"
-        "Return the JSON array only."
-    )
+    if len(user_inputs) == 1:
+        user_message = (
+            "Use the style and logic of these examples as the standard.\n\n"
+            f"Few-shot examples:\n{examples_json}\n\n"
+            f"User input:\n{user_inputs[0]}\n\n"
+            "Return exactly one JSON object with these fields:\n"
+            "- user_input\n"
+            "- response_type\n"
+            "- reason\n"
+            "- response\n\n"
+            "Return the JSON object only."
+        )
+    else:
+        user_inputs_json = json.dumps(user_inputs, indent=2, ensure_ascii=True)
+        user_message = (
+            "Use the style and logic of these examples as the standard.\n\n"
+            f"Few-shot examples:\n{examples_json}\n\n"
+            "Classify every input independently.\n"
+            "Return exactly one JSON array containing one object per input, in the same order.\n\n"
+            f"User inputs:\n{user_inputs_json}\n\n"
+            "Each array item must have exactly these fields:\n"
+            "- user_input\n"
+            "- response_type\n"
+            "- reason\n"
+            "- response\n\n"
+            "Return the JSON array only."
+        )
     return [
         {"role": "system", "content": prompt_template},
         {"role": "user", "content": user_message},
@@ -435,6 +456,67 @@ def strip_code_fences(text: str) -> str:
             lines = lines[:-1]
         cleaned = "\n".join(lines).strip()
     return cleaned
+
+
+def extract_json_value(text: str) -> str:
+    cleaned = strip_code_fences(text)
+    if not cleaned:
+        raise ValueError("Model returned empty content")
+
+    decoder = json.JSONDecoder()
+    first_non_space = None
+    for index, char in enumerate(cleaned):
+        if char in "[{":
+            first_non_space = index
+            break
+        if not char.isspace():
+            continue
+
+    candidate_starts = []
+    if first_non_space is not None:
+        candidate_starts.append(first_non_space)
+
+    candidate_starts.extend(
+        index for index, char in enumerate(cleaned) if char in "[{"
+    )
+
+    seen = set()
+    ordered_starts = []
+    for index in candidate_starts:
+        if index not in seen:
+            ordered_starts.append(index)
+            seen.add(index)
+
+    for start in ordered_starts:
+        try:
+            _, end = decoder.raw_decode(cleaned[start:])
+            return cleaned[start : start + end]
+        except json.JSONDecodeError:
+            continue
+
+    raise ValueError("Could not extract JSON value from model response")
+
+
+def save_failed_response(
+    directory: Path,
+    batch_index: int,
+    prompts: list[str],
+    raw_content: str,
+    response_body: str,
+) -> Path:
+    directory.mkdir(parents=True, exist_ok=True)
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    path = directory / f"batch_{batch_index:03d}_{timestamp}.json"
+    payload = {
+        "batch_index": batch_index,
+        "prompts": prompts,
+        "raw_content": raw_content,
+        "response_body": response_body,
+    }
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, ensure_ascii=True)
+        handle.write("\n")
+    return path
 
 
 def validate_record(record: dict, expected_user_input: str) -> dict:
@@ -468,6 +550,9 @@ def validate_record(record: dict, expected_user_input: str) -> dict:
 
 
 def validate_batch_records(records: object, expected_user_inputs: list[str]) -> list[dict]:
+    if len(expected_user_inputs) == 1 and isinstance(records, dict):
+        return [validate_record(records, expected_user_inputs[0])]
+
     if not isinstance(records, list):
         raise ValueError("Teacher response must be a JSON array")
 
@@ -485,6 +570,20 @@ def validate_batch_records(records: object, expected_user_inputs: list[str]) -> 
     return clean_records
 
 
+def extract_message_content(message_content: object) -> str:
+    if isinstance(message_content, str):
+        return message_content
+    if isinstance(message_content, list):
+        text_parts = []
+        for item in message_content:
+            if isinstance(item, dict) and item.get("type") == "text":
+                text_value = item.get("text")
+                if isinstance(text_value, str):
+                    text_parts.append(text_value)
+        return "\n".join(text_parts).strip()
+    return ""
+
+
 def call_teacher_model(
     api_base_url: str,
     api_key: str,
@@ -492,15 +591,18 @@ def call_teacher_model(
     messages: list[dict],
     temperature: float,
     max_output_tokens: int,
+    expect_array: bool,
 ) -> dict:
     url = api_base_url.rstrip("/") + "/chat/completions"
     payload = {
         "model": model,
         "messages": messages,
         "temperature": temperature,
-        "max_tokens": max_output_tokens,
-        "response_format": {"type": "json_object"},
     }
+    if max_output_tokens and max_output_tokens > 0:
+        payload["max_tokens"] = max_output_tokens
+    if not expect_array:
+        payload["response_format"] = {"type": "json_object"}
     request = urllib.request.Request(
         url,
         data=json.dumps(payload).encode("utf-8"),
@@ -515,10 +617,13 @@ def call_teacher_model(
         body = response.read().decode("utf-8")
     data = json.loads(body)
     try:
-        content = data["choices"][0]["message"]["content"]
+        content = extract_message_content(data["choices"][0]["message"].get("content", ""))
     except (KeyError, IndexError) as exc:
         raise ValueError(f"Unexpected API response shape: {body}") from exc
-    return json.loads(strip_code_fences(content))
+    if not content.strip():
+        raise ValueError(f"Model returned empty content. Response body: {body[:1000]}")
+    extracted = extract_json_value(content)
+    return json.loads(extracted), content, body
 
 
 def is_retryable_error(exc: Exception) -> bool:
@@ -529,6 +634,76 @@ def is_retryable_error(exc: Exception) -> bool:
     if isinstance(exc, socket.timeout):
         return True
     return False
+
+
+def generate_records_for_batch(
+    batch_prompts: list[str],
+    batch_index: int,
+    batch_count: int,
+    args: argparse.Namespace,
+    prompt_template: str,
+    few_shot_examples: list[dict],
+    api_key: str,
+) -> list[dict]:
+    messages = render_teacher_messages(prompt_template, few_shot_examples, batch_prompts)
+    attempt = 0
+    raw_content = ""
+    response_body = ""
+    expect_array = len(batch_prompts) > 1
+    if args.max_output_tokens and args.max_output_tokens > 0:
+        batch_max_output_tokens = max(
+            args.max_output_tokens,
+            TOKENS_PER_RECORD_ESTIMATE * len(batch_prompts),
+        )
+    else:
+        batch_max_output_tokens = 0
+    while True:
+        try:
+            raw_records, raw_content, response_body = call_teacher_model(
+                api_base_url=args.api_base_url,
+                api_key=api_key,
+                model=args.teacher_model,
+                messages=messages,
+                temperature=args.temperature,
+                max_output_tokens=batch_max_output_tokens,
+                expect_array=expect_array,
+            )
+            clean_records = validate_batch_records(raw_records, batch_prompts)
+            for clean_record in clean_records:
+                clean_record["teacher_model"] = args.teacher_model
+                clean_record["prompt_version"] = args.prompt_template.stem
+                clean_record["date_generated"] = time.strftime("%Y-%m-%d")
+            print(
+                f"[batch {batch_index}/{batch_count}] generated {len(clean_records)} records"
+            )
+            return clean_records
+        except (ValueError, urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, socket.timeout) as exc:
+            if is_retryable_error(exc) and attempt < args.max_retries:
+                wait_seconds = args.retry_backoff_seconds * (2 ** attempt)
+                attempt += 1
+                print(
+                    f"[batch {batch_index}/{batch_count}] retrying after {wait_seconds:.1f}s :: {exc}",
+                    file=sys.stderr,
+                )
+                time.sleep(wait_seconds)
+                continue
+
+            failed_path = save_failed_response(
+                args.failed_responses_dir,
+                batch_index,
+                batch_prompts,
+                raw_content,
+                response_body,
+            )
+            print(
+                f"[batch {batch_index}/{batch_count}] saved failed raw response to {failed_path}",
+                file=sys.stderr,
+            )
+            print(
+                f"[batch {batch_index}/{batch_count}] failed for {len(batch_prompts)} prompts :: {exc}",
+                file=sys.stderr,
+            )
+            return []
 
 
 def main() -> int:
@@ -577,46 +752,19 @@ def main() -> int:
     batch_count = (len(prompts) + args.batch_size - 1) // args.batch_size
     for batch_index, batch_start in enumerate(range(0, len(prompts), args.batch_size), start=1):
         batch_prompts = prompts[batch_start : batch_start + args.batch_size]
-        messages = render_teacher_messages(prompt_template, few_shot_examples, batch_prompts)
-        attempt = 0
-        while True:
-            try:
-                raw_records = call_teacher_model(
-                    api_base_url=args.api_base_url,
-                    api_key=api_key,
-                    model=args.teacher_model,
-                    messages=messages,
-                    temperature=args.temperature,
-                    max_output_tokens=args.max_output_tokens,
-                )
-                clean_records = validate_batch_records(raw_records, batch_prompts)
-                for clean_record in clean_records:
-                    clean_record["teacher_model"] = args.teacher_model
-                    clean_record["prompt_version"] = args.prompt_template.stem
-                    clean_record["date_generated"] = time.strftime("%Y-%m-%d")
-                    generated.append(clean_record)
-                print(
-                    f"[batch {batch_index}/{batch_count}] generated {len(clean_records)} records"
-                )
-                if args.request_delay > 0:
-                    time.sleep(args.request_delay)
-                break
-            except (ValueError, urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, socket.timeout) as exc:
-                if is_retryable_error(exc) and attempt < args.max_retries:
-                    wait_seconds = args.retry_backoff_seconds * (2 ** attempt)
-                    attempt += 1
-                    print(
-                        f"[batch {batch_index}/{batch_count}] retrying after {wait_seconds:.1f}s :: {exc}",
-                        file=sys.stderr,
-                    )
-                    time.sleep(wait_seconds)
-                    continue
-
-                print(
-                    f"[batch {batch_index}/{batch_count}] failed for {len(batch_prompts)} prompts :: {exc}",
-                    file=sys.stderr,
-                )
-                break
+        generated.extend(
+            generate_records_for_batch(
+                batch_prompts,
+                batch_index,
+                batch_count,
+                args,
+                prompt_template,
+                few_shot_examples,
+                api_key,
+            )
+        )
+        if args.request_delay > 0:
+            time.sleep(args.request_delay)
 
     all_records = existing_records + generated
     save_json_array(args.output, all_records)
