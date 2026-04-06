@@ -497,6 +497,41 @@ def extract_json_value(text: str) -> str:
     raise ValueError("Could not extract JSON value from model response")
 
 
+def extract_partial_json_array_items(text: str) -> list[dict]:
+    cleaned = strip_code_fences(text)
+    if not cleaned:
+        return []
+
+    start = cleaned.find("[")
+    if start == -1:
+        return []
+
+    content = cleaned[start + 1 :]
+    decoder = json.JSONDecoder()
+    items = []
+    index = 0
+
+    while index < len(content):
+        while index < len(content) and content[index] in " \r\n\t,":
+            index += 1
+
+        if index >= len(content) or content[index] == "]":
+            break
+
+        try:
+            item, consumed = decoder.raw_decode(content[index:])
+        except json.JSONDecodeError:
+            break
+
+        if not isinstance(item, dict):
+            break
+
+        items.append(item)
+        index += consumed
+
+    return items
+
+
 def save_failed_response(
     directory: Path,
     batch_index: int,
@@ -565,6 +600,20 @@ def validate_batch_records(records: object, expected_user_inputs: list[str]) -> 
     for record, expected_user_input in zip(records, expected_user_inputs):
         if not isinstance(record, dict):
             raise ValueError("Each batch item must be a JSON object")
+        clean_records.append(validate_record(record, expected_user_input))
+
+    return clean_records
+
+
+def try_salvage_partial_batch(
+    raw_content: str, expected_user_inputs: list[str]
+) -> list[dict]:
+    partial_items = extract_partial_json_array_items(raw_content)
+    if not partial_items:
+        return []
+
+    clean_records = []
+    for record, expected_user_input in zip(partial_items, expected_user_inputs):
         clean_records.append(validate_record(record, expected_user_input))
 
     return clean_records
@@ -687,6 +736,22 @@ def generate_records_for_batch(
                 )
                 time.sleep(wait_seconds)
                 continue
+
+            if raw_content and len(batch_prompts) > 1:
+                try:
+                    salvaged_records = try_salvage_partial_batch(raw_content, batch_prompts)
+                except ValueError:
+                    salvaged_records = []
+                if salvaged_records:
+                    for clean_record in salvaged_records:
+                        clean_record["teacher_model"] = args.teacher_model
+                        clean_record["prompt_version"] = args.prompt_template.stem
+                        clean_record["date_generated"] = time.strftime("%Y-%m-%d")
+                    print(
+                        f"[batch {batch_index}/{batch_count}] salvaged {len(salvaged_records)} records from partial batch output",
+                        file=sys.stderr,
+                    )
+                    return salvaged_records
 
             failed_path = save_failed_response(
                 args.failed_responses_dir,
