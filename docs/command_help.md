@@ -27,8 +27,13 @@ function create_data {
     & $py scripts\prepare_dataset.py
     & $py scripts\convert_training_data.py
 }
-function train { & $py scripts\train_lora.py --config models\v1_local_baseline_config.json }
+function train { & $py scripts\train_native_model.py --config models\configs\v1_native_byte_transformer_config.json }
+function train_qwen { & $py qwen\scripts\train_lora.py --config qwen\models\configs\v1_local_baseline_config.json }
+function eval_native { & $py scripts\evaluate_native_model.py --model-path $args[0] }
+function eval_qwen { & $py qwen\scripts\evaluate_benchmark.py --model-path $args[0] }
 function status { .\scripts\show_training_status.ps1 -Watch }
+function status_qwen { .\qwen\scripts\show_training_status.ps1 -Watch }
+function summarize_qwen { & $py qwen\scripts\summarize_training_runs.py; if (Test-Path .\qwen\experiments\training_runs_summary.csv) { Invoke-Item .\qwen\experiments\training_runs_summary.csv } }
 ```
 
 ## 1. Collect AI Training Data
@@ -103,13 +108,13 @@ This updates:
 - `data/processed/validation_sft.jsonl`
 - `data/processed/benchmark_sft.jsonl`
 
-## 4. Train The Local Model
+## 4. Train Your Native Model
 
-Run the CPU baseline trainer. It now runs the default benchmark automatically
-after training completes successfully:
+Train the native decoder-only transformer from scratch. It now runs the default
+benchmark automatically after training completes successfully:
 
 ```powershell
-& $py scripts\train_lora.py --config models\v1_local_baseline_config.json
+& $py scripts\train_native_model.py --config models\configs\v1_native_byte_transformer_config.json
 ```
 
 With the helper above, you can just run:
@@ -118,13 +123,25 @@ With the helper above, you can just run:
 train
 ```
 
+Legacy Qwen/LoRA training is still available, but isolated under `qwen/`:
+
+```powershell
+& $py qwen\scripts\train_lora.py --config qwen\models\configs\v1_local_baseline_config.json
+```
+
+With the helper above, you can just run:
+
+```powershell
+train_qwen
+```
+
 Output:
 - a new timestamped run directory under `models/runs/`
-- example: `models/runs/v1-qwen2.5-0.5b-lora-cpu-20260406-153000`
+- example: `models/runs/v1-native-byte-transformer-20260407-180000`
 - the default benchmark report in `experiments/benchmark_report-<run_dir_name>.json`
 - the refreshed CSV summary in `experiments/training_runs_summary.csv`
 
-Useful status command while training:
+Watch native training status:
 
 ```powershell
 .\scripts\show_training_status.ps1 -Watch
@@ -136,37 +153,35 @@ With the helper above, you can just run:
 status
 ```
 
+Legacy Qwen outputs are now isolated under:
+- `qwen/models/runs/`
+- `qwen/experiments/`
+
 ## 5. Export Results
 
 The default benchmark is already run automatically after training. If you want
 to run it again manually against the printed training output directory:
 
 ```powershell
-& $py scripts\evaluate_benchmark.py --model-path <printed_run_output_dir>
+& $py scripts\evaluate_native_model.py --model-path <printed_native_run_output_dir>
 ```
 
-Run the separate stress benchmark against the printed training output directory:
+With the helper above, you can just run:
 
 ```powershell
-& $py scripts\evaluate_benchmark.py --model-path <printed_run_output_dir> --benchmark-file data\processed\benchmark_stress_sft.jsonl
+eval_native <printed_native_run_output_dir>
 ```
 
-Run the focused account-tool boundary benchmark against the printed training output directory:
+Run the isolated Qwen benchmark manually:
 
 ```powershell
-& $py scripts\evaluate_benchmark.py --model-path <printed_run_output_dir> --benchmark-file data\processed\benchmark_account_tool_boundary_sft.jsonl
+& $py qwen\scripts\evaluate_benchmark.py --model-path <printed_qwen_run_output_dir>
 ```
 
-Run the out-of-scope versus tool-needed boundary benchmark against the printed training output directory:
+With the helper above, you can just run:
 
 ```powershell
-& $py scripts\evaluate_benchmark.py --model-path <printed_run_output_dir> --benchmark-file data\processed\benchmark_oos_vs_tool_boundary_sft.jsonl
-```
-
-Run the medical-refusal boundary benchmark against the printed training output directory:
-
-```powershell
-& $py scripts\evaluate_benchmark.py --model-path <printed_run_output_dir> --benchmark-file data\processed\benchmark_medical_refusal_boundary_sft.jsonl
+eval_qwen <printed_qwen_run_output_dir>
 ```
 
 Show a table of all training runs and the currently saved benchmark report for each run:
@@ -188,10 +203,16 @@ Outputs:
 - `experiments/benchmark_report-<run_dir_name>.json`
 - `experiments/training_runs_summary.csv`
 
-If you want to keep a separate copy of the benchmark report for a specific run:
+Summarize the isolated Qwen runs:
 
 ```powershell
-Copy-Item experiments\benchmark_report-<run_dir_name>.json experiments\benchmark_report-local-baseline.json
+& $py qwen\scripts\summarize_training_runs.py
+```
+
+With the helper above, you can just run:
+
+```powershell
+summarize_qwen
 ```
 
 ## Full Local Pipeline
@@ -200,7 +221,7 @@ Copy-Item experiments\benchmark_report-<run_dir_name>.json experiments\benchmark
 & $py scripts\generate_data.py --count 50
 & $py scripts\prepare_dataset.py
 & $py scripts\convert_training_data.py
-& $py scripts\train_lora.py --config models\v1_local_baseline_config.json
+& $py scripts\train_native_model.py --config models\configs\v1_native_byte_transformer_config.json
 ```
 
 ## Shortcut Functions
@@ -228,15 +249,40 @@ function create_data {
 }
 
 function train {
-    & $py scripts\train_lora.py --config models\v1_local_baseline_config.json
+    & $py scripts\train_native_model.py --config models\configs\v1_native_byte_transformer_config.json
+}
+
+function train_qwen {
+    & $py qwen\scripts\train_lora.py --config qwen\models\configs\v1_local_baseline_config.json
+}
+
+function eval_native {
+    & $py scripts\evaluate_native_model.py --model-path $args[0]
+}
+
+function eval_qwen {
+    & $py qwen\scripts\evaluate_benchmark.py --model-path $args[0]
 }
 
 function status {
     .\scripts\show_training_status.ps1 -Watch
 }
 
+function status_qwen {
+    .\qwen\scripts\show_training_status.ps1 -Watch
+}
+
 function summarize {
     & $py scripts\summarize_training_runs.py
-    Invoke-Item .\experiments\training_runs_summary.csv
+    if (Test-Path .\experiments\training_runs_summary.csv) {
+        Invoke-Item .\experiments\training_runs_summary.csv
+    }
+}
+
+function summarize_qwen {
+    & $py qwen\scripts\summarize_training_runs.py
+    if (Test-Path .\qwen\experiments\training_runs_summary.csv) {
+        Invoke-Item .\qwen\experiments\training_runs_summary.csv
+    }
 }
 ```

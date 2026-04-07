@@ -1,0 +1,21 @@
+{
+  "output_dir": "models/native/runs/v1-native-byte-transformer",
+  "train_file": "data/processed/train_sft.jsonl",
+  "validation_file": "data/processed/validation_sft.jsonl",
+  "device_preference": ["hip", "cuda", "cpu"],
+  "seed": 11,
+  "num_train_epochs": 12,
+  "batch_size": 8,
+  "eval_batch_size": 8,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.01,
+  "grad_clip": 1.0,
+  "logging_steps": 10,
+  "eval_steps": 25,
+  "max_seq_length": 768,
+  "hidden_size": 256,
+  "num_layers": 6,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1
+}

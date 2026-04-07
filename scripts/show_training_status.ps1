@@ -1,5 +1,5 @@
 param(
-    [string]$RunDir = "models/runs/v1-qwen2.5-0.5b-lora-cpu",
+    [string]$RunDir = "models/runs/v1-native-byte-transformer",
     [switch]$Watch,
     [int]$IntervalSeconds = 5
 )
@@ -55,9 +55,7 @@ function Show-Status {
     Write-Host "Path: $Path"
     Write-Host ""
     Write-Host ("Status:           {0}" -f $status.status)
-    Write-Host ("Base model:       {0}" -f $status.base_model)
     Write-Host ("PID:              {0}" -f $status.pid)
-    Write-Host ("Device:           {0}" -f $status.device)
     Write-Host ("Started at:       {0}" -f $status.started_at)
     Write-Host ("Updated at:       {0}" -f $status.updated_at)
     Write-Host ("Completed at:     {0}" -f $status.completed_at)
@@ -66,7 +64,7 @@ function Show-Status {
     Write-Host ("Epoch:            {0}" -f $status.epoch)
     Write-Host ("Train examples:   {0}" -f $status.train_examples)
     Write-Host ("Validation ex:    {0}" -f $status.validation_examples)
-    Write-Host ("Last checkpoint:  {0}" -f $status.last_checkpoint)
+    Write-Host ("Device:           {0}" -f $status.device)
     Write-Host ""
     Write-Host "Latest log:"
 

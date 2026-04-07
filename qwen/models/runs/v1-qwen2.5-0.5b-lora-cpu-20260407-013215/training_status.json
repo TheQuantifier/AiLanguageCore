@@ -1,0 +1,32 @@
+{
+  "status": "completed",
+  "started_at": "2026-04-07T05:32:15.703038+00:00",
+  "updated_at": "2026-04-07T06:21:45.804848+00:00",
+  "completed_at": "2026-04-07T06:21:45.804848+00:00",
+  "pid": 27764,
+  "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "output_dir": "models\\runs\\v1-qwen2.5-0.5b-lora-cpu-20260407-013215",
+  "train_file": "data/processed/train_sft.jsonl",
+  "validation_file": "data/processed/validation_sft.jsonl",
+  "use_4bit": false,
+  "global_step": 224,
+  "epoch": 2.0,
+  "max_steps": 224,
+  "logging_steps": 10,
+  "eval_steps": 50,
+  "save_steps": 50,
+  "latest_log": {
+    "train_runtime": 2964.5585,
+    "train_samples_per_second": 0.3,
+    "train_steps_per_second": 0.076,
+    "total_flos": 520464586994688.0,
+    "train_loss": 0.3106119914778641,
+    "epoch": 2.0
+  },
+  "last_checkpoint": "models\\runs\\v1-qwen2.5-0.5b-lora-cpu-20260407-013215\\checkpoint-224",
+  "error": null,
+  "traceback": null,
+  "train_examples": 445,
+  "validation_examples": 47,
+  "device": "cpu"
+}

@@ -14,7 +14,10 @@ The V1 goal is to produce a model that can:
 
 This project uses a teacher-student workflow. Stronger external models generate
 structured behavioral examples, those examples are cleaned into a stable schema,
-and a smaller student model is fine-tuned on the curated dataset.
+and the native student model is trained from scratch on the curated dataset.
+
+The old Qwen/LoRA workflow is still available, but it is isolated under
+`qwen/` so the root project can focus on the native model.
 
 ## V1 Scope
 
@@ -39,6 +42,9 @@ Out of scope:
 The source of truth for V1 behavior is
 [docs/v1_specification.md](docs/v1_specification.md).
 
+For a repo-wide explanation of how the pipeline works by process and folder,
+see [docs/architecture_overview.md](docs/architecture_overview.md).
+
 ## Response Taxonomy
 
 Every model output in V1 should map to one of four classes:
@@ -60,7 +66,7 @@ project-root/
 |   `-- processed/  # normalized datasets and splits
 |-- prompts/        # teacher prompt templates
 |-- scripts/        # data, validation, and evaluation scripts
-|-- models/         # model configs and fine-tuning settings
+|-- models/         # qwen/ and native/ model configs plus run outputs
 |-- experiments/    # run logs and comparison notes
 `-- README.md
 ```
@@ -88,4 +94,3 @@ project-root/
 This repository is in the project setup phase. The core V1 specification is in
 place, and the next stage is to turn that specification into data schemas,
 prompt templates, and training/evaluation tooling.
-

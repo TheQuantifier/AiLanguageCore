@@ -83,7 +83,7 @@ def split_run_timestamp(run_name: str) -> tuple[str, str]:
 
 def build_rows(runs_dir: Path, reports_dir: Path) -> list[dict]:
     rows = []
-    for status_path in sorted(runs_dir.glob("*/training_status.json"), reverse=True):
+    for status_path in sorted(runs_dir.rglob("training_status.json"), reverse=True):
         status = load_json(status_path)
         run_dir = status_path.parent
         run_name = run_dir.name
@@ -204,6 +204,12 @@ def render_table(rows: list[dict], csv_out: Path | None = None) -> str:
                 "response_type_accuracy": format_percent(row["response_type_accuracy"]),
             }
         )
+
+    if not rendered_rows:
+        lines = ["No native training runs found under models/runs."]
+        if csv_out is not None:
+            lines.append(f"CSV summary: {csv_out}")
+        return "\n".join(lines)
 
     widths = {}
     for key, label in headers:
