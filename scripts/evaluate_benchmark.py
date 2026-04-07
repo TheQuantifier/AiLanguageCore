@@ -43,6 +43,12 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def resolve_output_report_path(model_path: Path, output_report: Path) -> Path:
+    if output_report != Path("experiments/benchmark_report.json"):
+        return output_report
+    return output_report.parent / f"benchmark_report-{model_path.name}.json"
+
+
 def load_jsonl(path: Path) -> list[dict]:
     rows = []
     with path.open("r", encoding="utf-8") as handle:
@@ -91,6 +97,7 @@ def resolve_model_source(model_ref: str | Path) -> str:
 def main() -> int:
     args = parse_args()
     configure_local_cache()
+    output_report = resolve_output_report_path(args.model_path, args.output_report)
 
     try:
         import torch
@@ -170,12 +177,12 @@ def main() -> int:
         "results": results,
     }
 
-    args.output_report.parent.mkdir(parents=True, exist_ok=True)
-    with args.output_report.open("w", encoding="utf-8") as handle:
+    output_report.parent.mkdir(parents=True, exist_ok=True)
+    with output_report.open("w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2, ensure_ascii=True)
         handle.write("\n")
 
-    print(f"Wrote benchmark report to {args.output_report}")
+    print(f"Wrote benchmark report to {output_report}")
     return 0
 
 

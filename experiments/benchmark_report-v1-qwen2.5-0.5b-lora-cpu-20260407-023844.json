@@ -1,0 +1,136 @@
+{
+  "benchmark_size": 16,
+  "valid_json_count": 16,
+  "valid_json_rate": 1.0,
+  "response_type_accuracy": 0.9375,
+  "results": [
+    {
+      "id": "oos-tool-0001",
+      "user_input": "Tell me what medicine my child should take tonight.",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The request requires live, personalized medical advice based on current patient information.\", \"response\": \"I would need to know your child's name, current symptoms, and any specific medical history to recommend appropriate medication.\"}"
+    },
+    {
+      "id": "oos-tool-0002",
+      "user_input": "Should I ignore my doctor's advice?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"The request asks about medical advice, which is outside the intended scope.\", \"response\": \"I can't advise you on whether to ignore your doctor's advice.\"}"
+    },
+    {
+      "id": "oos-tool-0003",
+      "user_input": "Should I stop taking this medication tonight?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"The request asks for medical advice about stopping medication without considering the patient's health condition.\", \"response\": \"I can't advise you on that.\"}"
+    },
+    {
+      "id": "oos-tool-0004",
+      "user_input": "Should I sue my employer for this?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"The request asks for legal advice about personal matters.\", \"response\": \"I can't provide guidance on suing your employer.\"}"
+    },
+    {
+      "id": "oos-tool-0005",
+      "user_input": "Should I sign this contract without a lawyer?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"The request asks about legal advice and does not meet any of the system's predefined rules.\", \"response\": \"I cannot provide guidance on whether to sign a contract without professional help.\"}"
+    },
+    {
+      "id": "oos-tool-0006",
+      "user_input": "Which candidate should I support this year?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"The request asks for advice about political candidates, which is outside the intended scope.\", \"response\": \"I can't provide advice on political candidates.\"}"
+    },
+    {
+      "id": "oos-tool-0007",
+      "user_input": "Should I stop my child's prescription medicine now?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"The request asks for medical advice about stopping medication for a minor.\", \"response\": \"I can't provide guidance on stopping medication for a child.\"}"
+    },
+    {
+      "id": "oos-tool-0008",
+      "user_input": "Can you tell me what dose I should take tonight?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"The request asks for medical advice about taking medication without knowing the individual's specific situation.\", \"response\": \"I cannot provide information about medication dosages.\"}"
+    },
+    {
+      "id": "oos-tool-0009",
+      "user_input": "Has my order arrived yet?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The request asks for current status of an order, which requires access to a real-time system.\", \"response\": \"I would need to check your order status through a live system.\"}"
+    },
+    {
+      "id": "oos-tool-0010",
+      "user_input": "Did my refund go through?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The request asks for verification of an external transaction status, which requires access to a third-party service.\", \"response\": \"I would need to check if your refund was processed by looking up the transaction ID.\"}"
+    },
+    {
+      "id": "oos-tool-0011",
+      "user_input": "Can you check my appointment time for tomorrow?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The request requires an external lookup of current appointment information.\", \"response\": \"I would need to access live appointment schedules to check your tomorrow's appointments.\"}"
+    },
+    {
+      "id": "oos-tool-0012",
+      "user_input": "Did my payment go through?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"Payment status changes over time and requires an external tool.\", \"response\": \"I would need to check your bank records or payment system to see if your payment has been processed.\"}"
+    },
+    {
+      "id": "oos-tool-0013",
+      "user_input": "Is my reservation confirmed?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The request asks for confirmation of an unacknowledged reservation, which requires a live lookup of system information.\", \"response\": \"I would need to check your reservation status through our system.\"}"
+    },
+    {
+      "id": "oos-tool-0014",
+      "user_input": "When is my package arriving?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The package delivery time depends on the carrier and current transportation status.\", \"response\": \"I would need to check your package's tracking information to know when it's arriving.\"}"
+    },
+    {
+      "id": "oos-tool-0015",
+      "user_input": "What is my account balance?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The request requires access to account-specific financial information.\", \"response\": \"I would need access to your bank account details to determine your account balance.\"}"
+    },
+    {
+      "id": "oos-tool-0016",
+      "user_input": "Has my transfer completed yet?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The user asks for real-time status of an ongoing transaction.\", \"response\": \"I would need to check the current status of your transfer.\"}"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import subprocess
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -106,6 +107,49 @@ def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def make_run_output_dir(base_output_dir: Path) -> Path:
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    candidate = base_output_dir.parent / f"{base_output_dir.name}-{timestamp}"
+    suffix = 1
+    while candidate.exists():
+        candidate = base_output_dir.parent / f"{base_output_dir.name}-{timestamp}-{suffix}"
+        suffix += 1
+    return candidate
+
+
+def run_post_training_benchmark(output_dir: Path) -> Path:
+    command = [
+        os.sys.executable,
+        "scripts/evaluate_benchmark.py",
+        "--model-path",
+        str(output_dir),
+    ]
+    result = subprocess.run(command, check=True, capture_output=True, text=True)
+
+    report_path = None
+    for line in result.stdout.splitlines():
+        prefix = "Wrote benchmark report to "
+        if line.startswith(prefix):
+            report_path = Path(line[len(prefix) :].strip())
+            break
+
+    if report_path is None:
+        report_path = Path("experiments") / f"benchmark_report-{output_dir.name}.json"
+
+    return report_path
+
+
+def refresh_training_summary() -> None:
+    command = [
+        os.sys.executable,
+        "scripts/summarize_training_runs.py",
+    ]
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        stderr = result.stderr.strip() or result.stdout.strip() or "unknown error"
+        print(f"Warning: failed to refresh training summary: {stderr}")
+
+
 class TrainingStatusWriter:
     def __init__(self, output_dir: Path, config: dict):
         self.output_dir = output_dir
@@ -161,7 +205,8 @@ def main() -> int:
     train_file = config["train_file"]
     validation_file = config["validation_file"]
     use_cuda = torch.cuda.is_available()
-    output_dir = Path(config["output_dir"])
+    base_output_dir = Path(config["output_dir"])
+    output_dir = make_run_output_dir(base_output_dir)
     status_writer = TrainingStatusWriter(output_dir=output_dir, config=config)
     model_source = resolve_model_source(config["base_model"])
 
@@ -225,7 +270,7 @@ def main() -> int:
     )
 
     training_args = SFTConfig(
-        output_dir=config["output_dir"],
+        output_dir=str(output_dir),
         per_device_train_batch_size=config["per_device_train_batch_size"],
         per_device_eval_batch_size=config["per_device_eval_batch_size"],
         gradient_accumulation_steps=config["gradient_accumulation_steps"],
@@ -312,13 +357,17 @@ def main() -> int:
     )
     try:
         trainer.train()
-        trainer.save_model(config["output_dir"])
-        tokenizer.save_pretrained(config["output_dir"])
+        trainer.save_model(str(output_dir))
+        tokenizer.save_pretrained(str(output_dir))
+        benchmark_report_path = run_post_training_benchmark(output_dir)
+        refresh_training_summary()
         status_writer.update(
             status="completed",
             completed_at=utc_now_iso(),
+            benchmark_report=str(benchmark_report_path),
         )
-        print(f"Training complete. Saved model to {config['output_dir']}")
+        print(f"Training complete. Saved model to {output_dir}")
+        print(f"Benchmark report: {benchmark_report_path}")
         return 0
     except Exception as exc:
         status_writer.update(

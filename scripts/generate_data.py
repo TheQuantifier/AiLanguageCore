@@ -410,10 +410,38 @@ def generate_candidate_prompts(count: int) -> list[str]:
 
 
 def render_teacher_messages(
-    prompt_template: str, few_shot_examples: list[dict], user_inputs: list[str]
+    prompt_template: str,
+    few_shot_examples: list[dict],
+    user_inputs: list[str] | None = None,
+    record_count: int | None = None,
+    existing_inputs: set[str] | None = None,
 ) -> list[dict]:
     examples_json = json.dumps(few_shot_examples, indent=2, ensure_ascii=True)
-    if len(user_inputs) == 1:
+    if user_inputs is None:
+        if record_count is None:
+            raise ValueError("record_count is required when user_inputs is omitted")
+        existing_sample = sorted(item for item in (existing_inputs or set()) if isinstance(item, str))[:200]
+        existing_json = json.dumps(existing_sample, indent=2, ensure_ascii=True)
+        user_message = (
+            "Use the style and logic of these examples as the standard.\n\n"
+            f"Few-shot examples:\n{examples_json}\n\n"
+            f"Generate exactly {record_count} new training records.\n"
+            "Return exactly one JSON array containing one object per record.\n\n"
+            "Each array item must have exactly these fields:\n"
+            "- user_input\n"
+            "- response_type\n"
+            "- reason\n"
+            "- response\n\n"
+            "Requirements:\n"
+            "- Generate realistic user prompts instead of reusing the few-shot examples.\n"
+            "- Mix DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, and OUT_OF_SCOPE cases.\n"
+            "- Keep prompts and responses concise.\n"
+            "- Make user_input values meaningfully distinct from each other.\n"
+            "- Do not repeat or closely paraphrase any prompt from the avoid list.\n\n"
+            f"Avoid list:\n{existing_json}\n\n"
+            "Return the JSON array only."
+        )
+    elif len(user_inputs) == 1:
         user_message = (
             "Use the style and logic of these examples as the standard.\n\n"
             f"Few-shot examples:\n{examples_json}\n\n"
@@ -605,6 +633,25 @@ def validate_batch_records(records: object, expected_user_inputs: list[str]) -> 
     return clean_records
 
 
+def validate_generated_batch_records(records: object, existing_inputs: set[str]) -> list[dict]:
+    if not isinstance(records, list):
+        raise ValueError("Teacher response must be a JSON array")
+
+    clean_records = []
+    seen_in_batch = set()
+    for record in records:
+        if not isinstance(record, dict):
+            raise ValueError("Each batch item must be a JSON object")
+        clean_record = validate_record(record, record.get("user_input", ""))
+        user_input = clean_record["user_input"]
+        if user_input in existing_inputs or user_input in seen_in_batch:
+            continue
+        seen_in_batch.add(user_input)
+        clean_records.append(clean_record)
+
+    return clean_records
+
+
 def try_salvage_partial_batch(
     raw_content: str, expected_user_inputs: list[str]
 ) -> list[dict]:
@@ -675,6 +722,8 @@ def call_teacher_model(
     return json.loads(extracted), content, body
 
 
+
+
 def is_retryable_error(exc: Exception) -> bool:
     if isinstance(exc, urllib.error.HTTPError):
         return exc.code in {408, 429, 500, 502, 503, 504}
@@ -686,23 +735,29 @@ def is_retryable_error(exc: Exception) -> bool:
 
 
 def generate_records_for_batch(
-    batch_prompts: list[str],
     batch_index: int,
     batch_count: int,
     args: argparse.Namespace,
     prompt_template: str,
     few_shot_examples: list[dict],
     api_key: str,
+    requested_count: int,
+    existing_inputs: set[str],
 ) -> list[dict]:
-    messages = render_teacher_messages(prompt_template, few_shot_examples, batch_prompts)
+    messages = render_teacher_messages(
+        prompt_template,
+        few_shot_examples,
+        record_count=requested_count,
+        existing_inputs=existing_inputs,
+    )
     attempt = 0
     raw_content = ""
     response_body = ""
-    expect_array = len(batch_prompts) > 1
+    expect_array = True
     if args.max_output_tokens and args.max_output_tokens > 0:
         batch_max_output_tokens = max(
             args.max_output_tokens,
-            TOKENS_PER_RECORD_ESTIMATE * len(batch_prompts),
+            TOKENS_PER_RECORD_ESTIMATE * requested_count,
         )
     else:
         batch_max_output_tokens = 0
@@ -717,7 +772,7 @@ def generate_records_for_batch(
                 max_output_tokens=batch_max_output_tokens,
                 expect_array=expect_array,
             )
-            clean_records = validate_batch_records(raw_records, batch_prompts)
+            clean_records = validate_generated_batch_records(raw_records, existing_inputs)
             for clean_record in clean_records:
                 clean_record["teacher_model"] = args.teacher_model
                 clean_record["prompt_version"] = args.prompt_template.stem
@@ -737,9 +792,12 @@ def generate_records_for_batch(
                 time.sleep(wait_seconds)
                 continue
 
-            if raw_content and len(batch_prompts) > 1:
+            if raw_content:
                 try:
-                    salvaged_records = try_salvage_partial_batch(raw_content, batch_prompts)
+                    salvaged_records = validate_generated_batch_records(
+                        extract_partial_json_array_items(raw_content),
+                        existing_inputs,
+                    )
                 except ValueError:
                     salvaged_records = []
                 if salvaged_records:
@@ -756,7 +814,7 @@ def generate_records_for_batch(
             failed_path = save_failed_response(
                 args.failed_responses_dir,
                 batch_index,
-                batch_prompts,
+                [],
                 raw_content,
                 response_body,
             )
@@ -765,7 +823,7 @@ def generate_records_for_batch(
                 file=sys.stderr,
             )
             print(
-                f"[batch {batch_index}/{batch_count}] failed for {len(batch_prompts)} prompts :: {exc}",
+                f"[batch {batch_index}/{batch_count}] failed for {requested_count} requested records :: {exc}",
                 file=sys.stderr,
             )
             return []
@@ -783,56 +841,61 @@ def main() -> int:
     few_shot_examples = sample_seed_examples(args.seed, args.few_shot_count)
     existing_records = load_json_array(args.output)
     existing_inputs = {item.get("user_input") for item in existing_records}
-    prompts = generate_candidate_prompts(args.count * 2)
-    prompts = [prompt for prompt in prompts if prompt not in existing_inputs][: args.count]
-
-    if len(prompts) < args.count:
-        print(
-            f"Warning: only generated {len(prompts)} unique prompts for requested count {args.count}.",
-            file=sys.stderr,
-        )
-
-    if args.dry_run:
-        for batch_start in range(0, len(prompts), args.batch_size):
-            batch_prompts = prompts[batch_start : batch_start + args.batch_size]
-            messages = render_teacher_messages(prompt_template, few_shot_examples, batch_prompts)
-            preview = {
-                "batch_number": (batch_start // args.batch_size) + 1,
-                "batch_size": len(batch_prompts),
-                "user_inputs": batch_prompts,
-                "messages": messages,
-            }
-            print(json.dumps(preview, indent=2, ensure_ascii=True))
-        return 0
-
     api_key = os.environ.get(args.api_key_env)
-    if not api_key:
+    if not api_key and not args.dry_run:
         print(
             f"Missing API key. Set the {args.api_key_env} environment variable or use --dry-run.",
             file=sys.stderr,
         )
         return 1
 
-    generated = []
-    batch_count = (len(prompts) + args.batch_size - 1) // args.batch_size
-    for batch_index, batch_start in enumerate(range(0, len(prompts), args.batch_size), start=1):
-        batch_prompts = prompts[batch_start : batch_start + args.batch_size]
-        generated.extend(
-            generate_records_for_batch(
-                batch_prompts,
-                batch_index,
-                batch_count,
-                args,
+    if args.dry_run:
+        batch_count = (args.count + args.batch_size - 1) // args.batch_size
+        for batch_index in range(batch_count):
+            requested_count = min(args.batch_size, args.count - (batch_index * args.batch_size))
+            messages = render_teacher_messages(
                 prompt_template,
                 few_shot_examples,
-                api_key,
+                record_count=requested_count,
+                existing_inputs=existing_inputs,
             )
+            preview = {
+                "batch_number": batch_index + 1,
+                "batch_size": requested_count,
+                "messages": messages,
+            }
+            print(json.dumps(preview, indent=2, ensure_ascii=True))
+        return 0
+
+    generated = []
+    batch_count = (args.count + args.batch_size - 1) // args.batch_size
+    seen_inputs = set(existing_inputs)
+    for batch_index in range(1, batch_count + 1):
+        requested_count = min(args.batch_size, args.count - len(generated))
+        if requested_count <= 0:
+            break
+        batch_records = generate_records_for_batch(
+            batch_index,
+            batch_count,
+            args,
+            prompt_template,
+            few_shot_examples,
+            api_key,
+            requested_count,
+            seen_inputs,
         )
+        generated.extend(batch_records)
+        seen_inputs.update(item["user_input"] for item in batch_records)
         if args.request_delay > 0:
             time.sleep(args.request_delay)
 
     all_records = existing_records + generated
     save_json_array(args.output, all_records)
+    if len(generated) < args.count:
+        print(
+            f"Warning: only generated {len(generated)} valid unique examples for requested count {args.count}.",
+            file=sys.stderr,
+        )
     print(f"Saved {len(generated)} new examples to {args.output}")
     return 0
 

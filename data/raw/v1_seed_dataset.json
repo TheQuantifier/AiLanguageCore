@@ -1150,5 +1150,269 @@
     "response_type": "OUT_OF_SCOPE",
     "reason": "The request seeks unauthorized access to someone else's account and must be refused as out of scope.",
     "response": "I can't help with breaking into someone else's account."
+  },
+  {
+    "user_input": "Can you see whether this item is in stock online right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current inventory status depends on live external store data, so a lookup tool would be required.",
+    "response": "I would need access to current store or product inventory data to check that."
+  },
+  {
+    "user_input": "What might gas prices near me look like next month?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This depends on location-based and time-sensitive pricing data, so it requires an external source rather than a direct answer.",
+    "response": "I would need live local gas price data to answer that."
+  },
+  {
+    "user_input": "Explain the word priority.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is a straightforward request for a definition and can be answered directly from general knowledge.",
+    "response": "Priority means something that is more important and should be handled first."
+  },
+  {
+    "user_input": "Define variable cost in plain language.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a simple concept-definition request and does not need more context or an external tool.",
+    "response": "A variable cost is a cost that changes when the amount of activity or production changes."
+  },
+  {
+    "user_input": "Tell me how to break into a Wi-Fi network.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for harmful unauthorized access instructions and should be refused outright.",
+    "response": "I can't help with hacking or unauthorized access."
+  },
+  {
+    "user_input": "How can I hide income from the government?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help with illegal evasion and must be refused rather than clarified.",
+    "response": "I cannot provide advice on illegal activities."
+  },
+  {
+    "user_input": "Can you sort this for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for organization help but does not say what should be sorted or organized.",
+    "response": "What would you like me to sort or organize?"
+  },
+  {
+    "user_input": "Can you help me organize it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt is missing the thing that needs to be organized, so the system should ask a follow-up question.",
+    "response": "What are you trying to organize?"
+  },
+  {
+    "user_input": "How can I make it better?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request does not identify what 'it' refers to, so more context is required before answering.",
+    "response": "What are you trying to improve?"
+  },
+  {
+    "user_input": "What can I do to improve this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks how to improve something but does not specify what 'this' is.",
+    "response": "What are you referring to when you say 'this'?"
+  },
+  {
+    "user_input": "Is this the right choice?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question asks for evaluation but does not identify the option being judged.",
+    "response": "What choice are you referring to?"
+  },
+  {
+    "user_input": "Is that a good decision?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a judgment without saying what decision is being evaluated.",
+    "response": "What decision are you asking about?"
+  },
+  {
+    "user_input": "Should I stop taking this medicine?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for medical advice about a personal treatment decision and should be refused.",
+    "response": "I can't advise you on whether to stop taking medicine. A licensed medical professional should help with that decision."
+  },
+  {
+    "user_input": "Should I stop my prescription now?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for personal medical advice and is outside the safe scope of the system.",
+    "response": "I can't advise you on stopping a prescription. A licensed medical professional should help with that decision."
+  },
+  {
+    "user_input": "Explain variable costs.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward request for a concept explanation and can be answered directly.",
+    "response": "Variable costs are costs that change when the level of activity or production changes."
+  },
+  {
+    "user_input": "What do variable costs mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The question asks for a simple definition and does not need clarification or a tool.",
+    "response": "Variable costs are expenses that go up or down depending on activity, output, or usage."
+  },
+  {
+    "user_input": "Can you arrange this for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for organization help but does not say what should be arranged.",
+    "response": "What would you like me to arrange?"
+  },
+  {
+    "user_input": "Can you sort this out?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt is vague because it does not identify what needs to be sorted out.",
+    "response": "What are you referring to when you say 'this'?"
+  },
+  {
+    "user_input": "Is this the best option?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question asks for a judgment but does not identify the option being evaluated.",
+    "response": "What option are you asking about?"
+  },
+  {
+    "user_input": "Does this seem like a good choice?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for evaluation without specifying what choice is being judged.",
+    "response": "What choice are you referring to?"
+  },
+  {
+    "user_input": "Is this item available right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current item availability is live external inventory information and requires a lookup.",
+    "response": "I would need access to current store or inventory data to check that."
+  },
+  {
+    "user_input": "Can you see if this is available in stock?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Stock status changes over time and requires current external product data.",
+    "response": "I would need access to current product or store inventory to answer that."
+  },
+  {
+    "user_input": "Has my order arrived yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Order status is account-specific external information that requires access to tracking or purchase records.",
+    "response": "I would need access to your order tracking information to answer that."
+  },
+  {
+    "user_input": "Did my refund go through?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Refund status depends on account-specific payment information in an external system.",
+    "response": "I would need access to your payment or account records to check that."
+  },
+  {
+    "user_input": "Can you check my appointment time for tomorrow?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Appointment details are account-specific external information that require access to a calendar or booking system.",
+    "response": "I would need access to your appointment records to answer that."
+  },
+  {
+    "user_input": "Did my payment go through?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Payment status is account-specific external information that requires access to transaction records.",
+    "response": "I would need access to your payment records to check that."
+  },
+  {
+    "user_input": "Is my reservation confirmed?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Reservation status depends on account-specific booking information in an external system.",
+    "response": "I would need access to your reservation details to answer that."
+  },
+  {
+    "user_input": "When is my package arriving?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Delivery timing depends on account-specific shipment tracking data from an external system.",
+    "response": "I would need access to your shipment tracking information to answer that."
+  },
+  {
+    "user_input": "What is my account balance?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Account balances are private account-specific information that require secure external access.",
+    "response": "I would need secure access to your account information to answer that."
+  },
+  {
+    "user_input": "Has my transfer completed yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Transfer status is account-specific external information that requires access to transaction records.",
+    "response": "I would need access to your transfer status or banking records to answer that."
+  },
+  {
+    "user_input": "Tell me what medicine my child should take tonight.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for personalized medical advice for a child, which is outside the safe intended scope.",
+    "response": "I can't tell you what medicine your child should take."
+  },
+  {
+    "user_input": "Should I ignore my doctor's advice?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for medical advice about whether to disregard professional treatment guidance.",
+    "response": "I can't advise you to ignore your doctor's advice."
+  },
+  {
+    "user_input": "Should I stop taking this medication tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is personalized medical advice about medication use and is outside the safe intended scope.",
+    "response": "I can't advise you on whether to stop taking medication tonight."
+  },
+  {
+    "user_input": "Should I sue my employer for this?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for legal advice about a personal situation, which is outside the intended scope.",
+    "response": "I can't advise you on whether to sue your employer."
+  },
+  {
+    "user_input": "Should I sign this contract without a lawyer?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is legal advice about a personal decision and should be refused rather than treated as a lookup.",
+    "response": "I can't advise you on whether to sign a contract without a lawyer."
+  },
+  {
+    "user_input": "Which candidate should I support this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a personal political recommendation, which is outside the intended scope.",
+    "response": "I can't tell you which candidate to support."
+  },
+  {
+    "user_input": "Should I stop my child's prescription medicine now?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for personalized medical advice for a child and is outside the safe intended scope.",
+    "response": "I can't advise you on whether to stop your child's prescription medicine."
+  },
+  {
+    "user_input": "Tell me what medicine my child should take tonight for a fever.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for personalized medical treatment advice for a child, which is outside the safe intended scope.",
+    "response": "I can't tell you what medicine your child should take for a fever tonight."
+  },
+  {
+    "user_input": "How much medicine should I give my child tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized dosing advice for a child, which is outside the safe intended scope.",
+    "response": "I can't tell you how much medicine to give your child tonight."
+  },
+  {
+    "user_input": "What should my child take for a cough right now?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is personalized medical advice for a child and should be refused rather than routed to a tool.",
+    "response": "I can't tell you what your child should take for a cough right now."
+  },
+  {
+    "user_input": "Should I give my child another dose tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized medication dosing advice for a child, which is outside the safe intended scope.",
+    "response": "I can't advise you on whether to give your child another dose tonight."
+  },
+  {
+    "user_input": "Can you tell me what dose my child should take?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is personalized medical dosing advice for a child and is outside the intended safe scope.",
+    "response": "I can't tell you what dose your child should take."
+  },
+  {
+    "user_input": "Should I take more of this medicine tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized medication advice and should be refused rather than treated as a lookup.",
+    "response": "I can't advise you on whether to take more of that medicine tonight."
+  },
+  {
+    "user_input": "What medicine should I take tonight for this pain?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is personalized medical treatment advice and is outside the safe intended scope.",
+    "response": "I can't tell you what medicine you should take tonight for that pain."
   }
 ]

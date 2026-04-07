@@ -4,7 +4,35 @@ param(
     [int]$IntervalSeconds = 5
 )
 
-$statusPath = Join-Path $RunDir "training_status.json"
+function Resolve-RunDir {
+    param([string]$RequestedRunDir)
+
+    if (Test-Path $RequestedRunDir) {
+        return $RequestedRunDir
+    }
+
+    $parent = Split-Path -Parent $RequestedRunDir
+    $leaf = Split-Path -Leaf $RequestedRunDir
+    if (-not $parent) {
+        $parent = "."
+    }
+    if (-not (Test-Path $parent)) {
+        return $RequestedRunDir
+    }
+
+    $matches = Get-ChildItem -Path $parent -Directory |
+        Where-Object { $_.Name -like "$leaf-*" } |
+        Sort-Object LastWriteTimeUtc -Descending
+
+    if ($matches) {
+        return $matches[0].FullName
+    }
+
+    return $RequestedRunDir
+}
+
+$resolvedRunDir = Resolve-RunDir -RequestedRunDir $RunDir
+$statusPath = Join-Path $resolvedRunDir "training_status.json"
 
 function Show-Status {
     param([string]$Path)

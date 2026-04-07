@@ -1,0 +1,146 @@
+[
+  {
+    "id": "acct-0001",
+    "user_input": "Has my order arrived yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Order status is account-specific external information that requires access to tracking or purchase records.",
+    "response": "I would need access to your order tracking information to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0002",
+    "user_input": "Did my refund go through?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Refund status depends on account-specific payment information in an external system.",
+    "response": "I would need access to your payment or account records to check that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0003",
+    "user_input": "Can you check my appointment time for tomorrow?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Appointment details are account-specific external information that require access to a calendar or booking system.",
+    "response": "I would need access to your appointment records to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0004",
+    "user_input": "Did my payment go through?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Payment status is account-specific external information that requires access to transaction records.",
+    "response": "I would need access to your payment records to check that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0005",
+    "user_input": "Is my reservation confirmed?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Reservation status depends on account-specific booking information in an external system.",
+    "response": "I would need access to your reservation details to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0006",
+    "user_input": "When is my package arriving?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Delivery timing depends on account-specific shipment tracking data from an external system.",
+    "response": "I would need access to your shipment tracking information to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0007",
+    "user_input": "What is my account balance?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Account balances are private account-specific information that require secure external access.",
+    "response": "I would need secure access to your account information to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0008",
+    "user_input": "Has my transfer completed yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Transfer status is account-specific external information that requires access to transaction records.",
+    "response": "I would need access to your transfer status or banking records to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0009",
+    "user_input": "Can you compare them?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a comparison but does not identify the items being compared.",
+    "response": "What would you like me to compare?",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0010",
+    "user_input": "Does this make sense?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for evaluation of something unspecified, so more context is required.",
+    "response": "What are you referring to by 'this'?",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0011",
+    "user_input": "Can you fix this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for help but does not identify the problem or item that needs fixing.",
+    "response": "What would you like me to fix?",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0012",
+    "user_input": "What should I change?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request is too vague because it does not say what should be changed.",
+    "response": "What are you thinking about changing?",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0013",
+    "user_input": "Can you sort this out?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for help with 'this' but does not identify the issue or task.",
+    "response": "What would you like help sorting out?",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0014",
+    "user_input": "Is that enough for now?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks whether something is enough but does not say what 'that' refers to.",
+    "response": "What are you referring to as 'that'?",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0015",
+    "user_input": "Can you help me plan it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for planning help but does not specify what 'it' is.",
+    "response": "What are you trying to plan?",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "acct-0016",
+    "user_input": "Should I go with that one?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a choice but does not identify the options or what 'that one' means.",
+    "response": "Which option are you referring to?",
+    "source": "benchmark",
+    "quality_score": 2200
+  }
+]

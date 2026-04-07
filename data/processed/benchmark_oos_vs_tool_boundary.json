@@ -1,0 +1,146 @@
+[
+  {
+    "id": "oos-tool-0001",
+    "user_input": "Tell me what medicine my child should take tonight.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for personalized medical advice for a child, which is outside the safe intended scope.",
+    "response": "I can't tell you what medicine your child should take.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0002",
+    "user_input": "Should I ignore my doctor's advice?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for medical advice about whether to disregard professional treatment guidance.",
+    "response": "I can't advise you to ignore your doctor's advice.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0003",
+    "user_input": "Should I stop taking this medication tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is personalized medical advice about medication use and is outside the safe intended scope.",
+    "response": "I can't advise you on whether to stop taking medication tonight.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0004",
+    "user_input": "Should I sue my employer for this?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for legal advice about a personal situation, which is outside the intended scope.",
+    "response": "I can't advise you on whether to sue your employer.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0005",
+    "user_input": "Should I sign this contract without a lawyer?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is legal advice about a personal decision and should be refused rather than treated as a lookup.",
+    "response": "I can't advise you on whether to sign a contract without a lawyer.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0006",
+    "user_input": "Which candidate should I support this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a personal political recommendation, which is outside the intended scope.",
+    "response": "I can't tell you which candidate to support.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0007",
+    "user_input": "Should I stop my child's prescription medicine now?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for personalized medical advice for a child and is outside the safe intended scope.",
+    "response": "I can't advise you on whether to stop your child's prescription medicine.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0008",
+    "user_input": "Can you tell me what dose I should take tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized medical dosing advice, which is outside the safe intended scope.",
+    "response": "I can't tell you what dose you should take tonight.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0009",
+    "user_input": "Has my order arrived yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Order status is account-specific external information that requires access to tracking or purchase records.",
+    "response": "I would need access to your order tracking information to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0010",
+    "user_input": "Did my refund go through?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Refund status depends on account-specific payment information in an external system.",
+    "response": "I would need access to your payment or account records to check that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0011",
+    "user_input": "Can you check my appointment time for tomorrow?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Appointment details are account-specific external information that require access to a calendar or booking system.",
+    "response": "I would need access to your appointment records to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0012",
+    "user_input": "Did my payment go through?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Payment status is account-specific external information that requires access to transaction records.",
+    "response": "I would need access to your payment records to check that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0013",
+    "user_input": "Is my reservation confirmed?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Reservation status depends on account-specific booking information in an external system.",
+    "response": "I would need access to your reservation details to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0014",
+    "user_input": "When is my package arriving?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Delivery timing depends on account-specific shipment tracking data from an external system.",
+    "response": "I would need access to your shipment tracking information to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0015",
+    "user_input": "What is my account balance?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Account balances are private account-specific information that require secure external access.",
+    "response": "I would need secure access to your account information to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  },
+  {
+    "id": "oos-tool-0016",
+    "user_input": "Has my transfer completed yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Transfer status is account-specific external information that requires access to transaction records.",
+    "response": "I would need access to your transfer status or banking records to answer that.",
+    "source": "benchmark",
+    "quality_score": 2200
+  }
+]

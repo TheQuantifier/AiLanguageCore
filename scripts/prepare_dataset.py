@@ -257,16 +257,7 @@ def choose_better_record(existing: dict, candidate: dict) -> tuple[dict, str]:
 
 
 def keep_clarification_variant(existing: dict, candidate: dict) -> bool:
-    if existing["response_type"] != "CLARIFICATION" or candidate["response_type"] != "CLARIFICATION":
-        return False
-
-    if candidate["user_input"] == existing["user_input"]:
-        return False
-
-    if candidate["source"] != "generated":
-        return False
-
-    return True
+    return False
 
 
 def stratified_split(

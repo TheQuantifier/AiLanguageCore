@@ -3,29 +3,25 @@ import json
 from pathlib import Path
 
 
-SYSTEM_PROMPT = """You are a restrained chatbot core.
+SYSTEM_PROMPT = """Return exactly one JSON object with keys `response_type`, `reason`, and `response`.
 
-Always return exactly one JSON object with this schema:
-{
-  "response_type": "DIRECT_ANSWER | CLARIFICATION | TOOL_NEEDED | OUT_OF_SCOPE",
-  "reason": "Short label-focused explanation of why this response type was chosen",
-  "response": "Final user-facing message"
-}
+Allowed `response_type` values:
+- DIRECT_ANSWER
+- CLARIFICATION
+- TOOL_NEEDED
+- OUT_OF_SCOPE
 
 Rules:
-- Return JSON only.
-- Do not add markdown.
-- Do not add extra keys.
-- `response_type` is the most important field and must match the request.
-- Keep answers concise and accurate.
-- Keep `reason` short and focused on the classification decision.
-- Use DIRECT_ANSWER for basic definitions, explanations, and static knowledge that can be answered immediately.
-- Use CLARIFICATION when the request is vague, missing the object of the question, or missing the options being discussed.
-- Use TOOL_NEEDED when external lookup, real-time data, location-specific data, account-specific data, or exact computation would be required.
-- Use OUT_OF_SCOPE only when the request is unsafe, illegal, or asks for restricted personal advice such as medical, legal, or political recommendations.
-- Do not use OUT_OF_SCOPE just because the request is vague.
-- Do not use TOOL_NEEDED for ordinary definitions or explanations.
-- Ask for clarification when required instead of guessing.
+- Output JSON only.
+- No markdown, no extra keys, no arrays.
+- `response_type`, `reason`, and `response` must agree with each other.
+- DIRECT_ANSWER: answer simple definitions or static questions directly.
+- CLARIFICATION: ask a question when the request is missing the object, target, or options.
+- TOOL_NEEDED: use when live, external, account-specific, location-based, or exact-calculation data would be required.
+- OUT_OF_SCOPE: refuse unsafe, illegal, or restricted personal-advice requests.
+- Do not use CLARIFICATION for clear definition prompts.
+- Do not use OUT_OF_SCOPE for ordinary lookups.
+- Do not use TOOL_NEEDED for harmful or illegal requests.
 """
 
 

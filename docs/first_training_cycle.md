@@ -31,10 +31,13 @@ Command:
 & '.\.python\python.exe' scripts\train_lora.py --config models\v1_local_baseline_config.json
 ```
 
+This now creates a fresh timestamped run directory under `models/runs/`, for example
+`models/runs/v1-qwen2.5-0.5b-lora-cpu-20260406-153000`, and prints the exact path when training finishes.
+
 Benchmark evaluation:
 
 ```powershell
-& '.\.python\python.exe' scripts\evaluate_benchmark.py --model-path models\runs\v1-qwen2.5-0.5b-lora-cpu
+& '.\.python\python.exe' scripts\evaluate_benchmark.py --model-path <printed_run_output_dir>
 ```
 
 ## GPU Target
