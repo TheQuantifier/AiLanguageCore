@@ -12,10 +12,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-PAD_TOKEN_ID = 256
-BOS_TOKEN_ID = 257
-EOS_TOKEN_ID = 258
-VOCAB_SIZE = 259
+ASCII_TOKEN_LIMIT = 128
+PAD_TOKEN_ID = ASCII_TOKEN_LIMIT
+BOS_TOKEN_ID = ASCII_TOKEN_LIMIT + 1
+EOS_TOKEN_ID = ASCII_TOKEN_LIMIT + 2
+VOCAB_SIZE = ASCII_TOKEN_LIMIT + 3
 
 ROLE_PREFIXES = {
     "system": "<|system|>\n",
@@ -153,24 +154,41 @@ def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
 
 
 class ByteTokenizer:
-    pad_token_id = PAD_TOKEN_ID
-    bos_token_id = BOS_TOKEN_ID
-    eos_token_id = EOS_TOKEN_ID
-    vocab_size = VOCAB_SIZE
+    def __init__(
+        self,
+        regular_token_limit: int = ASCII_TOKEN_LIMIT,
+        pad_token_id: int = PAD_TOKEN_ID,
+        bos_token_id: int = BOS_TOKEN_ID,
+        eos_token_id: int = EOS_TOKEN_ID,
+    ):
+        self.regular_token_limit = int(regular_token_limit)
+        self.pad_token_id = int(pad_token_id)
+        self.bos_token_id = int(bos_token_id)
+        self.eos_token_id = int(eos_token_id)
+        self.vocab_size = max(self.regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1
+
+    @classmethod
+    def from_config(cls, payload: dict) -> "ByteTokenizer":
+        return cls(
+            regular_token_limit=int(payload.get("regular_token_limit", payload.get("vocab_size", ASCII_TOKEN_LIMIT) - 3)),
+            pad_token_id=int(payload["pad_token_id"]),
+            bos_token_id=int(payload["bos_token_id"]),
+            eos_token_id=int(payload["eos_token_id"]),
+        )
 
     def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
-        token_ids = list(text.encode("utf-8"))
+        token_ids = list(text.encode("ascii", errors="replace"))
         if add_special_tokens:
             return [self.bos_token_id] + token_ids + [self.eos_token_id]
         return token_ids
 
     def decode(self, token_ids: list[int]) -> str:
-        payload = bytes(token_id for token_id in token_ids if 0 <= token_id <= 255)
-        return payload.decode("utf-8", errors="ignore")
+        return "".join(chr(token_id) for token_id in token_ids if 0 <= token_id < self.regular_token_limit)
 
     def save(self, path: Path) -> None:
         payload = {
-            "type": "byte_level",
+            "type": "ascii_char",
+            "regular_token_limit": self.regular_token_limit,
             "pad_token_id": self.pad_token_id,
             "bos_token_id": self.bos_token_id,
             "eos_token_id": self.eos_token_id,
@@ -286,6 +304,10 @@ def save_json(path: Path, payload: dict) -> None:
     with path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, ensure_ascii=True)
         handle.write("\n")
+
+
+def build_cpu_state_dict(model) -> dict:
+    return {name: tensor.detach().cpu() for name, tensor in model.state_dict().items()}
 
 
 def render_progress_bar(current: int, total: int, width: int = 30) -> str:
@@ -421,7 +443,7 @@ def main() -> int:
     class NativeTransformerLM(nn.Module):
         def __init__(self, model_config: dict):
             super().__init__()
-            self.vocab_size = VOCAB_SIZE
+            self.vocab_size = int(model_config["vocab_size"])
             self.max_seq_length = int(model_config["max_seq_length"])
             self.token_embedding = nn.Embedding(self.vocab_size, int(model_config["hidden_size"]))
             self.position_embedding = nn.Embedding(self.max_seq_length, int(model_config["hidden_size"]))
@@ -551,7 +573,7 @@ def main() -> int:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
                 optimizer.step()
 
-                current_epoch = epoch_index + (global_step / total_batches_per_epoch)
+                current_epoch = epoch_index + (batch_offset / total_batches_per_epoch)
                 if global_step == 1 or global_step % int(config["logging_steps"]) == 0 or global_step == total_steps:
                     status_writer.update(
                         status="training",
@@ -609,13 +631,13 @@ def main() -> int:
         total_train_loss = float(status_writer.state.get("latest_log", {}).get("train_loss", 0.0))
         sys.stdout.write("\n")
         model_path = output_dir / "model.pt"
-        torch.save(model.state_dict(), model_path)
+        torch.save(build_cpu_state_dict(model), model_path)
         tokenizer.save(output_dir / "tokenizer_config.json")
         save_json(
             output_dir / "model_config.json",
             {
                 "model_type": "native_byte_transformer",
-                "vocab_size": VOCAB_SIZE,
+                "vocab_size": tokenizer.vocab_size,
                 "max_seq_length": int(config["max_seq_length"]),
                 "hidden_size": int(config["hidden_size"]),
                 "num_layers": int(config["num_layers"]),

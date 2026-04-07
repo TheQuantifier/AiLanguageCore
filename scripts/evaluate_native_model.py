@@ -5,10 +5,11 @@ import sys
 import time
 
 
-PAD_TOKEN_ID = 256
-BOS_TOKEN_ID = 257
-EOS_TOKEN_ID = 258
-VOCAB_SIZE = 259
+ASCII_TOKEN_LIMIT = 128
+PAD_TOKEN_ID = ASCII_TOKEN_LIMIT
+BOS_TOKEN_ID = ASCII_TOKEN_LIMIT + 1
+EOS_TOKEN_ID = ASCII_TOKEN_LIMIT + 2
+VOCAB_SIZE = ASCII_TOKEN_LIMIT + 3
 
 ROLE_PREFIXES = {
     "system": "<|system|>\n",
@@ -35,6 +36,12 @@ def parse_args() -> argparse.Namespace:
         help="Output benchmark report path.",
     )
     parser.add_argument("--max-new-tokens", type=int, default=256, help="Maximum generated tokens.")
+    parser.add_argument(
+        "--min-new-tokens",
+        type=int,
+        default=16,
+        help="Minimum number of tokens to generate before EOS is allowed.",
+    )
     return parser.parse_args()
 
 
@@ -70,19 +77,36 @@ def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
 
 
 class ByteTokenizer:
-    pad_token_id = PAD_TOKEN_ID
-    bos_token_id = BOS_TOKEN_ID
-    eos_token_id = EOS_TOKEN_ID
+    def __init__(
+        self,
+        regular_token_limit: int = ASCII_TOKEN_LIMIT,
+        pad_token_id: int = PAD_TOKEN_ID,
+        bos_token_id: int = BOS_TOKEN_ID,
+        eos_token_id: int = EOS_TOKEN_ID,
+    ):
+        self.regular_token_limit = int(regular_token_limit)
+        self.pad_token_id = int(pad_token_id)
+        self.bos_token_id = int(bos_token_id)
+        self.eos_token_id = int(eos_token_id)
+        self.vocab_size = max(self.regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1
+
+    @classmethod
+    def from_config(cls, payload: dict) -> "ByteTokenizer":
+        return cls(
+            regular_token_limit=int(payload.get("regular_token_limit", payload.get("vocab_size", ASCII_TOKEN_LIMIT) - 3)),
+            pad_token_id=int(payload["pad_token_id"]),
+            bos_token_id=int(payload["bos_token_id"]),
+            eos_token_id=int(payload["eos_token_id"]),
+        )
 
     def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
-        token_ids = list(text.encode("utf-8"))
+        token_ids = list(text.encode("ascii", errors="replace"))
         if add_special_tokens:
             return [self.bos_token_id] + token_ids + [self.eos_token_id]
         return token_ids
 
     def decode(self, token_ids: list[int]) -> str:
-        payload = bytes(token_id for token_id in token_ids if 0 <= token_id <= 255)
-        return payload.decode("utf-8", errors="ignore")
+        return "".join(chr(token_id) for token_id in token_ids if 0 <= token_id < self.regular_token_limit)
 
 
 def extract_json_object(text: str) -> dict | None:
@@ -145,10 +169,18 @@ def render_progress_bar(current: int, total: int, width: int = 30) -> str:
     return f"[{bar}] {current}/{total} ({ratio * 100:5.1f}%)"
 
 
-def print_progress(current: int, total: int, valid_json: int, correct_response_type: int, elapsed: float) -> None:
+def print_progress(
+    current: int,
+    total: int,
+    nonempty_output: int,
+    valid_json: int,
+    correct_response_type: int,
+    elapsed: float,
+) -> None:
     rate = current / elapsed if elapsed > 0 else 0.0
     line = (
         f"{render_progress_bar(current, total)} | "
+        f"nonempty_output={nonempty_output} | "
         f"valid_json={valid_json} | "
         f"correct_type={correct_response_type} | "
         f"items_per_sec={rate:.2f}"
@@ -166,7 +198,11 @@ def main() -> int:
     from torch import nn
 
     device, _device_label = detect_device(torch)
-    tokenizer = ByteTokenizer()
+    tokenizer_config_path = args.model_path / "tokenizer_config.json"
+    if tokenizer_config_path.exists():
+        tokenizer = ByteTokenizer.from_config(load_json(tokenizer_config_path))
+    else:
+        tokenizer = ByteTokenizer()
     model_config = load_json(args.model_path / "model_config.json")
 
     class CausalSelfAttention(nn.Module):
@@ -214,7 +250,7 @@ def main() -> int:
             super().__init__()
             hidden_size = int(model_config["hidden_size"])
             self.max_seq_length = int(model_config["max_seq_length"])
-            self.token_embedding = nn.Embedding(VOCAB_SIZE, hidden_size)
+            self.token_embedding = nn.Embedding(int(model_config["vocab_size"]), hidden_size)
             self.position_embedding = nn.Embedding(self.max_seq_length, hidden_size)
             self.dropout = nn.Dropout(float(model_config["dropout"]))
             self.blocks = nn.ModuleList(
@@ -229,7 +265,7 @@ def main() -> int:
                 ]
             )
             self.norm = nn.LayerNorm(hidden_size)
-            self.lm_head = nn.Linear(hidden_size, VOCAB_SIZE, bias=False)
+            self.lm_head = nn.Linear(hidden_size, int(model_config["vocab_size"]), bias=False)
 
         def forward(self, input_ids):
             batch_size, seq_len = input_ids.shape
@@ -241,14 +277,16 @@ def main() -> int:
             x = self.norm(x)
             return self.lm_head(x)
 
-    model = NativeTransformerLM().to(device)
-    state_dict = torch.load(args.model_path / "model.pt", map_location=device, weights_only=True)
+    model = NativeTransformerLM()
+    state_dict = torch.load(args.model_path / "model.pt", map_location="cpu", weights_only=False)
     model.load_state_dict(state_dict)
+    model = model.to(device)
     model.eval()
 
     benchmark_rows = load_jsonl(args.benchmark_file)
     results = []
     correct_response_type = 0
+    nonempty_output = 0
     valid_json = 0
     started_at = time.perf_counter()
 
@@ -261,10 +299,15 @@ def main() -> int:
             generated_ids = prompt_ids[:]
             generated_tensor = torch.tensor([prompt_ids], dtype=torch.long, device=device)
 
-            for _ in range(args.max_new_tokens):
+            for generated_token_count in range(args.max_new_tokens):
                 current_tensor = generated_tensor[:, -int(model_config["max_seq_length"]) :]
                 logits = model(current_tensor)
-                next_token_id = int(torch.argmax(logits[0, -1]).item())
+                next_token_logits = logits[0, -1].clone()
+                for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:
+                    next_token_logits[token_id] = float("-inf")
+                if generated_token_count < int(args.min_new_tokens):
+                    next_token_logits[tokenizer.eos_token_id] = float("-inf")
+                next_token_id = int(torch.argmax(next_token_logits).item())
                 generated_ids.append(next_token_id)
                 next_token_tensor = torch.tensor([[next_token_id]], dtype=torch.long, device=device)
                 generated_tensor = torch.cat((generated_tensor, next_token_tensor), dim=1)
@@ -272,6 +315,8 @@ def main() -> int:
                     break
 
             generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])
+            if generated_text != "":
+                nonempty_output += 1
             parsed = extract_json_object(generated_text)
             expected = json.loads(row["messages"][2]["content"])
             is_valid_json = parsed is not None
@@ -293,6 +338,7 @@ def main() -> int:
             print_progress(
                 current=index,
                 total=len(benchmark_rows),
+                nonempty_output=nonempty_output,
                 valid_json=valid_json,
                 correct_response_type=correct_response_type,
                 elapsed=time.perf_counter() - started_at,
