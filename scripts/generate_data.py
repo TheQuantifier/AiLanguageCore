@@ -337,6 +337,27 @@ def save_json_array(path: Path, records: list[dict]) -> None:
         handle.write("\n")
 
 
+def render_progress_bar(current: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        total = 1
+    ratio = max(0.0, min(1.0, current / total))
+    filled = int(width * ratio)
+    if filled >= width:
+        bar = "=" * width
+    elif filled <= 0:
+        bar = "-" * width
+    else:
+        bar = ("=" * max(0, filled - 1)) + ">" + ("-" * (width - filled))
+    return f"[{bar}] {current}/{total} ({ratio * 100:5.1f}%)"
+
+
+def print_overall_progress(current_batch: int, total_batches: int, generated_count: int, target_count: int) -> None:
+    print(
+        f"{render_progress_bar(current_batch, total_batches)} | "
+        f"generated={generated_count}/{target_count} examples"
+    )
+
+
 def sample_seed_examples(seed_path: Path, count: int) -> list[dict]:
     seed_data = load_json_array(seed_path)
     if not seed_data:
@@ -886,6 +907,7 @@ def main() -> int:
         )
         generated.extend(batch_records)
         seen_inputs.update(item["user_input"] for item in batch_records)
+        print_overall_progress(batch_index, batch_count, len(generated), args.count)
         if args.request_delay > 0:
             time.sleep(args.request_delay)
 

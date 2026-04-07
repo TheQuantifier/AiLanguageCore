@@ -4,6 +4,8 @@ import math
 import os
 import random
 import subprocess
+import sys
+import time
 import traceback
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -254,6 +256,69 @@ def save_json(path: Path, payload: dict) -> None:
         handle.write("\n")
 
 
+def render_progress_bar(current: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        total = 1
+    ratio = max(0.0, min(1.0, current / total))
+    filled = int(width * ratio)
+    if filled >= width:
+        bar = "=" * width
+    elif filled <= 0:
+        bar = "-" * width
+    else:
+        bar = ("=" * max(0, filled - 1)) + ">" + ("-" * (width - filled))
+    percent = ratio * 100.0
+    return f"[{bar}] {current}/{total} steps ({percent:5.1f}%)"
+
+
+def format_duration(seconds: float) -> str:
+    total_seconds = max(0, int(seconds))
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+
+
+def print_progress_block(
+    current: int,
+    total: int,
+    epoch: float,
+    epoch_index: int,
+    total_epochs: int,
+    batch_in_epoch: int,
+    batches_per_epoch: int,
+    elapsed_seconds: float,
+    steps_per_second: float,
+    train_loss: float | None = None,
+    validation_loss: float | None = None,
+) -> None:
+    parts = [render_progress_bar(current, total)]
+    details = [
+        f"epoch={epoch_index}/{total_epochs} ({epoch:.2f})",
+        f"batch={batch_in_epoch}/{batches_per_epoch}",
+        f"elapsed={format_duration(elapsed_seconds)}",
+        f"steps_per_sec={steps_per_second:.3f}",
+    ]
+    if train_loss is not None:
+        details.append(f"train_loss={train_loss:.4f}")
+    if validation_loss is not None:
+        details.append(f"val_loss={validation_loss:.4f}")
+    progress_line = " | ".join(parts)
+    details_line = " | ".join(details)
+    clear_width = max(len(progress_line), len(details_line), 120)
+    if current > 1:
+        sys.stdout.write("\r")
+        sys.stdout.write("\x1b[1A")
+        sys.stdout.write("\r" + (" " * clear_width))
+        sys.stdout.write("\n")
+        sys.stdout.write((" " * clear_width))
+        sys.stdout.write("\x1b[1A")
+        sys.stdout.write("\r")
+    sys.stdout.write(progress_line.ljust(clear_width))
+    sys.stdout.write("\n")
+    sys.stdout.write(details_line.ljust(clear_width))
+    sys.stdout.flush()
+
+
 def main() -> int:
     args = parse_args()
     repo_root = Path(__file__).resolve().parent.parent
@@ -385,6 +450,11 @@ def main() -> int:
         f"train_examples={len(train_examples)}, "
         f"validation_examples={len(validation_examples)}"
     )
+    print(
+        "Progress calculation: "
+        f"total_steps = ceil(train_examples / batch_size) * num_train_epochs = "
+        f"{total_batches_per_epoch} * {int(config['num_train_epochs'])} = {total_steps}"
+    )
 
     model = NativeTransformerLM(config).to(device)
     optimizer = torch.optim.AdamW(
@@ -423,10 +493,12 @@ def main() -> int:
 
     global_step = 0
     best_validation_loss = float("inf")
+    training_started_at = time.perf_counter()
     try:
         model.train()
         for epoch_index in range(int(config["num_train_epochs"])):
-            for batch in create_batches(train_examples, int(config["batch_size"]), shuffle=True):
+            epoch_batches = create_batches(train_examples, int(config["batch_size"]), shuffle=True)
+            for batch_offset, batch in enumerate(epoch_batches, start=1):
                 global_step += 1
                 input_ids, labels = collate_batch(batch, tokenizer, torch)
                 input_ids = input_ids.to(device)
@@ -456,6 +528,20 @@ def main() -> int:
                             "epoch": round(current_epoch, 4),
                         },
                     )
+                    elapsed_seconds = time.perf_counter() - training_started_at
+                    steps_per_second = global_step / elapsed_seconds if elapsed_seconds > 0 else 0.0
+                    print_progress_block(
+                        current=global_step,
+                        total=total_steps,
+                        epoch=current_epoch,
+                        epoch_index=epoch_index + 1,
+                        total_epochs=int(config["num_train_epochs"]),
+                        batch_in_epoch=batch_offset,
+                        batches_per_epoch=total_batches_per_epoch,
+                        elapsed_seconds=elapsed_seconds,
+                        steps_per_second=steps_per_second,
+                        train_loss=float(loss.item()),
+                    )
 
                 if global_step % int(config["eval_steps"]) == 0 or global_step == total_steps:
                     validation_loss = evaluate_loss(validation_examples)
@@ -468,10 +554,26 @@ def main() -> int:
                         epoch=round(current_epoch, 4),
                         latest_log=latest_log,
                     )
+                    elapsed_seconds = time.perf_counter() - training_started_at
+                    steps_per_second = global_step / elapsed_seconds if elapsed_seconds > 0 else 0.0
+                    print_progress_block(
+                        current=global_step,
+                        total=total_steps,
+                        epoch=current_epoch,
+                        epoch_index=epoch_index + 1,
+                        total_epochs=int(config["num_train_epochs"]),
+                        batch_in_epoch=batch_offset,
+                        batches_per_epoch=total_batches_per_epoch,
+                        elapsed_seconds=elapsed_seconds,
+                        steps_per_second=steps_per_second,
+                        train_loss=float(loss.item()),
+                        validation_loss=validation_loss,
+                    )
                     if validation_loss < best_validation_loss:
                         best_validation_loss = validation_loss
 
         total_train_loss = float(status_writer.state.get("latest_log", {}).get("train_loss", 0.0))
+        sys.stdout.write("\n")
         model_path = output_dir / "model.pt"
         torch.save(model.state_dict(), model_path)
         tokenizer.save(output_dir / "tokenizer_config.json")
@@ -508,6 +610,7 @@ def main() -> int:
         print(f"Benchmark report: {benchmark_report_path}")
         return 0
     except Exception as exc:
+        sys.stdout.write("\n")
         status_writer.update(
             status="failed",
             completed_at=utc_now_iso(),

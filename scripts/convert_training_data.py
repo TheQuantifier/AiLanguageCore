@@ -1,6 +1,7 @@
 import argparse
 import json
 from pathlib import Path
+import sys
 
 
 SYSTEM_PROMPT = """Return exactly one JSON object with keys `response_type`, `reason`, and `response`.
@@ -104,6 +105,20 @@ def write_jsonl(path: Path, rows: list[dict]) -> None:
             handle.write(json.dumps(row, ensure_ascii=True) + "\n")
 
 
+def render_progress_bar(current: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        total = 1
+    ratio = max(0.0, min(1.0, current / total))
+    filled = int(width * ratio)
+    if filled >= width:
+        bar = "=" * width
+    elif filled <= 0:
+        bar = "-" * width
+    else:
+        bar = ("=" * max(0, filled - 1)) + ">" + ("-" * (width - filled))
+    return f"[{bar}] {current}/{total} ({ratio * 100:5.1f}%)"
+
+
 def main() -> int:
     args = parse_args()
     datasets = [
@@ -114,8 +129,14 @@ def main() -> int:
 
     for input_path, output_path in datasets:
         records = load_records(input_path)
-        converted = [convert_record(record) for record in records]
+        converted = []
+        print(f"Converting {len(records)} records from {input_path}")
+        for index, record in enumerate(records, start=1):
+            converted.append(convert_record(record))
+            sys.stdout.write("\r" + render_progress_bar(index, len(records)) + " " * 8)
+            sys.stdout.flush()
         write_jsonl(output_path, converted)
+        sys.stdout.write("\n")
         print(f"Wrote {len(converted)} records to {output_path}")
 
     return 0

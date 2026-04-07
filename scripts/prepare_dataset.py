@@ -5,6 +5,7 @@ import random
 import re
 from collections import Counter
 from pathlib import Path
+import sys
 
 
 ALLOWED_RESPONSE_TYPES = {
@@ -305,6 +306,25 @@ def reorder_record(record: dict) -> dict:
     return {field: record[field] for field in FIELD_ORDER}
 
 
+def render_progress_bar(current: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        total = 1
+    ratio = max(0.0, min(1.0, current / total))
+    filled = int(width * ratio)
+    if filled >= width:
+        bar = "=" * width
+    elif filled <= 0:
+        bar = "-" * width
+    else:
+        bar = ("=" * max(0, filled - 1)) + ">" + ("-" * (width - filled))
+    return f"[{bar}] {current}/{total} ({ratio * 100:5.1f}%)"
+
+
+def print_progress(prefix: str, current: int, total: int) -> None:
+    sys.stdout.write("\r" + f"{prefix} {render_progress_bar(current, total)}" + " " * 8)
+    sys.stdout.flush()
+
+
 def main() -> int:
     args = parse_args()
     if round(args.train_ratio + args.validation_ratio + args.benchmark_ratio, 5) != 1.0:
@@ -330,12 +350,17 @@ def main() -> int:
         "response_type_counts": {},
     }
 
+    total_source_records = len(seed_records) + len(generated_records)
+    processed_source_records = 0
+    print(f"Normalizing and deduplicating {total_source_records} source records")
     for source, records in (("seed", seed_records), ("generated", generated_records)):
         for raw_record in records:
+            processed_source_records += 1
             normalized = normalize_record(raw_record, source)
             errors = validate_normalized_record(normalized)
             if errors:
                 report["invalid_records_removed"] += 1
+                print_progress("Source records:", processed_source_records, total_source_records)
                 continue
 
             exact_key = normalized_key(normalized["user_input"])
@@ -397,21 +422,27 @@ def main() -> int:
                         )
             else:
                 merged[key] = [normalized]
+            print_progress("Source records:", processed_source_records, total_source_records)
+    sys.stdout.write("\n")
 
     cleaned_records = []
     flattened_records = []
     for record_group in merged.values():
         flattened_records.extend(record_group)
 
+    print(f"Assigning ids to {len(flattened_records)} cleaned records")
     for index, record in enumerate(
         sorted(flattened_records, key=lambda item: item["user_input"].lower()), start=1
     ):
         record["id"] = f"v1-{index:04d}"
         record["quality_score"] = score_record(record, 2 if record["source"] == "seed" else 1)
         cleaned_records.append(reorder_record(record))
+        print_progress("Cleaned records:", index, len(flattened_records))
+    sys.stdout.write("\n")
 
     fixed_benchmark_normalized = []
     fixed_benchmark_keys = set()
+    print(f"Preparing {len(fixed_benchmark_records)} benchmark records")
     for raw_record in fixed_benchmark_records:
         normalized = normalize_record(raw_record, "benchmark")
         errors = validate_normalized_record({**normalized, "source": "seed"})
@@ -419,6 +450,8 @@ def main() -> int:
             raise ValueError(f"Invalid fixed benchmark record for '{normalized['user_input']}': {errors}")
         fixed_benchmark_keys.add(normalized_key(normalized["user_input"]))
         fixed_benchmark_normalized.append(normalized)
+        print_progress("Benchmark records:", len(fixed_benchmark_normalized), len(fixed_benchmark_records))
+    sys.stdout.write("\n")
 
     benchmark_records = []
     for index, record in enumerate(

@@ -1,6 +1,8 @@
 import argparse
 import json
 from pathlib import Path
+import sys
+import time
 
 
 PAD_TOKEN_ID = 256
@@ -103,6 +105,32 @@ def detect_device(torch_module) -> tuple[object, str]:
     return torch_module.device("cpu"), "cpu"
 
 
+def render_progress_bar(current: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        total = 1
+    ratio = max(0.0, min(1.0, current / total))
+    filled = int(width * ratio)
+    if filled >= width:
+        bar = "=" * width
+    elif filled <= 0:
+        bar = "-" * width
+    else:
+        bar = ("=" * max(0, filled - 1)) + ">" + ("-" * (width - filled))
+    return f"[{bar}] {current}/{total} ({ratio * 100:5.1f}%)"
+
+
+def print_progress(current: int, total: int, valid_json: int, correct_response_type: int, elapsed: float) -> None:
+    rate = current / elapsed if elapsed > 0 else 0.0
+    line = (
+        f"{render_progress_bar(current, total)} | "
+        f"valid_json={valid_json} | "
+        f"correct_type={correct_response_type} | "
+        f"items_per_sec={rate:.2f}"
+    )
+    sys.stdout.write("\r" + line + " " * 8)
+    sys.stdout.flush()
+
+
 def main() -> int:
     args = parse_args()
     output_report = resolve_output_report_path(args.model_path, args.output_report)
@@ -196,9 +224,12 @@ def main() -> int:
     results = []
     correct_response_type = 0
     valid_json = 0
+    started_at = time.perf_counter()
+
+    print(f"Evaluating {len(benchmark_rows)} benchmark items from {args.benchmark_file}")
 
     with torch.no_grad():
-        for row in benchmark_rows:
+        for index, row in enumerate(benchmark_rows, start=1):
             prompt_text = render_messages(row["messages"][:2], add_generation_prompt=True)
             prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
             generated_ids = prompt_ids[:]
@@ -231,6 +262,13 @@ def main() -> int:
                     "raw_generation": generated_text,
                 }
             )
+            print_progress(
+                current=index,
+                total=len(benchmark_rows),
+                valid_json=valid_json,
+                correct_response_type=correct_response_type,
+                elapsed=time.perf_counter() - started_at,
+            )
 
     report = {
         "benchmark_size": len(benchmark_rows),
@@ -243,6 +281,7 @@ def main() -> int:
     with output_report.open("w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2, ensure_ascii=True)
         handle.write("\n")
+    sys.stdout.write("\n")
     print(f"Wrote benchmark report to {output_report}")
     return 0
 
