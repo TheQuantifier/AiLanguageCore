@@ -6,7 +6,8 @@ Run these commands from the repo root:
 Set a reusable Python helper once per PowerShell session:
 
 ```powershell
-$py = '.\.python\python.exe'
+$AiLanguageCoreRoot = 'C:\Users\jhand\Documents\Github\AiLanguageCore'
+$py = Join-Path $AiLanguageCoreRoot '.python\python.exe'
 ```
 
 Optional: add short PowerShell helpers for common commands:
@@ -18,22 +19,46 @@ function create_data {
         [int]$batch
     )
 
-    if ($PSBoundParameters.ContainsKey('batch')) {
-        & $py scripts\generate_data.py --count $count --batch-size $batch
-    } else {
-        & $py scripts\generate_data.py --count $count
-    }
+    Push-Location $AiLanguageCoreRoot
+    try {
+        if ($PSBoundParameters.ContainsKey('batch')) {
+            & $py scripts\generate_data.py --count $count --batch-size $batch
+        } else {
+            & $py scripts\generate_data.py --count $count
+        }
 
-    & $py scripts\prepare_dataset.py
-    & $py scripts\convert_training_data.py
+        & $py scripts\prepare_dataset.py
+        & $py scripts\convert_training_data.py
+    } finally {
+        Pop-Location
+    }
 }
-function train { & $py scripts\train_native_model.py --config models\configs\v1_native_byte_transformer_config.json }
-function train_qwen { & $py qwen\scripts\train_lora.py --config qwen\models\configs\v1_local_baseline_config.json }
-function eval_native { & $py scripts\evaluate_native_model.py --model-path $args[0] }
-function eval_qwen { & $py qwen\scripts\evaluate_benchmark.py --model-path $args[0] }
-function status { .\scripts\show_training_status.ps1 -Watch }
-function status_qwen { .\qwen\scripts\show_training_status.ps1 -Watch }
-function summarize_qwen { & $py qwen\scripts\summarize_training_runs.py; if (Test-Path .\qwen\experiments\training_runs_summary.csv) { Invoke-Item .\qwen\experiments\training_runs_summary.csv } }
+function train {
+    $config = 'models\configs\v1_native_byte_transformer_config.json'
+    Write-Host "Starting native training from $AiLanguageCoreRoot"
+    Write-Host "Config: $config"
+    Push-Location $AiLanguageCoreRoot
+    try {
+        & $py scripts\train_native_model.py --config $config
+    } finally {
+        Pop-Location
+    }
+}
+function eval_native {
+    param(
+        [Parameter(Mandatory = $true)][string]$model_path
+    )
+
+    Write-Host "Evaluating native model: $model_path"
+    Push-Location $AiLanguageCoreRoot
+    try {
+        & $py scripts\evaluate_native_model.py --model-path $model_path
+    } finally {
+        Pop-Location
+    }
+}
+function status { Push-Location $AiLanguageCoreRoot; try { .\scripts\show_training_status.ps1 -Watch } finally { Pop-Location } }
+function summarize { Push-Location $AiLanguageCoreRoot; try { & $py scripts\summarize_training_runs.py; if (Test-Path .\experiments\training_runs_summary.csv) { Invoke-Item .\experiments\training_runs_summary.csv } } finally { Pop-Location } }
 ```
 
 ## 1. Collect AI Training Data
@@ -123,17 +148,10 @@ With the helper above, you can just run:
 train
 ```
 
-Legacy Qwen/LoRA training is still available, but isolated under `qwen/`:
-
-```powershell
-& $py qwen\scripts\train_lora.py --config qwen\models\configs\v1_local_baseline_config.json
-```
-
-With the helper above, you can just run:
-
-```powershell
-train_qwen
-```
+The helper now:
+- changes into the repo root automatically
+- prints which config it is about to use
+- starts the native trainer from the correct working directory
 
 Output:
 - a new timestamped run directory under `models/runs/`
@@ -153,10 +171,6 @@ With the helper above, you can just run:
 status
 ```
 
-Legacy Qwen outputs are now isolated under:
-- `qwen/models/runs/`
-- `qwen/experiments/`
-
 ## 5. Export Results
 
 The default benchmark is already run automatically after training. If you want
@@ -170,18 +184,6 @@ With the helper above, you can just run:
 
 ```powershell
 eval_native <printed_native_run_output_dir>
-```
-
-Run the isolated Qwen benchmark manually:
-
-```powershell
-& $py qwen\scripts\evaluate_benchmark.py --model-path <printed_qwen_run_output_dir>
-```
-
-With the helper above, you can just run:
-
-```powershell
-eval_qwen <printed_qwen_run_output_dir>
 ```
 
 Show a table of all training runs and the currently saved benchmark report for each run:
@@ -203,18 +205,6 @@ Outputs:
 - `experiments/benchmark_report-<run_dir_name>.json`
 - `experiments/training_runs_summary.csv`
 
-Summarize the isolated Qwen runs:
-
-```powershell
-& $py qwen\scripts\summarize_training_runs.py
-```
-
-With the helper above, you can just run:
-
-```powershell
-summarize_qwen
-```
-
 ## Full Local Pipeline
 
 ```powershell
@@ -230,7 +220,8 @@ Copy this block into PowerShell when you want the shortcuts available for the
 current session:
 
 ```powershell
-$py = '.\.python\python.exe'
+$AiLanguageCoreRoot = 'C:\Users\jhand\Documents\Github\AiLanguageCore'
+$py = Join-Path $AiLanguageCoreRoot '.python\python.exe'
 
 function create_data {
     param(
@@ -238,51 +229,65 @@ function create_data {
         [int]$batch
     )
 
-    if ($PSBoundParameters.ContainsKey('batch')) {
-        & $py scripts\generate_data.py --count $count --batch-size $batch
-    } else {
-        & $py scripts\generate_data.py --count $count
-    }
+    Push-Location $AiLanguageCoreRoot
+    try {
+        if ($PSBoundParameters.ContainsKey('batch')) {
+            & $py scripts\generate_data.py --count $count --batch-size $batch
+        } else {
+            & $py scripts\generate_data.py --count $count
+        }
 
-    & $py scripts\prepare_dataset.py
-    & $py scripts\convert_training_data.py
+        & $py scripts\prepare_dataset.py
+        & $py scripts\convert_training_data.py
+    } finally {
+        Pop-Location
+    }
 }
 
 function train {
-    & $py scripts\train_native_model.py --config models\configs\v1_native_byte_transformer_config.json
-}
-
-function train_qwen {
-    & $py qwen\scripts\train_lora.py --config qwen\models\configs\v1_local_baseline_config.json
-}
-
-function eval_native {
-    & $py scripts\evaluate_native_model.py --model-path $args[0]
-}
-
-function eval_qwen {
-    & $py qwen\scripts\evaluate_benchmark.py --model-path $args[0]
-}
-
-function status {
-    .\scripts\show_training_status.ps1 -Watch
-}
-
-function status_qwen {
-    .\qwen\scripts\show_training_status.ps1 -Watch
-}
-
-function summarize {
-    & $py scripts\summarize_training_runs.py
-    if (Test-Path .\experiments\training_runs_summary.csv) {
-        Invoke-Item .\experiments\training_runs_summary.csv
+    $config = 'models\configs\v1_native_byte_transformer_config.json'
+    Write-Host "Starting native training from $AiLanguageCoreRoot"
+    Write-Host "Config: $config"
+    Push-Location $AiLanguageCoreRoot
+    try {
+        & $py scripts\train_native_model.py --config $config
+    } finally {
+        Pop-Location
     }
 }
 
-function summarize_qwen {
-    & $py qwen\scripts\summarize_training_runs.py
-    if (Test-Path .\qwen\experiments\training_runs_summary.csv) {
-        Invoke-Item .\qwen\experiments\training_runs_summary.csv
+function eval_native {
+    param(
+        [Parameter(Mandatory = $true)][string]$model_path
+    )
+
+    Write-Host "Evaluating native model: $model_path"
+    Push-Location $AiLanguageCoreRoot
+    try {
+        & $py scripts\evaluate_native_model.py --model-path $model_path
+    } finally {
+        Pop-Location
+    }
+}
+
+function status {
+    Push-Location $AiLanguageCoreRoot
+    try {
+        .\scripts\show_training_status.ps1 -Watch
+    } finally {
+        Pop-Location
+    }
+}
+
+function summarize {
+    Push-Location $AiLanguageCoreRoot
+    try {
+        & $py scripts\summarize_training_runs.py
+        if (Test-Path .\experiments\training_runs_summary.csv) {
+            Invoke-Item .\experiments\training_runs_summary.csv
+        }
+    } finally {
+        Pop-Location
     }
 }
 ```

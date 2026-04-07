@@ -40,6 +40,13 @@ def load_config(path: Path) -> dict:
         return json.load(handle)
 
 
+def resolve_path(path_value: str | Path, base_dir: Path) -> Path:
+    path = Path(path_value)
+    if path.is_absolute():
+        return path
+    return (base_dir / path).resolve()
+
+
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -216,10 +223,10 @@ class TrainingStatusWriter:
             handle.write("\n")
 
 
-def run_post_training_benchmark(output_dir: Path) -> Path:
+def run_post_training_benchmark(repo_root: Path, output_dir: Path) -> Path:
     command = [
         os.sys.executable,
-        "scripts/evaluate_native_model.py",
+        str(repo_root / "scripts" / "evaluate_native_model.py"),
         "--model-path",
         str(output_dir),
     ]
@@ -231,13 +238,13 @@ def run_post_training_benchmark(output_dir: Path) -> Path:
             report_path = Path(line[len(prefix) :].strip())
             break
     if report_path is None:
-        report_path = Path("experiments") / f"benchmark_report-{output_dir.name}.json"
+        report_path = repo_root / "experiments" / f"benchmark_report-{output_dir.name}.json"
     return report_path
 
 
-def refresh_training_summary() -> None:
-    command = [os.sys.executable, "scripts/summarize_training_runs.py"]
-    subprocess.run(command, capture_output=True, text=True)
+def refresh_training_summary(repo_root: Path) -> None:
+    command = [os.sys.executable, str(repo_root / "scripts" / "summarize_training_runs.py")]
+    subprocess.run(command, capture_output=True, text=True, cwd=repo_root)
 
 
 def save_json(path: Path, payload: dict) -> None:
@@ -249,8 +256,14 @@ def save_json(path: Path, payload: dict) -> None:
 
 def main() -> int:
     args = parse_args()
-    config = load_config(args.config)
+    repo_root = Path(__file__).resolve().parent.parent
+    config_path = resolve_path(args.config, repo_root)
+    config = load_config(config_path)
     configure_reproducibility(int(config.get("seed", 11)))
+
+    train_file = resolve_path(config["train_file"], repo_root)
+    validation_file = resolve_path(config["validation_file"], repo_root)
+    output_dir_base = resolve_path(config["output_dir"], repo_root)
 
     import torch
     import torch.nn.functional as F
@@ -259,8 +272,8 @@ def main() -> int:
     device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "cpu"]))
     tokenizer = ByteTokenizer()
 
-    train_rows = load_jsonl(Path(config["train_file"]))
-    validation_rows = load_jsonl(Path(config["validation_file"]))
+    train_rows = load_jsonl(train_file)
+    validation_rows = load_jsonl(validation_file)
     max_seq_length = int(config["max_seq_length"])
     train_examples = build_examples(train_rows, tokenizer, max_seq_length)
     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
@@ -342,9 +355,36 @@ def main() -> int:
             x = self.norm(x)
             return self.lm_head(x)
 
-    base_output_dir = Path(config["output_dir"])
-    output_dir = make_run_output_dir(base_output_dir)
+    output_dir = make_run_output_dir(output_dir_base)
     status_writer = TrainingStatusWriter(output_dir=output_dir, config=config)
+
+    print("Starting native model training")
+    print(f"Config: {config_path}")
+    print(f"Device: {device_label}")
+    print(f"Train file: {train_file}")
+    print(f"Validation file: {validation_file}")
+    print(f"Output dir: {output_dir}")
+    print(
+        "Run settings: "
+        f"epochs={int(config['num_train_epochs'])}, "
+        f"batch_size={int(config['batch_size'])}, "
+        f"eval_batch_size={int(config['eval_batch_size'])}, "
+        f"max_seq_length={max_seq_length}"
+    )
+    print(
+        "Model settings: "
+        f"layers={int(config['num_layers'])}, "
+        f"hidden_size={int(config['hidden_size'])}, "
+        f"heads={int(config['num_heads'])}, "
+        f"dropout={float(config['dropout'])}"
+    )
+    print(
+        "Dataset sizes: "
+        f"train_rows={len(train_rows)}, "
+        f"validation_rows={len(validation_rows)}, "
+        f"train_examples={len(train_examples)}, "
+        f"validation_examples={len(validation_examples)}"
+    )
 
     model = NativeTransformerLM(config).to(device)
     optimizer = torch.optim.AdamW(
@@ -449,8 +489,8 @@ def main() -> int:
             },
         )
         save_json(output_dir / "training_config.json", config)
-        benchmark_report_path = run_post_training_benchmark(output_dir)
-        refresh_training_summary()
+        benchmark_report_path = run_post_training_benchmark(repo_root, output_dir)
+        refresh_training_summary(repo_root)
         status_writer.update(
             status="completed",
             completed_at=utc_now_iso(),

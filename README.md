@@ -16,9 +16,6 @@ This project uses a teacher-student workflow. Stronger external models generate
 structured behavioral examples, those examples are cleaned into a stable schema,
 and the native student model is trained from scratch on the curated dataset.
 
-The old Qwen/LoRA workflow is still available, but it is isolated under
-`qwen/` so the root project can focus on the native model.
-
 ## V1 Scope
 
 Version 1 is intentionally narrow. It is a language-behavior core, not a full
@@ -66,7 +63,7 @@ project-root/
 |   `-- processed/  # normalized datasets and splits
 |-- prompts/        # teacher prompt templates
 |-- scripts/        # data, validation, and evaluation scripts
-|-- models/         # qwen/ and native/ model configs plus run outputs
+|-- models/         # native-model configs plus run outputs
 |-- experiments/    # run logs and comparison notes
 `-- README.md
 ```

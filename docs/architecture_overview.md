@@ -6,11 +6,8 @@ AiLanguageCore is a teacher-student training pipeline for a narrow chatbot core.
 The student model is trained to classify each prompt into exactly one response
 type and then emit a restrained JSON response.
 
-The root project is now the native-model path: a byte-level decoder-only
-transformer trained from scratch on your data.
-
-The old Qwen plus LoRA workflow still exists, but it is isolated under
-[qwen](/C:/Users/jhand/Documents/Github/AiLanguageCore/qwen) so it can be removed as a single subtree.
+The root project is a byte-level decoder-only transformer trained from scratch
+on your data.
 
 The four response types are:
 
@@ -24,7 +21,7 @@ The behavioral source of truth is [v1_specification.md](/C:/Users/jhand/Document
 ## System Flow
 
 ```text
-teacher API -> raw examples -> cleaned splits -> SFT chat data -> LoRA training
+teacher API -> raw examples -> cleaned splits -> SFT chat data -> native training
       -> default benchmark -> experiment report -> run summary CSV
 ```
 
@@ -123,10 +120,6 @@ Native-model configs and run outputs.
 
 - [configs](/C:/Users/jhand/Documents/Github/AiLanguageCore/models/configs): native-model configs
 - [runs](/C:/Users/jhand/Documents/Github/AiLanguageCore/models/runs): native-model runs
-
-### [qwen](/C:/Users/jhand/Documents/Github/AiLanguageCore/qwen)
-
-Legacy Qwen/LoRA track, fully isolated from the native model path.
 
 ### [experiments](/C:/Users/jhand/Documents/Github/AiLanguageCore/experiments)
 
