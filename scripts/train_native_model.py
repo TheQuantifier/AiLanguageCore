@@ -76,10 +76,34 @@ def configure_reproducibility(seed: int) -> None:
 
 def detect_device(torch_module, device_preference: list[str]) -> tuple[object, str]:
     if not device_preference:
-        device_preference = ["hip", "cuda", "cpu"]
+        device_preference = ["hip", "cuda", "directml", "cpu"]
 
     hip_available = bool(getattr(torch_module.version, "hip", None)) and torch_module.cuda.is_available()
     cuda_available = torch_module.cuda.is_available() and not hip_available
+
+    def load_directml():
+        try:
+            import torch_directml  # type: ignore
+        except ImportError:
+            return None
+        if not torch_directml.is_available():
+            return None
+        return torch_directml
+
+    def score_directml_name(name: str) -> tuple[int, int]:
+        cleaned = name.replace("\x00", "").strip().lower()
+        score = 0
+        if "nvidia" in cleaned or "geforce" in cleaned or "rtx" in cleaned:
+            score += 50
+        if "amd" in cleaned or "radeon" in cleaned:
+            score += 40
+        if "rx " in cleaned or cleaned.endswith(" rx") or "radeon rx" in cleaned:
+            score += 20
+        if "graphics" in cleaned and "rx" not in cleaned and "rtx" not in cleaned:
+            score -= 25
+        if "intel" in cleaned:
+            score -= 30
+        return score, len(cleaned)
 
     for item in device_preference:
         normalized = str(item).lower()
@@ -87,6 +111,19 @@ def detect_device(torch_module, device_preference: list[str]) -> tuple[object, s
             return torch_module.device("cuda"), "hip"
         if normalized == "cuda" and cuda_available:
             return torch_module.device("cuda"), "cuda"
+        if normalized == "directml":
+            torch_directml = load_directml()
+            if torch_directml is None:
+                continue
+            device_count = int(torch_directml.device_count())
+            if device_count < 1:
+                continue
+            best_index = max(
+                range(device_count),
+                key=lambda index: score_directml_name(str(torch_directml.device_name(index))),
+            )
+            device_name = str(torch_directml.device_name(best_index)).replace("\x00", "").strip()
+            return torch_directml.device(best_index), f"directml:{best_index}:{device_name}"
         if normalized == "cpu":
             return torch_module.device("cpu"), "cpu"
 
@@ -226,21 +263,16 @@ class TrainingStatusWriter:
 
 
 def run_post_training_benchmark(repo_root: Path, output_dir: Path) -> Path:
+    report_path = repo_root / "experiments" / f"benchmark_report-{output_dir.name}.json"
     command = [
         os.sys.executable,
         str(repo_root / "scripts" / "evaluate_native_model.py"),
         "--model-path",
         str(output_dir),
+        "--output-report",
+        str(report_path),
     ]
-    result = subprocess.run(command, check=True, capture_output=True, text=True)
-    report_path = None
-    for line in result.stdout.splitlines():
-        prefix = "Wrote benchmark report to "
-        if line.startswith(prefix):
-            report_path = Path(line[len(prefix) :].strip())
-            break
-    if report_path is None:
-        report_path = repo_root / "experiments" / f"benchmark_report-{output_dir.name}.json"
+    subprocess.run(command, check=True, cwd=repo_root)
     return report_path
 
 
@@ -334,7 +366,7 @@ def main() -> int:
     import torch.nn.functional as F
     from torch import nn
 
-    device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "cpu"]))
+    device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
     tokenizer = ByteTokenizer()
 
     train_rows = load_jsonl(train_file)
@@ -420,6 +452,9 @@ def main() -> int:
             x = self.norm(x)
             return self.lm_head(x)
 
+    total_batches_per_epoch = max(1, math.ceil(len(train_examples) / int(config["batch_size"])))
+    total_steps = total_batches_per_epoch * int(config["num_train_epochs"])
+
     output_dir = make_run_output_dir(output_dir_base)
     status_writer = TrainingStatusWriter(output_dir=output_dir, config=config)
 
@@ -461,10 +496,9 @@ def main() -> int:
         model.parameters(),
         lr=float(config["learning_rate"]),
         weight_decay=float(config.get("weight_decay", 0.01)),
+        foreach=False,
     )
 
-    total_batches_per_epoch = max(1, math.ceil(len(train_examples) / int(config["batch_size"])))
-    total_steps = total_batches_per_epoch * int(config["num_train_epochs"])
     status_writer.update(
         status="ready_to_train",
         train_examples=len(train_examples),

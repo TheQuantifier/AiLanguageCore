@@ -1,0 +1,2 @@
+run,run_date,run_time,status,epoch,global_step,train_examples,validation_examples,train_runtime_s,train_steps_per_second,train_samples_per_second,train_loss,benchmark_size,valid_json_rate,response_type_accuracy,report_path
+v1-native-byte-transformer-smoke-20260407-190751,2026-04-07,19:07:51,training,1.0,2,16,4,,,,5.635192394256592,61,0.0,0.0,experiments\benchmark_report-v1-native-byte-transformer-smoke-20260407-190751.json

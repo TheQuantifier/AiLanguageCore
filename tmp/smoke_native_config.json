@@ -1,0 +1,21 @@
+{
+  "output_dir": "models/runs/v1-native-byte-transformer-smoke",
+  "train_file": "tmp/smoke_train_sft.jsonl",
+  "validation_file": "tmp/smoke_validation_sft.jsonl",
+  "device_preference": ["hip", "cuda", "directml", "cpu"],
+  "seed": 11,
+  "num_train_epochs": 1,
+  "batch_size": 8,
+  "eval_batch_size": 4,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.01,
+  "grad_clip": 1.0,
+  "logging_steps": 1,
+  "eval_steps": 1,
+  "max_seq_length": 128,
+  "hidden_size": 64,
+  "num_layers": 2,
+  "num_heads": 4,
+  "mlp_ratio": 2.0,
+  "dropout": 0.1
+}

@@ -102,6 +102,32 @@ def detect_device(torch_module) -> tuple[object, str]:
         return torch_module.device("cuda"), "hip"
     if torch_module.cuda.is_available():
         return torch_module.device("cuda"), "cuda"
+    try:
+        import torch_directml  # type: ignore
+    except ImportError:
+        torch_directml = None
+    if torch_directml is not None and torch_directml.is_available() and int(torch_directml.device_count()) > 0:
+        def score_directml_name(name: str) -> tuple[int, int]:
+            cleaned = name.replace("\x00", "").strip().lower()
+            score = 0
+            if "nvidia" in cleaned or "geforce" in cleaned or "rtx" in cleaned:
+                score += 50
+            if "amd" in cleaned or "radeon" in cleaned:
+                score += 40
+            if "rx " in cleaned or cleaned.endswith(" rx") or "radeon rx" in cleaned:
+                score += 20
+            if "graphics" in cleaned and "rx" not in cleaned and "rtx" not in cleaned:
+                score -= 25
+            if "intel" in cleaned:
+                score -= 30
+            return score, len(cleaned)
+
+        best_index = max(
+            range(int(torch_directml.device_count())),
+            key=lambda index: score_directml_name(str(torch_directml.device_name(index))),
+        )
+        device_name = str(torch_directml.device_name(best_index)).replace("\x00", "").strip()
+        return torch_directml.device(best_index), f"directml:{best_index}:{device_name}"
     return torch_module.device("cpu"), "cpu"
 
 
@@ -216,7 +242,7 @@ def main() -> int:
             return self.lm_head(x)
 
     model = NativeTransformerLM().to(device)
-    state_dict = torch.load(args.model_path / "model.pt", map_location=device)
+    state_dict = torch.load(args.model_path / "model.pt", map_location=device, weights_only=True)
     model.load_state_dict(state_dict)
     model.eval()
 
@@ -233,13 +259,15 @@ def main() -> int:
             prompt_text = render_messages(row["messages"][:2], add_generation_prompt=True)
             prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
             generated_ids = prompt_ids[:]
+            generated_tensor = torch.tensor([prompt_ids], dtype=torch.long, device=device)
 
             for _ in range(args.max_new_tokens):
-                current = generated_ids[-int(model_config["max_seq_length"]) :]
-                input_ids = torch.tensor([current], dtype=torch.long, device=device)
-                logits = model(input_ids)
+                current_tensor = generated_tensor[:, -int(model_config["max_seq_length"]) :]
+                logits = model(current_tensor)
                 next_token_id = int(torch.argmax(logits[0, -1]).item())
                 generated_ids.append(next_token_id)
+                next_token_tensor = torch.tensor([[next_token_id]], dtype=torch.long, device=device)
+                generated_tensor = torch.cat((generated_tensor, next_token_tensor), dim=1)
                 if next_token_id == tokenizer.eos_token_id:
                     break
 
