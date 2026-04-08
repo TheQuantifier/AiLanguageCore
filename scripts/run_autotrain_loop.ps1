@@ -1,0 +1,282 @@
+param(
+    [int]$MaxIterations = 50,
+    [string]$Config = 'models\configs\v1_native_byte_transformer_config.json',
+    [string]$Prompt = 'Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.',
+    [string]$CodexPath,
+    [double]$RecoveryThreshold = 0.50
+)
+
+$ErrorActionPreference = 'Stop'
+
+function Resolve-CodexExecutable {
+    param(
+        [string]$OverridePath
+    )
+
+    if ($OverridePath) {
+        return (Resolve-Path $OverridePath).Path
+    }
+
+    $command = Get-Command codex -ErrorAction SilentlyContinue
+    if ($command) {
+        return $command.Source
+    }
+
+    $defaultPath = Join-Path $env:USERPROFILE '.vscode\extensions\openai.chatgpt-26.325.31654-win32-x64\bin\windows-x86_64\codex.exe'
+    if (Test-Path $defaultPath) {
+        return (Resolve-Path $defaultPath).Path
+    }
+
+    $extensionRoot = Join-Path $env:USERPROFILE '.vscode\extensions'
+    if (Test-Path $extensionRoot) {
+        $candidate = Get-ChildItem -Path $extensionRoot -Filter codex.exe -Recurse -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+        if ($candidate) {
+            return $candidate.FullName
+        }
+    }
+
+    throw 'Could not locate codex.exe. Install the Codex CLI or pass -CodexPath.'
+}
+
+function Read-AutomationDecision {
+    param(
+        [string]$MessagePath
+    )
+
+    if (-not (Test-Path $MessagePath)) {
+        throw "Codex did not write a last-message file: $MessagePath"
+    }
+
+    $message = Get-Content $MessagePath -Raw
+    $match = [regex]::Match($message, 'AUTOMATION_DECISION:\s*(CONTINUE|STOP)', 'IgnoreCase')
+    if (-not $match.Success) {
+        throw "Codex response did not include AUTOMATION_DECISION. See $MessagePath"
+    }
+
+    return $match.Groups[1].Value.ToUpperInvariant()
+}
+
+function Show-FilteredCodexOutput {
+    param(
+        [string[]]$Lines
+    )
+
+    $skipPrefixes = @(
+        'diff --git ',
+        'index ',
+        '--- a/',
+        '+++ b/',
+        '@@ ',
+        'warning: in the working copy of ',
+        'patch: completed',
+        'tokens used'
+    )
+
+    foreach ($line in $Lines) {
+        if ($null -eq $line) {
+            continue
+        }
+
+        $trimmed = $line.Trim()
+        if ($trimmed -eq '') {
+            Write-Host ''
+            continue
+        }
+
+        if ($trimmed -match '^[\+\-]{3,}$') {
+            continue
+        }
+
+        $shouldSkip = $false
+        foreach ($prefix in $skipPrefixes) {
+            if ($trimmed.StartsWith($prefix)) {
+                $shouldSkip = $true
+                break
+            }
+        }
+        if ($shouldSkip) {
+            continue
+        }
+
+        if ($trimmed -match '^[\+\-].+' -and -not $trimmed.StartsWith('AUTOMATION_DECISION:')) {
+            continue
+        }
+
+        if ($trimmed -eq 'apply patch' -or $trimmed -eq 'patch' -or $trimmed -eq 'exec') {
+            continue
+        }
+
+        if ($trimmed -match '^succeeded in \d+ms:$') {
+            continue
+        }
+
+        Write-Host $line
+    }
+}
+
+function Get-LatestRunStatus {
+    param(
+        [string]$RepoRoot
+    )
+
+    $latestStatusPath = Get-ChildItem -Path (Join-Path $RepoRoot 'models\runs') -Filter training_status.json -Recurse -File |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1 -ExpandProperty FullName
+
+    if (-not $latestStatusPath) {
+        throw 'Could not find a training_status.json file under models\runs.'
+    }
+
+    return Get-Content $latestStatusPath -Raw | ConvertFrom-Json
+}
+
+function Get-BenchmarkMetrics {
+    param(
+        [string]$BenchmarkReportPath
+    )
+
+    if (-not $BenchmarkReportPath) {
+        throw 'Training status did not include a benchmark report path.'
+    }
+
+    if (-not (Test-Path $BenchmarkReportPath)) {
+        throw "Benchmark report not found: $BenchmarkReportPath"
+    }
+
+    $report = Get-Content $BenchmarkReportPath -Raw | ConvertFrom-Json
+    $validOutputRate = if ($null -ne $report.valid_output_rate) {
+        [double]$report.valid_output_rate
+    } else {
+        [double]$report.valid_json_rate
+    }
+
+    return [pscustomobject]@{
+        Path = $BenchmarkReportPath
+        ValidOutputRate = $validOutputRate
+        ResponseTypeAccuracy = [double]$report.response_type_accuracy
+        BenchmarkSize = [int]$report.benchmark_size
+    }
+}
+
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$pythonPath = Join-Path $repoRoot '.python\python.exe'
+$configPath = Join-Path $repoRoot $Config
+$codexExecutable = Resolve-CodexExecutable -OverridePath $CodexPath
+$logRoot = Join-Path $repoRoot 'experiments\automation'
+
+if (-not (Test-Path $pythonPath)) {
+    throw "Python runtime not found: $pythonPath"
+}
+
+if (-not (Test-Path $configPath)) {
+    throw "Training config not found: $configPath"
+}
+
+New-Item -ItemType Directory -Force -Path $logRoot | Out-Null
+
+Write-Host "Repo root: $repoRoot"
+Write-Host "Python: $pythonPath"
+Write-Host "Config: $configPath"
+Write-Host "Codex: $codexExecutable"
+Write-Host "Automation logs: $logRoot"
+Write-Host "Max iterations: $MaxIterations"
+Write-Host "Recovery threshold (valid output rate): $RecoveryThreshold"
+
+$iteration = 0
+
+while ($true) {
+    $iteration += 1
+    if ($MaxIterations -gt 0 -and $iteration -gt $MaxIterations) {
+        Write-Host "Reached MaxIterations=$MaxIterations. Stopping."
+        break
+    }
+
+    $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $iterationLabel = '{0:D3}' -f $iteration
+    $iterationDir = Join-Path $logRoot "iteration_${iterationLabel}_$timestamp"
+    $messagePath = Join-Path $iterationDir 'codex_last_message.txt'
+    $decisionPath = Join-Path $iterationDir 'decision.txt'
+    $codexLogPath = Join-Path $iterationDir 'codex_exec_output.log'
+
+    New-Item -ItemType Directory -Force -Path $iterationDir | Out-Null
+
+    Write-Host ''
+    Write-Host "=== Iteration ${iterationLabel}: training ==="
+
+    Push-Location $repoRoot
+    try {
+        & $pythonPath scripts\train_native_model.py --config $configPath
+        if ($LASTEXITCODE -ne 0) {
+            throw "Training failed with exit code $LASTEXITCODE"
+        }
+    } finally {
+        Pop-Location
+    }
+
+    $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot
+    $benchmarkMetrics = Get-BenchmarkMetrics -BenchmarkReportPath $latestRunStatus.benchmark_report
+
+    Write-Host ("Latest benchmark: valid_output_rate={0:P2} | response_type_accuracy={1:P2} | size={2}" -f $benchmarkMetrics.ValidOutputRate, $benchmarkMetrics.ResponseTypeAccuracy, $benchmarkMetrics.BenchmarkSize)
+
+    Write-Host ''
+    Write-Host "=== Iteration ${iterationLabel}: Codex improvement pass ==="
+
+    $recoveryInstructions = ''
+    if ($benchmarkMetrics.ValidOutputRate -lt $RecoveryThreshold) {
+        $recoveryInstructions = @"
+
+Recovery mode:
+- The latest run fell below the minimum acceptable valid output rate threshold.
+- First restore or preserve output reliability before attempting more aggressive experiments.
+- Prefer reverting the most likely regression source or making the smallest stabilizing change.
+- Do not stack multiple speculative changes in one iteration.
+"@
+    }
+
+    $codexPrompt = @"
+$Prompt
+
+You are running inside the AiLanguageCore repository.
+The training command has just completed successfully.
+Inspect the latest native run under models/runs and its benchmark report under experiments.
+Make the next improvement directly in the repo so the next training iteration is the best next step.
+Current benchmark summary:
+- valid_output_rate: $($benchmarkMetrics.ValidOutputRate)
+- response_type_accuracy: $($benchmarkMetrics.ResponseTypeAccuracy)
+- benchmark_report: $($benchmarkMetrics.Path)
+
+Rules:
+- Work only on the next most important improvement.
+- Prioritize improving classification accuracy on the current weak boundaries over changing output formatting.
+- Avoid retrying class-balanced loss unless you have new evidence it is the right fix.
+- Keep changes narrow and comparable so the next training run is an informative experiment.
+- In your final response, summarize the change briefly and list the files changed, but do not print a full diff.
+- If training should continue after your change, end your final message with exactly: AUTOMATION_DECISION: CONTINUE
+- If the automation loop should stop, end your final message with exactly: AUTOMATION_DECISION: STOP
+$recoveryInstructions
+"@
+
+    Push-Location $repoRoot
+    try {
+        $codexOutput = & $codexExecutable exec $codexPrompt -C $repoRoot --full-auto -o $messagePath 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            $codexOutput | Out-File -FilePath $codexLogPath -Encoding utf8
+            throw "Codex exec failed with exit code $LASTEXITCODE"
+        }
+        $codexOutput | Out-File -FilePath $codexLogPath -Encoding utf8
+        Show-FilteredCodexOutput -Lines $codexOutput
+    } finally {
+        Pop-Location
+    }
+
+    $decision = Read-AutomationDecision -MessagePath $messagePath
+    Set-Content -Path $decisionPath -Value $decision
+    Write-Host "Codex decision: $decision"
+
+    if ($decision -eq 'STOP') {
+        Write-Host "Codex requested stop. Ending automation loop."
+        break
+    }
+}

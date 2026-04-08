@@ -1,0 +1,7 @@
+The latest completed native run, `v1-native-byte-transformer-20260407-225130`, is a regression, not a plateau. Its benchmark report at [benchmark_report-v1-native-byte-transformer-20260407-225130.json](C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-225130.json) fell to `0.0` valid outputs and `0.0` response-type accuracy, while the immediately prior completed runs were at `0.918` valid output rate and `0.426` accuracy. The only substantive training delta tied to that collapse was enabling class-balanced loss.
+
+I changed the trainer so class-balanced loss is opt-in instead of the default at [train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py#L635), and I set the current native config back to standard cross-entropy at [v1_native_byte_transformer_config.json](C:\Users\jhand\Documents\Github\AiLanguageCore\models\configs\v1_native_byte_transformer_config.json). That is the highest-priority next improvement because it removes the proven regression source without mixing in a second experiment.
+
+I did not start another train. The right next step is to rerun training with this config and compare against the last good baseline.
+
+AUTOMATION_DECISION: CONTINUE

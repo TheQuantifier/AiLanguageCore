@@ -12,12 +12,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-ASCII_TOKEN_LIMIT = 128
-PAD_TOKEN_ID = ASCII_TOKEN_LIMIT
-BOS_TOKEN_ID = ASCII_TOKEN_LIMIT + 1
-EOS_TOKEN_ID = ASCII_TOKEN_LIMIT + 2
-VOCAB_SIZE = ASCII_TOKEN_LIMIT + 3
-
 ROLE_PREFIXES = {
     "system": "<|system|>\n",
     "user": "<|user|>\n",
@@ -156,38 +150,66 @@ def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
 class ByteTokenizer:
     def __init__(
         self,
-        regular_token_limit: int = ASCII_TOKEN_LIMIT,
-        pad_token_id: int = PAD_TOKEN_ID,
-        bos_token_id: int = BOS_TOKEN_ID,
-        eos_token_id: int = EOS_TOKEN_ID,
+        chars: list[str],
+        pad_token_id: int | None = None,
+        bos_token_id: int | None = None,
+        eos_token_id: int | None = None,
     ):
-        self.regular_token_limit = int(regular_token_limit)
-        self.pad_token_id = int(pad_token_id)
-        self.bos_token_id = int(bos_token_id)
-        self.eos_token_id = int(eos_token_id)
-        self.vocab_size = max(self.regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1
+        ordered_chars = []
+        seen = set()
+        for char in chars:
+            if len(char) != 1:
+                continue
+            if char in seen:
+                continue
+            ordered_chars.append(char)
+            seen.add(char)
+        if "?" not in seen:
+            ordered_chars.append("?")
+            seen.add("?")
+        self.chars = ordered_chars
+        self.char_to_id = {char: index for index, char in enumerate(self.chars)}
+        self.id_to_char = {index: char for char, index in self.char_to_id.items()}
+        self.unknown_token_id = self.char_to_id["?"]
+        regular_token_limit = len(self.chars)
+        self.regular_token_limit = regular_token_limit
+        self.pad_token_id = int(regular_token_limit if pad_token_id is None else pad_token_id)
+        self.bos_token_id = int(regular_token_limit + 1 if bos_token_id is None else bos_token_id)
+        self.eos_token_id = int(regular_token_limit + 2 if eos_token_id is None else eos_token_id)
+        self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1
 
     @classmethod
     def from_config(cls, payload: dict) -> "ByteTokenizer":
+        chars = payload.get("chars")
+        if chars:
+            return cls(
+                chars=list(chars),
+                pad_token_id=int(payload["pad_token_id"]),
+                bos_token_id=int(payload["bos_token_id"]),
+                eos_token_id=int(payload["eos_token_id"]),
+            )
+        regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))
+        chars = [chr(index) for index in range(regular_token_limit)]
         return cls(
-            regular_token_limit=int(payload.get("regular_token_limit", payload.get("vocab_size", ASCII_TOKEN_LIMIT) - 3)),
+            chars=chars,
             pad_token_id=int(payload["pad_token_id"]),
             bos_token_id=int(payload["bos_token_id"]),
             eos_token_id=int(payload["eos_token_id"]),
         )
 
     def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
-        token_ids = list(text.encode("ascii", errors="replace"))
+        token_ids = [self.char_to_id.get(char, self.unknown_token_id) for char in text]
         if add_special_tokens:
             return [self.bos_token_id] + token_ids + [self.eos_token_id]
         return token_ids
 
     def decode(self, token_ids: list[int]) -> str:
-        return "".join(chr(token_id) for token_id in token_ids if 0 <= token_id < self.regular_token_limit)
+        return "".join(self.id_to_char[token_id] for token_id in token_ids if token_id in self.id_to_char)
 
     def save(self, path: Path) -> None:
         payload = {
-            "type": "ascii_char",
+            "type": "char_vocab",
+            "chars": self.chars,
             "regular_token_limit": self.regular_token_limit,
             "pad_token_id": self.pad_token_id,
             "bos_token_id": self.bos_token_id,
@@ -203,12 +225,24 @@ class ByteTokenizer:
 class Example:
     input_ids: list[int]
     label_ids: list[int]
+    response_type: str
 
 
-def truncate_example(input_ids: list[int], label_ids: list[int], max_seq_length: int) -> tuple[list[int], list[int]]:
-    if len(input_ids) <= max_seq_length:
-        return input_ids, label_ids
-    return input_ids[:max_seq_length], label_ids[:max_seq_length]
+def fit_prompt_and_answer(prompt_ids: list[int], answer_ids: list[int], max_seq_length: int) -> tuple[list[int], list[int]]:
+    full_input_ids = prompt_ids + answer_ids
+    full_label_ids = ([-100] * len(prompt_ids)) + answer_ids
+    if len(full_input_ids) <= max_seq_length:
+        return full_input_ids, full_label_ids
+
+    if len(answer_ids) >= max_seq_length:
+        trimmed_answer = answer_ids[-max_seq_length:]
+        return trimmed_answer, trimmed_answer[:]
+
+    prompt_budget = max_seq_length - len(answer_ids)
+    trimmed_prompt = prompt_ids[-prompt_budget:] if prompt_budget > 0 else []
+    input_ids = trimmed_prompt + answer_ids
+    label_ids = ([-100] * len(trimmed_prompt)) + answer_ids
+    return input_ids, label_ids
 
 
 def build_examples(rows: list[dict], tokenizer: ByteTokenizer, max_seq_length: int) -> list[Example]:
@@ -219,11 +253,24 @@ def build_examples(rows: list[dict], tokenizer: ByteTokenizer, max_seq_length: i
 
         prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
         answer_ids = tokenizer.encode(answer_text, add_special_tokens=False) + [tokenizer.eos_token_id]
-        input_ids = prompt_ids + answer_ids
-        label_ids = ([-100] * len(prompt_ids)) + answer_ids
-        input_ids, label_ids = truncate_example(input_ids, label_ids, max_seq_length)
-        examples.append(Example(input_ids=input_ids, label_ids=label_ids))
+        input_ids, label_ids = fit_prompt_and_answer(prompt_ids, answer_ids, max_seq_length)
+        examples.append(
+            Example(
+                input_ids=input_ids,
+                label_ids=label_ids,
+                response_type=answer_text,
+            )
+        )
     return examples
+
+
+def build_tokenizer_from_rows(*row_sets: list[dict]) -> ByteTokenizer:
+    chars = set()
+    for rows in row_sets:
+        for row in rows:
+            for message in row["messages"]:
+                chars.update(message["content"])
+    return ByteTokenizer(chars=sorted(chars))
 
 
 def create_batches(examples: list[Example], batch_size: int, shuffle: bool) -> list[list[Example]]:
@@ -244,6 +291,70 @@ def collate_batch(batch: list[Example], tokenizer: ByteTokenizer, torch_module) 
     input_ids = torch_module.tensor(input_rows, dtype=torch_module.long)
     labels = torch_module.tensor(label_rows, dtype=torch_module.long)
     return input_ids, labels
+
+
+def compute_response_type_weights(
+    examples: list[Example],
+    enabled: bool,
+    weight_power: float,
+) -> dict[str, float]:
+    if not enabled or not examples:
+        return {}
+
+    counts: dict[str, int] = {}
+    for example in examples:
+        counts[example.response_type] = counts.get(example.response_type, 0) + 1
+
+    if not counts:
+        return {}
+
+    total_examples = len(examples)
+    total_classes = len(counts)
+    normalized_weights = {
+        response_type: ((total_examples / (total_classes * count)) ** weight_power)
+        for response_type, count in counts.items()
+    }
+    mean_weight = sum(normalized_weights.values()) / len(normalized_weights)
+    if mean_weight <= 0:
+        return {}
+    return {
+        response_type: (weight / mean_weight)
+        for response_type, weight in normalized_weights.items()
+    }
+
+
+def compute_batch_loss(
+    logits,
+    labels,
+    batch: list[Example],
+    vocab_size: int,
+    class_weights: dict[str, float],
+    torch_module,
+) -> object:
+    shifted_logits = logits[:, :-1, :].reshape(-1, vocab_size)
+    shifted_labels = labels[:, 1:].reshape(-1)
+    if not class_weights:
+        return torch_module.nn.functional.cross_entropy(
+            shifted_logits,
+            shifted_labels,
+            ignore_index=-100,
+        )
+
+    token_losses = torch_module.nn.functional.cross_entropy(
+        shifted_logits,
+        shifted_labels,
+        ignore_index=-100,
+        reduction="none",
+    ).view(labels.shape[0], labels.shape[1] - 1)
+    valid_mask = (labels[:, 1:] != -100).to(token_losses.dtype)
+    token_counts = valid_mask.sum(dim=1).clamp_min(1.0)
+    example_losses = (token_losses * valid_mask).sum(dim=1) / token_counts
+    weight_values = [
+        float(class_weights.get(example.response_type, 1.0))
+        for example in batch
+    ]
+    example_weights = torch_module.tensor(weight_values, dtype=example_losses.dtype, device=example_losses.device)
+    return (example_losses * example_weights).sum() / example_weights.sum().clamp_min(1.0)
 
 
 class TrainingStatusWriter:
@@ -389,10 +500,9 @@ def main() -> int:
     from torch import nn
 
     device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
-    tokenizer = ByteTokenizer()
-
     train_rows = load_jsonl(train_file)
     validation_rows = load_jsonl(validation_file)
+    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
     max_seq_length = int(config["max_seq_length"])
     train_examples = build_examples(train_rows, tokenizer, max_seq_length)
     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
@@ -520,6 +630,13 @@ def main() -> int:
         weight_decay=float(config.get("weight_decay", 0.01)),
         foreach=False,
     )
+    class_weights = compute_response_type_weights(
+        train_examples,
+        enabled=bool(config.get("use_class_balanced_loss", False)),
+        weight_power=float(config.get("class_weight_power", 1.0)),
+    )
+    if class_weights:
+        print(f"Class-balanced loss weights: {class_weights}")
 
     status_writer.update(
         status="ready_to_train",
@@ -538,11 +655,15 @@ def main() -> int:
                 input_ids = input_ids.to(device)
                 labels = labels.to(device)
                 logits = model(input_ids)
+                if not torch.isfinite(logits).all():
+                    raise RuntimeError("Non-finite logits encountered during validation.")
                 loss = F.cross_entropy(
                     logits[:, :-1, :].reshape(-1, model.vocab_size),
                     labels[:, 1:].reshape(-1),
                     ignore_index=-100,
                 )
+                if not torch.isfinite(loss):
+                    raise RuntimeError("Non-finite validation loss encountered.")
                 losses.append(float(loss.item()))
         model.train()
         return sum(losses) / len(losses) if losses else 0.0
@@ -562,11 +683,22 @@ def main() -> int:
 
                 optimizer.zero_grad(set_to_none=True)
                 logits = model(input_ids)
-                loss = F.cross_entropy(
-                    logits[:, :-1, :].reshape(-1, model.vocab_size),
-                    labels[:, 1:].reshape(-1),
-                    ignore_index=-100,
+                if not torch.isfinite(logits).all():
+                    raise RuntimeError(
+                        f"Non-finite logits encountered during training at step {global_step}."
+                    )
+                loss = compute_batch_loss(
+                    logits=logits,
+                    labels=labels,
+                    batch=batch,
+                    vocab_size=model.vocab_size,
+                    class_weights=class_weights,
+                    torch_module=torch,
                 )
+                if not torch.isfinite(loss):
+                    raise RuntimeError(
+                        f"Non-finite training loss encountered at step {global_step}."
+                    )
                 loss.backward()
                 grad_clip = float(config.get("grad_clip", 1.0))
                 if grad_clip > 0:

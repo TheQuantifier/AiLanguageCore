@@ -4,26 +4,7 @@ from pathlib import Path
 import sys
 
 
-SYSTEM_PROMPT = """Return exactly one JSON object with keys `response_type`, `reason`, and `response`.
-
-Allowed `response_type` values:
-- DIRECT_ANSWER
-- CLARIFICATION
-- TOOL_NEEDED
-- OUT_OF_SCOPE
-
-Rules:
-- Output JSON only.
-- No markdown, no extra keys, no arrays.
-- `response_type`, `reason`, and `response` must agree with each other.
-- DIRECT_ANSWER: answer simple definitions or static questions directly.
-- CLARIFICATION: ask a question when the request is missing the object, target, or options.
-- TOOL_NEEDED: use when live, external, account-specific, location-based, or exact-calculation data would be required.
-- OUT_OF_SCOPE: refuse unsafe, illegal, or restricted personal-advice requests.
-- Do not use CLARIFICATION for clear definition prompts.
-- Do not use OUT_OF_SCOPE for ordinary lookups.
-- Do not use TOOL_NEEDED for harmful or illegal requests.
-"""
+SYSTEM_PROMPT = "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."
 
 
 def parse_args() -> argparse.Namespace:
@@ -77,13 +58,8 @@ def load_records(path: Path) -> list[dict]:
     return data
 
 
-def build_assistant_json(record: dict) -> str:
-    payload = {
-        "response_type": record["response_type"],
-        "reason": record["reason"],
-        "response": record["response"],
-    }
-    return json.dumps(payload, ensure_ascii=True)
+def build_assistant_target(record: dict) -> str:
+    return str(record["response_type"])
 
 
 def convert_record(record: dict) -> dict:
@@ -93,7 +69,7 @@ def convert_record(record: dict) -> dict:
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": record["user_input"]},
-            {"role": "assistant", "content": build_assistant_json(record)},
+            {"role": "assistant", "content": build_assistant_target(record)},
         ],
     }
 

@@ -290,4 +290,49 @@ function summarize {
         Pop-Location
     }
 }
+
+function autotrain {
+    param(
+        [int]$max_iterations = 0
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations
+    } finally {
+        Pop-Location
+    }
+}
 ```
+
+## Automated Train Loop
+
+This loop trains, then runs Codex in unattended mode to make the next change,
+then trains again until Codex says stop or an error occurs.
+
+Direct command:
+
+```powershell
+.\scripts\run_autotrain_loop.ps1
+```
+
+Stop after a fixed number of iterations:
+
+```powershell
+.\scripts\run_autotrain_loop.ps1 -MaxIterations 3
+```
+
+With the helper block above loaded:
+
+```powershell
+autotrain
+autotrain 3
+```
+
+Notes:
+- This script uses `codex exec --full-auto`.
+- Per-iteration automation logs are written under:
+  - `experiments/automation`
+- Codex must finish its final message with one of:
+  - `AUTOMATION_DECISION: CONTINUE`
+  - `AUTOMATION_DECISION: STOP`

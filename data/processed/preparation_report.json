@@ -1,10 +1,10 @@
 {
-  "seed_records": 236,
+  "seed_records": 292,
   "generated_records": 507,
   "fixed_benchmark_records": 61,
   "invalid_records_removed": 21,
-  "duplicates_found": 100,
-  "near_duplicates_found": 64,
+  "duplicates_found": 106,
+  "near_duplicates_found": 65,
   "duplicate_resolution_events": [
     {
       "user_input": "Can you compare them?",
@@ -288,6 +288,36 @@
     },
     {
       "user_input": "Which candidate should I support this year?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you explain this?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you compare them?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is this worth it?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Should I ignore my doctor's instructions?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you break this down for me?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Which one is better for me?",
       "resolution": "kept_existing_higher_quality_record",
       "kept_source": "seed"
     },
@@ -697,6 +727,11 @@
       "kept_source": "seed"
     },
     {
+      "user_input": "What does opportunity cost mean?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
       "user_input": "What is income?",
       "resolution": "kept_existing_higher_quality_record",
       "kept_source": "seed"
@@ -827,14 +862,14 @@
       "kept_source": "seed"
     }
   ],
-  "full_dataset_records": 568,
-  "train_records": 455,
-  "validation_records": 48,
+  "full_dataset_records": 617,
+  "train_records": 498,
+  "validation_records": 54,
   "benchmark_records": 61,
   "response_type_counts": {
-    "CLARIFICATION": 56,
-    "DIRECT_ANSWER": 182,
-    "OUT_OF_SCOPE": 81,
-    "TOOL_NEEDED": 249
+    "CLARIFICATION": 77,
+    "DIRECT_ANSWER": 183,
+    "OUT_OF_SCOPE": 101,
+    "TOOL_NEEDED": 256
   }
 }

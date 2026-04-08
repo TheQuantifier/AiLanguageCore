@@ -5,17 +5,18 @@ import sys
 import time
 
 
-ASCII_TOKEN_LIMIT = 128
-PAD_TOKEN_ID = ASCII_TOKEN_LIMIT
-BOS_TOKEN_ID = ASCII_TOKEN_LIMIT + 1
-EOS_TOKEN_ID = ASCII_TOKEN_LIMIT + 2
-VOCAB_SIZE = ASCII_TOKEN_LIMIT + 3
-
 ROLE_PREFIXES = {
     "system": "<|system|>\n",
     "user": "<|user|>\n",
     "assistant": "<|assistant|>\n",
 }
+
+RESPONSE_TYPES = [
+    "DIRECT_ANSWER",
+    "CLARIFICATION",
+    "TOOL_NEEDED",
+    "OUT_OF_SCOPE",
+]
 
 
 def parse_args() -> argparse.Namespace:
@@ -79,45 +80,71 @@ def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
 class ByteTokenizer:
     def __init__(
         self,
-        regular_token_limit: int = ASCII_TOKEN_LIMIT,
-        pad_token_id: int = PAD_TOKEN_ID,
-        bos_token_id: int = BOS_TOKEN_ID,
-        eos_token_id: int = EOS_TOKEN_ID,
+        chars: list[str],
+        pad_token_id: int | None = None,
+        bos_token_id: int | None = None,
+        eos_token_id: int | None = None,
     ):
-        self.regular_token_limit = int(regular_token_limit)
-        self.pad_token_id = int(pad_token_id)
-        self.bos_token_id = int(bos_token_id)
-        self.eos_token_id = int(eos_token_id)
-        self.vocab_size = max(self.regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1
+        ordered_chars = []
+        seen = set()
+        for char in chars:
+            if len(char) != 1:
+                continue
+            if char in seen:
+                continue
+            ordered_chars.append(char)
+            seen.add(char)
+        if "?" not in seen:
+            ordered_chars.append("?")
+            seen.add("?")
+        self.chars = ordered_chars
+        self.char_to_id = {char: index for index, char in enumerate(self.chars)}
+        self.id_to_char = {index: char for char, index in self.char_to_id.items()}
+        self.unknown_token_id = self.char_to_id["?"]
+        regular_token_limit = len(self.chars)
+        self.regular_token_limit = regular_token_limit
+        self.pad_token_id = int(regular_token_limit if pad_token_id is None else pad_token_id)
+        self.bos_token_id = int(regular_token_limit + 1 if bos_token_id is None else bos_token_id)
+        self.eos_token_id = int(regular_token_limit + 2 if eos_token_id is None else eos_token_id)
+        self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1
 
     @classmethod
     def from_config(cls, payload: dict) -> "ByteTokenizer":
+        chars = payload.get("chars")
+        if chars:
+            return cls(
+                chars=list(chars),
+                pad_token_id=int(payload["pad_token_id"]),
+                bos_token_id=int(payload["bos_token_id"]),
+                eos_token_id=int(payload["eos_token_id"]),
+            )
+        regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))
+        chars = [chr(index) for index in range(regular_token_limit)]
         return cls(
-            regular_token_limit=int(payload.get("regular_token_limit", payload.get("vocab_size", ASCII_TOKEN_LIMIT) - 3)),
+            chars=chars,
             pad_token_id=int(payload["pad_token_id"]),
             bos_token_id=int(payload["bos_token_id"]),
             eos_token_id=int(payload["eos_token_id"]),
         )
 
     def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
-        token_ids = list(text.encode("ascii", errors="replace"))
+        token_ids = [self.char_to_id.get(char, self.unknown_token_id) for char in text]
         if add_special_tokens:
             return [self.bos_token_id] + token_ids + [self.eos_token_id]
         return token_ids
 
     def decode(self, token_ids: list[int]) -> str:
-        return "".join(chr(token_id) for token_id in token_ids if 0 <= token_id < self.regular_token_limit)
+        return "".join(self.id_to_char[token_id] for token_id in token_ids if token_id in self.id_to_char)
 
 
-def extract_json_object(text: str) -> dict | None:
-    start = text.find("{")
-    end = text.rfind("}")
-    if start == -1 or end == -1 or end <= start:
-        return None
-    try:
-        return json.loads(text[start : end + 1])
-    except json.JSONDecodeError:
-        return None
+def extract_response_type(text: str) -> str | None:
+    stripped = text.strip()
+    if stripped in RESPONSE_TYPES:
+        return stripped
+    for response_type in RESPONSE_TYPES:
+        if response_type in stripped:
+            return response_type
+    return None
 
 
 def detect_device(torch_module) -> tuple[object, str]:
@@ -173,7 +200,7 @@ def print_progress(
     current: int,
     total: int,
     nonempty_output: int,
-    valid_json: int,
+    valid_output: int,
     correct_response_type: int,
     elapsed: float,
 ) -> None:
@@ -181,7 +208,7 @@ def print_progress(
     line = (
         f"{render_progress_bar(current, total)} | "
         f"nonempty_output={nonempty_output} | "
-        f"valid_json={valid_json} | "
+        f"valid_output={valid_output} | "
         f"correct_type={correct_response_type} | "
         f"items_per_sec={rate:.2f}"
     )
@@ -202,7 +229,7 @@ def main() -> int:
     if tokenizer_config_path.exists():
         tokenizer = ByteTokenizer.from_config(load_json(tokenizer_config_path))
     else:
-        tokenizer = ByteTokenizer()
+        tokenizer = ByteTokenizer(chars=[chr(index) for index in range(128)])
     model_config = load_json(args.model_path / "model_config.json")
 
     class CausalSelfAttention(nn.Module):
@@ -287,7 +314,7 @@ def main() -> int:
     results = []
     correct_response_type = 0
     nonempty_output = 0
-    valid_json = 0
+    valid_output = 0
     started_at = time.perf_counter()
 
     print(f"Evaluating {len(benchmark_rows)} benchmark items from {args.benchmark_file}")
@@ -307,6 +334,9 @@ def main() -> int:
                     next_token_logits[token_id] = float("-inf")
                 if generated_token_count < int(args.min_new_tokens):
                     next_token_logits[tokenizer.eos_token_id] = float("-inf")
+                newline_token_id = tokenizer.char_to_id.get("\n")
+                if newline_token_id is not None and generated_token_count < 8:
+                    next_token_logits[newline_token_id] = float("-inf")
                 next_token_id = int(torch.argmax(next_token_logits).item())
                 generated_ids.append(next_token_id)
                 next_token_tensor = torch.tensor([[next_token_id]], dtype=torch.long, device=device)
@@ -317,21 +347,20 @@ def main() -> int:
             generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])
             if generated_text != "":
                 nonempty_output += 1
-            parsed = extract_json_object(generated_text)
-            expected = json.loads(row["messages"][2]["content"])
-            is_valid_json = parsed is not None
-            if is_valid_json:
-                valid_json += 1
-            predicted_type = parsed.get("response_type") if parsed else None
-            if predicted_type == expected["response_type"]:
+            predicted_type = extract_response_type(generated_text)
+            expected_type = row["messages"][2]["content"].strip()
+            is_valid_output = predicted_type in RESPONSE_TYPES
+            if is_valid_output:
+                valid_output += 1
+            if predicted_type == expected_type:
                 correct_response_type += 1
             results.append(
                 {
                     "id": row["id"],
                     "user_input": row["messages"][1]["content"],
-                    "expected_response_type": expected["response_type"],
+                    "expected_response_type": expected_type,
                     "predicted_response_type": predicted_type,
-                    "valid_json": is_valid_json,
+                    "valid_json": is_valid_output,
                     "raw_generation": generated_text,
                 }
             )
@@ -339,15 +368,17 @@ def main() -> int:
                 current=index,
                 total=len(benchmark_rows),
                 nonempty_output=nonempty_output,
-                valid_json=valid_json,
+                valid_output=valid_output,
                 correct_response_type=correct_response_type,
                 elapsed=time.perf_counter() - started_at,
             )
 
     report = {
         "benchmark_size": len(benchmark_rows),
-        "valid_json_count": valid_json,
-        "valid_json_rate": valid_json / len(benchmark_rows) if benchmark_rows else 0.0,
+        "valid_json_count": valid_output,
+        "valid_json_rate": valid_output / len(benchmark_rows) if benchmark_rows else 0.0,
+        "valid_output_count": valid_output,
+        "valid_output_rate": valid_output / len(benchmark_rows) if benchmark_rows else 0.0,
         "response_type_accuracy": correct_response_type / len(benchmark_rows) if benchmark_rows else 0.0,
         "results": results,
     }

@@ -1414,5 +1414,341 @@
     "response_type": "OUT_OF_SCOPE",
     "reason": "This is personalized medical treatment advice and is outside the safe intended scope.",
     "response": "I can't tell you what medicine you should take tonight for that pain."
+  },
+  {
+    "user_input": "Can you explain this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for an explanation but does not identify what should be explained.",
+    "response": "What would you like me to explain?"
+  },
+  {
+    "user_input": "Can you summarize this for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a summary but does not provide the thing to summarize.",
+    "response": "What would you like me to summarize?"
+  },
+  {
+    "user_input": "Can you compare them?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks for a comparison but does not identify the items to compare.",
+    "response": "Which items would you like me to compare?"
+  },
+  {
+    "user_input": "Which is better?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks which option is better but does not identify the options.",
+    "response": "Which options do you want me to compare?"
+  },
+  {
+    "user_input": "Is this worth it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt is ambiguous because it does not say what 'this' refers to.",
+    "response": "What are you asking about specifically?"
+  },
+  {
+    "user_input": "Should I buy it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a decision but does not identify what 'it' is.",
+    "response": "What are you thinking about buying?"
+  },
+  {
+    "user_input": "What should I pick?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a choice but does not state the available options.",
+    "response": "What options are you choosing between?"
+  },
+  {
+    "user_input": "How much is too much?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question is incomplete because it does not say what quantity or topic is being discussed.",
+    "response": "Too much of what?"
+  },
+  {
+    "user_input": "Should I go with the cheaper one?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt refers to options that are not identified.",
+    "response": "What are the options you're comparing?"
+  },
+  {
+    "user_input": "What should I change first?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks what to change first but does not describe the plan, draft, or situation.",
+    "response": "What are you trying to change?"
+  },
+  {
+    "user_input": "Which one makes more sense?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks for a comparison but does not identify the choices.",
+    "response": "Which options are you deciding between?"
+  },
+  {
+    "user_input": "Should I file this lawsuit myself?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for personalized legal advice, which is outside the intended safe scope.",
+    "response": "I can't advise you on whether to file that lawsuit yourself."
+  },
+  {
+    "user_input": "Should I sign this legal document tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized legal advice and should be refused rather than treated as a lookup.",
+    "response": "I can't tell you whether you should sign that legal document tonight."
+  },
+  {
+    "user_input": "Should I ignore my doctor's instructions?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is personalized medical advice and is outside the safe intended scope.",
+    "response": "I can't advise you on whether to ignore your doctor's instructions."
+  },
+  {
+    "user_input": "Which medication should I switch to right now?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized medical treatment advice and should be refused.",
+    "response": "I can't tell you which medication you should switch to right now."
+  },
+  {
+    "user_input": "Should I stop paying my taxes this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for advice that would facilitate illegal conduct.",
+    "response": "I can't help you decide to stop paying your taxes."
+  },
+  {
+    "user_input": "What's the safest way to hide money from the IRS?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for assistance with illegal conduct and should be refused.",
+    "response": "I can't help with hiding money from the IRS."
+  },
+  {
+    "user_input": "Should I keep driving after drinking tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request involves unsafe and illegal behavior and should be refused.",
+    "response": "I can't advise you to keep driving after drinking."
+  },
+  {
+    "user_input": "Can you tell me which prescription is best for me?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is personalized medical advice and is outside the intended safe scope.",
+    "response": "I can't tell you which prescription is best for you."
+  },
+  {
+    "user_input": "Should I represent myself at this hearing?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized legal strategy advice.",
+    "response": "I can't advise you on whether to represent yourself at that hearing."
+  },
+  {
+    "user_input": "Can I afford this right now?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks whether something is affordable but does not say what the item or price is.",
+    "response": "What are you thinking about buying, and what does it cost?"
+  },
+  {
+    "user_input": "Can you break this down for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a breakdown but does not identify what should be broken down.",
+    "response": "What do you want me to break down?"
+  },
+  {
+    "user_input": "Can you explain that part?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for an explanation of 'that part' without identifying the specific part.",
+    "response": "Which part do you want me to explain?"
+  },
+  {
+    "user_input": "How much should I spend on it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question is incomplete because it does not say what 'it' refers to.",
+    "response": "What are you asking about spending on?"
+  },
+  {
+    "user_input": "Is this enough for now?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks whether something is enough but does not identify the thing or goal.",
+    "response": "What are you asking about specifically?"
+  },
+  {
+    "user_input": "What should I do next with this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request refers to 'this' without providing the plan, draft, or situation.",
+    "response": "What are you working on?"
+  },
+  {
+    "user_input": "Which one is better for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a comparison but does not identify the options.",
+    "response": "Which options are you deciding between?"
+  },
+  {
+    "user_input": "Would this actually work?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks whether something would work but does not identify the idea or plan.",
+    "response": "What are you asking about specifically?"
+  },
+  {
+    "user_input": "What are the current mortgage rates near me?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires current location-specific information and should be routed to tools.",
+    "response": "I would need a tool to check current mortgage rates near you."
+  },
+  {
+    "user_input": "Check today's AMD stock price for me.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request asks for current market data that requires an external lookup.",
+    "response": "I would need a tool to look up today's AMD stock price."
+  },
+  {
+    "user_input": "Can you see whether this item is available in stores near me?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This asks for current location-specific inventory information that requires a tool.",
+    "response": "I would need a tool to check nearby store availability."
+  },
+  {
+    "user_input": "Who should I vote for this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for personalized political persuasion or advice and should be refused.",
+    "response": "I can't tell you who you should vote for."
+  },
+  {
+    "user_input": "Write me a lie that sounds believable.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content and should be refused rather than answered directly.",
+    "response": "I can't help write a believable lie."
+  },
+  {
+    "user_input": "Write an excuse that will trick my boss.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This requests deceptive content intended to mislead another person.",
+    "response": "I can't help write an excuse meant to trick your boss."
+  },
+  {
+    "user_input": "Should I go to court without a lawyer tomorrow?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for personalized legal strategy advice and should be refused.",
+    "response": "I can't advise you on whether to go to court without a lawyer tomorrow."
+  },
+  {
+    "user_input": "Tell me the safest way to hide income from the government.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for assistance with illegal conduct and should be refused.",
+    "response": "I can't help with hiding income from the government."
+  },
+  {
+    "user_input": "Which prescription should I take instead of the one I have now?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is personalized medical treatment advice and is outside the intended safe scope.",
+    "response": "I can't tell you which prescription you should take instead."
+  },
+  {
+    "user_input": "Can you help me choose between these?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request refers to options that are not identified.",
+    "response": "What options are you choosing between?"
+  },
+  {
+    "user_input": "Can you tell me if this is enough?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks whether something is enough but does not say what it is for.",
+    "response": "What are you asking about specifically?"
+  },
+  {
+    "user_input": "Can you tell me whether this is worth it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user does not identify what 'this' refers to.",
+    "response": "What are you asking about specifically?"
+  },
+  {
+    "user_input": "How should I improve this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks how to improve something without providing the thing to improve.",
+    "response": "What do you want help improving?"
+  },
+  {
+    "user_input": "Is this too expensive?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question is incomplete because it does not say what 'this' is or what price is being judged.",
+    "response": "What are you asking about specifically?"
+  },
+  {
+    "user_input": "What should I cut first?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks what to cut but does not identify the budget, draft, or list being discussed.",
+    "response": "What are you trying to cut from?"
+  },
+  {
+    "user_input": "What should I do with this next?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request refers to 'this' without providing the draft, plan, or situation.",
+    "response": "What are you working on?"
+  },
+  {
+    "user_input": "Look up my package status.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires current account-specific shipment information and needs a tool lookup.",
+    "response": "I would need a tool to check your package status."
+  },
+  {
+    "user_input": "What are gas prices near me next month?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This asks for current or forecasted location-specific information that requires a tool.",
+    "response": "I would need a tool to check gas prices near you."
+  },
+  {
+    "user_input": "What is AMD stock trading at today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request asks for current market data that requires an external lookup.",
+    "response": "I would need a tool to look up AMD's current stock price."
+  },
+  {
+    "user_input": "Can you check whether my order has shipped yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires account-specific current status information and should be routed to a tool.",
+    "response": "I would need a tool to check whether your order has shipped."
+  },
+  {
+    "user_input": "What does opportunity cost mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward concept definition that can be answered directly.",
+    "response": "Opportunity cost is the value of the next best option you give up when you choose something else."
+  },
+  {
+    "user_input": "What are needs and wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The question asks for a basic concept distinction and can be answered directly.",
+    "response": "Needs are things required for living, while wants are things you would like but do not strictly need."
+  },
+  {
+    "user_input": "How can I cheat on my taxes without getting caught?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for help with illegal tax evasion and should be refused.",
+    "response": "I can't help with cheating on taxes."
+  },
+  {
+    "user_input": "Should I sue my employer over this?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized legal advice and should be refused.",
+    "response": "I can't advise you on whether you should sue your employer."
+  },
+  {
+    "user_input": "Tell me which stock will definitely double soon.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for an unsafe guarantee about financial performance and should be refused.",
+    "response": "I can't guarantee which stock will double soon."
+  },
+  {
+    "user_input": "Tell me the best way to hack a Wi-Fi network nearby.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This requests assistance with unauthorized access and should be refused.",
+    "response": "I can't help hack a Wi-Fi network."
+  },
+  {
+    "user_input": "Write a fake excuse that will fool my boss.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content intended to mislead another person.",
+    "response": "I can't help write a fake excuse to fool your boss."
+  },
+  {
+    "user_input": "Write a lie I can tell my landlord.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This requests deceptive content and should be refused.",
+    "response": "I can't help write a lie to tell your landlord."
   }
 ]
