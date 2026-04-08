@@ -393,6 +393,7 @@ class TrainingStatusWriter:
 
 def run_post_training_benchmark(repo_root: Path, output_dir: Path) -> Path:
     report_path = repo_root / "experiments" / f"benchmark_report-{output_dir.name}.json"
+    status_path = output_dir / "benchmark_status.json"
     command = [
         os.sys.executable,
         str(repo_root / "scripts" / "evaluate_native_model.py"),
@@ -400,6 +401,8 @@ def run_post_training_benchmark(repo_root: Path, output_dir: Path) -> Path:
         str(output_dir),
         "--output-report",
         str(report_path),
+        "--status-file",
+        str(status_path),
     ]
     subprocess.run(command, check=True, cwd=repo_root)
     return report_path
@@ -644,6 +647,7 @@ def main() -> int:
         validation_examples=len(validation_examples),
         device=device_label,
         max_steps=total_steps,
+        benchmark_status=None,
     )
 
     def evaluate_loss(examples: list[Example]) -> float:
@@ -789,6 +793,7 @@ def main() -> int:
                 "epoch": float(config["num_train_epochs"]),
             },
             best_validation_loss=None if best_validation_loss == float("inf") else best_validation_loss,
+            benchmark_status=str(output_dir / "benchmark_status.json"),
         )
         print("Training loop complete. Starting automatic benchmark evaluation...")
         benchmark_report_path = run_post_training_benchmark(repo_root, output_dir)
@@ -805,6 +810,7 @@ def main() -> int:
             },
             benchmark_report=str(benchmark_report_path),
             best_validation_loss=None if best_validation_loss == float("inf") else best_validation_loss,
+            benchmark_status=str(output_dir / "benchmark_status.json"),
         )
         print(f"Training complete. Saved model to {output_dir}")
         print(f"Benchmark report: {benchmark_report_path}")

@@ -3,7 +3,8 @@ param(
     [string]$Config = 'models\configs\v1_native_byte_transformer_config.json',
     [string]$Prompt = 'Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.',
     [string]$CodexPath,
-    [double]$RecoveryThreshold = 0.50
+    [double]$RecoveryThreshold = 0.50,
+    [switch]$OpenStatusWindow = $true
 )
 
 $ErrorActionPreference = 'Stop'
@@ -116,6 +117,66 @@ function Show-FilteredCodexOutput {
     }
 }
 
+function Invoke-CodexExec {
+    param(
+        [string]$CodexExecutable,
+        [string]$Prompt,
+        [string]$RepoRoot,
+        [string]$MessagePath,
+        [string]$LogPath
+    )
+
+    $processInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $processInfo.FileName = $CodexExecutable
+    $processInfo.Arguments = ('exec "{0}" -C "{1}" --full-auto -o "{2}"' -f ($Prompt -replace '"', '\"'), $RepoRoot, $MessagePath)
+    $processInfo.WorkingDirectory = $RepoRoot
+    $processInfo.UseShellExecute = $false
+    $processInfo.RedirectStandardOutput = $true
+    $processInfo.RedirectStandardError = $true
+    $processInfo.CreateNoWindow = $true
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $processInfo
+
+    $lineBuffer = New-Object System.Collections.Generic.List[string]
+    $outputHandler = [System.Diagnostics.DataReceivedEventHandler]{
+        param($sender, $args)
+        if ($null -ne $args.Data) {
+            [void]$lineBuffer.Add($args.Data)
+        }
+    }
+
+    $errorHandler = [System.Diagnostics.DataReceivedEventHandler]{
+        param($sender, $args)
+        if ($null -ne $args.Data) {
+            [void]$lineBuffer.Add($args.Data)
+        }
+    }
+
+    try {
+        $process.add_OutputDataReceived($outputHandler)
+        $process.add_ErrorDataReceived($errorHandler)
+        [void]$process.Start()
+        $process.BeginOutputReadLine()
+        $process.BeginErrorReadLine()
+        $process.WaitForExit()
+
+        $combined = @($lineBuffer.ToArray())
+        $combined | Out-File -FilePath $LogPath -Encoding utf8
+
+        return [pscustomobject]@{
+            ExitCode = $process.ExitCode
+            Lines = $combined
+        }
+    } finally {
+        if ($process) {
+            $process.remove_OutputDataReceived($outputHandler)
+            $process.remove_ErrorDataReceived($errorHandler)
+            $process.Dispose()
+        }
+    }
+}
+
 function Get-LatestRunStatus {
     param(
         [string]$RepoRoot
@@ -152,12 +213,92 @@ function Get-BenchmarkMetrics {
         [double]$report.valid_json_rate
     }
 
+    $nonemptyOutputCount = 0
+    if ($null -ne $report.nonempty_output_count) {
+        $nonemptyOutputCount = [int]$report.nonempty_output_count
+    }
+
+    $validOutputCount = 0
+    if ($null -ne $report.valid_output_count) {
+        $validOutputCount = [int]$report.valid_output_count
+    } elseif ($null -ne $report.valid_json_count) {
+        $validOutputCount = [int]$report.valid_json_count
+    }
+
+    $correctResponseTypeCount = 0
+    if ($null -ne $report.correct_response_type_count) {
+        $correctResponseTypeCount = [int]$report.correct_response_type_count
+    } elseif ($null -ne $report.response_type_accuracy -and $null -ne $report.benchmark_size) {
+        $correctResponseTypeCount = [int][Math]::Round(([double]$report.response_type_accuracy) * [int]$report.benchmark_size)
+    }
+
+    $itemsPerSec = 0.0
+    if ($null -ne $report.items_per_sec) {
+        $itemsPerSec = [double]$report.items_per_sec
+    }
+
     return [pscustomobject]@{
         Path = $BenchmarkReportPath
+        NonemptyOutputCount = $nonemptyOutputCount
         ValidOutputRate = $validOutputRate
+        ValidOutputCount = $validOutputCount
+        CorrectResponseTypeCount = $correctResponseTypeCount
         ResponseTypeAccuracy = [double]$report.response_type_accuracy
         BenchmarkSize = [int]$report.benchmark_size
+        ItemsPerSec = $itemsPerSec
     }
+}
+
+function Write-AutotrainStatus {
+    param(
+        [string]$StatusPath,
+        [string]$IterationLabel,
+        [string]$Phase,
+        [string]$Note = '',
+        [object]$Metrics = $null,
+        [string]$TrainingStatusPath = '',
+        [string]$BenchmarkStatusPath = ''
+    )
+
+    $stageOrder = @('starting', 'training', 'benchmark_complete', 'codex', 'decision', 'stopped', 'interrupted', 'failed')
+    $phaseIndex = [Array]::IndexOf($stageOrder, $Phase)
+    if ($phaseIndex -lt 0) {
+        $phaseIndex = 0
+    }
+
+    $payload = [ordered]@{
+        iteration_label = $IterationLabel
+        phase = $Phase
+        timestamp = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
+        note = $Note
+        stage = [ordered]@{
+            current = $Phase
+            index = $phaseIndex + 1
+            total = $stageOrder.Count
+            order = $stageOrder
+        }
+    }
+
+    if ($TrainingStatusPath) {
+        $payload.training_status = $TrainingStatusPath
+    }
+
+    if ($BenchmarkStatusPath) {
+        $payload.benchmark_status = $BenchmarkStatusPath
+    }
+
+    if ($null -ne $Metrics) {
+        $payload.benchmark_size = $Metrics.BenchmarkSize
+        $payload.nonempty_output_count = $Metrics.NonemptyOutputCount
+        $payload.valid_output_count = $Metrics.ValidOutputCount
+        $payload.correct_response_type_count = $Metrics.CorrectResponseTypeCount
+        $payload.items_per_sec = $Metrics.ItemsPerSec
+        $payload.valid_output_rate = $Metrics.ValidOutputRate
+        $payload.response_type_accuracy = $Metrics.ResponseTypeAccuracy
+        $payload.benchmark_report = $Metrics.Path
+    }
+
+    $payload | ConvertTo-Json -Depth 4 | Set-Content -Path $StatusPath
 }
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -165,6 +306,8 @@ $pythonPath = Join-Path $repoRoot '.python\python.exe'
 $configPath = Join-Path $repoRoot $Config
 $codexExecutable = Resolve-CodexExecutable -OverridePath $CodexPath
 $logRoot = Join-Path $repoRoot 'experiments\automation'
+$statusPath = Join-Path $logRoot 'latest_status.json'
+$statusWatcherScript = Join-Path $repoRoot 'scripts\show_autotrain_status.ps1'
 
 if (-not (Test-Path $pythonPath)) {
     throw "Python runtime not found: $pythonPath"
@@ -184,12 +327,27 @@ Write-Host "Automation logs: $logRoot"
 Write-Host "Max iterations: $MaxIterations"
 Write-Host "Recovery threshold (valid output rate): $RecoveryThreshold"
 
+Write-AutotrainStatus -StatusPath $statusPath -IterationLabel '---' -Phase 'starting' -Note 'Autotrain initialized.'
+
+if ($OpenStatusWindow -and (Test-Path $statusWatcherScript)) {
+    Start-Process powershell.exe -ArgumentList @(
+        '-NoExit',
+        '-ExecutionPolicy', 'Bypass',
+        '-File', $statusWatcherScript,
+        '-StatusFile', $statusPath
+    ) | Out-Null
+}
+
 $iteration = 0
+$lastSummaryLine = $null
 
 while ($true) {
     $iteration += 1
     if ($MaxIterations -gt 0 -and $iteration -gt $MaxIterations) {
         Write-Host "Reached MaxIterations=$MaxIterations. Stopping."
+        if ($lastSummaryLine) {
+            Write-Host $lastSummaryLine
+        }
         break
     }
 
@@ -199,11 +357,14 @@ while ($true) {
     $messagePath = Join-Path $iterationDir 'codex_last_message.txt'
     $decisionPath = Join-Path $iterationDir 'decision.txt'
     $codexLogPath = Join-Path $iterationDir 'codex_exec_output.log'
+    $latestTrainingStatusPath = ''
+    $latestBenchmarkStatusPath = ''
 
     New-Item -ItemType Directory -Force -Path $iterationDir | Out-Null
 
     Write-Host ''
     Write-Host "=== Iteration ${iterationLabel}: training ==="
+    Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'training' -Note 'Training in progress.'
 
     Push-Location $repoRoot
     try {
@@ -216,9 +377,14 @@ while ($true) {
     }
 
     $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot
+    if ($latestRunStatus.output_dir) {
+        $latestTrainingStatusPath = Join-Path $latestRunStatus.output_dir 'training_status.json'
+        $latestBenchmarkStatusPath = Join-Path $latestRunStatus.output_dir 'benchmark_status.json'
+    }
     $benchmarkMetrics = Get-BenchmarkMetrics -BenchmarkReportPath $latestRunStatus.benchmark_report
 
     Write-Host ("Latest benchmark: valid_output_rate={0:P2} | response_type_accuracy={1:P2} | size={2}" -f $benchmarkMetrics.ValidOutputRate, $benchmarkMetrics.ResponseTypeAccuracy, $benchmarkMetrics.BenchmarkSize)
+    Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'benchmark_complete' -Note 'Training and benchmark completed.' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
 
     Write-Host ''
     Write-Host "=== Iteration ${iterationLabel}: Codex improvement pass ==="
@@ -260,13 +426,12 @@ $recoveryInstructions
 
     Push-Location $repoRoot
     try {
-        $codexOutput = & $codexExecutable exec $codexPrompt -C $repoRoot --full-auto -o $messagePath 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            $codexOutput | Out-File -FilePath $codexLogPath -Encoding utf8
-            throw "Codex exec failed with exit code $LASTEXITCODE"
+        Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'codex' -Note 'Codex improvement pass running.' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
+        $codexResult = Invoke-CodexExec -CodexExecutable $codexExecutable -Prompt $codexPrompt -RepoRoot $repoRoot -MessagePath $messagePath -LogPath $codexLogPath
+        if ($codexResult.ExitCode -ne 0) {
+            throw "Codex exec failed with exit code $($codexResult.ExitCode)"
         }
-        $codexOutput | Out-File -FilePath $codexLogPath -Encoding utf8
-        Show-FilteredCodexOutput -Lines $codexOutput
+        Show-FilteredCodexOutput -Lines $codexResult.Lines
     } finally {
         Pop-Location
     }
@@ -275,8 +440,15 @@ $recoveryInstructions
     Set-Content -Path $decisionPath -Value $decision
     Write-Host "Codex decision: $decision"
 
+    $lastSummaryLine = ("Loop {0} | {1}/{1} (100.0%) | nonempty_output={2} | valid_output={3} | correct_type={4} | items_per_sec={5:N2}" -f $iterationLabel, $benchmarkMetrics.BenchmarkSize, $benchmarkMetrics.NonemptyOutputCount, $benchmarkMetrics.ValidOutputCount, $benchmarkMetrics.CorrectResponseTypeCount, $benchmarkMetrics.ItemsPerSec)
+    Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'decision' -Note ("Codex decision: {0}" -f $decision) -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
+
     if ($decision -eq 'STOP') {
         Write-Host "Codex requested stop. Ending automation loop."
+        Write-Host $lastSummaryLine
+        Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'stopped' -Note 'Codex requested stop.' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
         break
     }
+
+    Write-Host $lastSummaryLine
 }

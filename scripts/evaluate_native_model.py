@@ -36,6 +36,12 @@ def parse_args() -> argparse.Namespace:
         default=Path("experiments/benchmark_report.json"),
         help="Output benchmark report path.",
     )
+    parser.add_argument(
+        "--status-file",
+        type=Path,
+        default=None,
+        help="Optional JSON file to update with live benchmark progress.",
+    )
     parser.add_argument("--max-new-tokens", type=int, default=256, help="Maximum generated tokens.")
     parser.add_argument(
         "--min-new-tokens",
@@ -64,6 +70,15 @@ def load_jsonl(path: Path) -> list[dict]:
             if line.strip():
                 rows.append(json.loads(line))
     return rows
+
+
+def write_status(path: Path | None, payload: dict) -> None:
+    if path is None:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, ensure_ascii=True)
+        handle.write("\n")
 
 
 def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
@@ -316,6 +331,23 @@ def main() -> int:
     nonempty_output = 0
     valid_output = 0
     started_at = time.perf_counter()
+    status_file = args.status_file.resolve() if args.status_file else None
+
+    write_status(
+        status_file,
+        {
+            "status": "running",
+            "model_path": str(args.model_path.resolve()),
+            "benchmark_file": str(args.benchmark_file.resolve()),
+            "output_report": str(output_report.resolve()),
+            "current": 0,
+            "total": len(benchmark_rows),
+            "nonempty_output_count": 0,
+            "valid_output_count": 0,
+            "correct_response_type_count": 0,
+            "items_per_sec": 0.0,
+        },
+    )
 
     print(f"Evaluating {len(benchmark_rows)} benchmark items from {args.benchmark_file}")
 
@@ -372,20 +404,59 @@ def main() -> int:
                 correct_response_type=correct_response_type,
                 elapsed=time.perf_counter() - started_at,
             )
+            elapsed = time.perf_counter() - started_at
+            write_status(
+                status_file,
+                {
+                    "status": "running",
+                    "model_path": str(args.model_path.resolve()),
+                    "benchmark_file": str(args.benchmark_file.resolve()),
+                    "output_report": str(output_report.resolve()),
+                    "current": index,
+                    "total": len(benchmark_rows),
+                    "nonempty_output_count": nonempty_output,
+                    "valid_output_count": valid_output,
+                    "correct_response_type_count": correct_response_type,
+                    "items_per_sec": (index / elapsed) if elapsed > 0 else 0.0,
+                },
+            )
 
+    elapsed_seconds = time.perf_counter() - started_at
     report = {
         "benchmark_size": len(benchmark_rows),
+        "nonempty_output_count": nonempty_output,
+        "nonempty_output_rate": nonempty_output / len(benchmark_rows) if benchmark_rows else 0.0,
         "valid_json_count": valid_output,
         "valid_json_rate": valid_output / len(benchmark_rows) if benchmark_rows else 0.0,
         "valid_output_count": valid_output,
         "valid_output_rate": valid_output / len(benchmark_rows) if benchmark_rows else 0.0,
+        "correct_response_type_count": correct_response_type,
         "response_type_accuracy": correct_response_type / len(benchmark_rows) if benchmark_rows else 0.0,
+        "elapsed_seconds": elapsed_seconds,
+        "items_per_sec": (len(benchmark_rows) / elapsed_seconds) if benchmark_rows and elapsed_seconds > 0 else 0.0,
         "results": results,
     }
     output_report.parent.mkdir(parents=True, exist_ok=True)
     with output_report.open("w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2, ensure_ascii=True)
         handle.write("\n")
+    write_status(
+        status_file,
+        {
+            "status": "completed",
+            "model_path": str(args.model_path.resolve()),
+            "benchmark_file": str(args.benchmark_file.resolve()),
+            "output_report": str(output_report.resolve()),
+            "current": len(benchmark_rows),
+            "total": len(benchmark_rows),
+            "nonempty_output_count": nonempty_output,
+            "valid_output_count": valid_output,
+            "correct_response_type_count": correct_response_type,
+            "items_per_sec": report["items_per_sec"],
+            "valid_output_rate": report["valid_output_rate"],
+            "response_type_accuracy": report["response_type_accuracy"],
+        },
+    )
     sys.stdout.write("\n")
     print(f"Wrote benchmark report to {output_report}")
     return 0

@@ -293,7 +293,7 @@ function summarize {
 
 function autotrain {
     param(
-        [int]$max_iterations = 0
+        [int]$max_iterations = 50
     )
 
     Push-Location $AiLanguageCoreRoot
@@ -310,6 +310,15 @@ function autotrain {
 This loop trains, then runs Codex in unattended mode to make the next change,
 then trains again until Codex says stop or an error occurs.
 
+Default behavior:
+- runs up to `50` iterations
+- stops earlier only on error or when Codex returns `AUTOMATION_DECISION: STOP`
+- opens a second PowerShell window that mirrors the current autotrain state with live progress bars for:
+  - the iteration pipeline
+  - training progress
+  - benchmark progress
+  - Codex activity
+
 Direct command:
 
 ```powershell
@@ -320,6 +329,12 @@ Stop after a fixed number of iterations:
 
 ```powershell
 .\scripts\run_autotrain_loop.ps1 -MaxIterations 3
+```
+
+Run without opening the separate status window:
+
+```powershell
+.\scripts\run_autotrain_loop.ps1 -OpenStatusWindow:$false
 ```
 
 With the helper block above loaded:
@@ -333,6 +348,9 @@ Notes:
 - This script uses `codex exec --full-auto`.
 - Per-iteration automation logs are written under:
   - `experiments/automation`
+- The live status window reads:
+  - `experiments/automation/latest_status.json`
+- The status window is intended to mirror the current state, not act as a scrolling log.
 - Codex must finish its final message with one of:
   - `AUTOMATION_DECISION: CONTINUE`
   - `AUTOMATION_DECISION: STOP`
