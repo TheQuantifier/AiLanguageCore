@@ -443,7 +443,7 @@ def main() -> int:
     class NativeTransformerLM(nn.Module):
         def __init__(self, model_config: dict):
             super().__init__()
-            self.vocab_size = int(model_config["vocab_size"])
+            self.vocab_size = int(model_config.get("vocab_size", tokenizer.vocab_size))
             self.max_seq_length = int(model_config["max_seq_length"])
             self.token_embedding = nn.Embedding(self.vocab_size, int(model_config["hidden_size"]))
             self.position_embedding = nn.Embedding(self.max_seq_length, int(model_config["hidden_size"]))
@@ -647,6 +647,18 @@ def main() -> int:
             },
         )
         save_json(output_dir / "training_config.json", config)
+        status_writer.update(
+            status="running_benchmark",
+            global_step=global_step,
+            epoch=float(config["num_train_epochs"]),
+            latest_log={
+                "train_loss": total_train_loss,
+                "validation_loss": best_validation_loss if best_validation_loss != float("inf") else None,
+                "epoch": float(config["num_train_epochs"]),
+            },
+            best_validation_loss=None if best_validation_loss == float("inf") else best_validation_loss,
+        )
+        print("Training loop complete. Starting automatic benchmark evaluation...")
         benchmark_report_path = run_post_training_benchmark(repo_root, output_dir)
         refresh_training_summary(repo_root)
         status_writer.update(
