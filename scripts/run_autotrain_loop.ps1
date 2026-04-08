@@ -126,54 +126,69 @@ function Invoke-CodexExec {
         [string]$LogPath
     )
 
-    $processInfo = New-Object System.Diagnostics.ProcessStartInfo
-    $processInfo.FileName = $CodexExecutable
-    $processInfo.Arguments = ('exec "{0}" -C "{1}" --full-auto -o "{2}"' -f ($Prompt -replace '"', '\"'), $RepoRoot, $MessagePath)
-    $processInfo.WorkingDirectory = $RepoRoot
-    $processInfo.UseShellExecute = $false
-    $processInfo.RedirectStandardOutput = $true
-    $processInfo.RedirectStandardError = $true
-    $processInfo.CreateNoWindow = $true
+    function ConvertTo-CommandLineArgument {
+        param(
+            [string]$Value
+        )
 
-    $process = New-Object System.Diagnostics.Process
-    $process.StartInfo = $processInfo
-
-    $lineBuffer = New-Object System.Collections.Generic.List[string]
-    $outputHandler = [System.Diagnostics.DataReceivedEventHandler]{
-        param($sender, $args)
-        if ($null -ne $args.Data) {
-            [void]$lineBuffer.Add($args.Data)
+        if ($null -eq $Value) {
+            return '""'
         }
+
+        if ($Value -eq '') {
+            return '""'
+        }
+
+        if ($Value -notmatch '[\s"]') {
+            return $Value
+        }
+
+        $escaped = $Value -replace '(\\*)"', '$1$1\"'
+        $escaped = $escaped -replace '(\\+)$', '$1$1'
+        return ('"{0}"' -f $escaped)
     }
 
-    $errorHandler = [System.Diagnostics.DataReceivedEventHandler]{
-        param($sender, $args)
-        if ($null -ne $args.Data) {
-            [void]$lineBuffer.Add($args.Data)
-        }
+    $argumentValues = @(
+        'exec',
+        $Prompt,
+        '-C',
+        $RepoRoot,
+        '--full-auto',
+        '-o',
+        $MessagePath
+    )
+
+    $quotedArguments = $argumentValues | ForEach-Object { ConvertTo-CommandLineArgument -Value $_ }
+    $argumentString = [string]::Join(' ', $quotedArguments)
+
+    $stdoutPath = [System.IO.Path]::ChangeExtension($LogPath, '.stdout.log')
+    $stderrPath = [System.IO.Path]::ChangeExtension($LogPath, '.stderr.log')
+
+    if (Test-Path $stdoutPath) {
+        Remove-Item -LiteralPath $stdoutPath -Force
+    }
+    if (Test-Path $stderrPath) {
+        Remove-Item -LiteralPath $stderrPath -Force
     }
 
-    try {
-        $process.add_OutputDataReceived($outputHandler)
-        $process.add_ErrorDataReceived($errorHandler)
-        [void]$process.Start()
-        $process.BeginOutputReadLine()
-        $process.BeginErrorReadLine()
-        $process.WaitForExit()
+    $process = Start-Process -FilePath $CodexExecutable `
+        -ArgumentList $argumentString `
+        -WorkingDirectory $RepoRoot `
+        -NoNewWindow `
+        -PassThru `
+        -Wait `
+        -RedirectStandardOutput $stdoutPath `
+        -RedirectStandardError $stderrPath
 
-        $combined = @($lineBuffer.ToArray())
-        $combined | Out-File -FilePath $LogPath -Encoding utf8
+    $stdoutLines = if (Test-Path $stdoutPath) { Get-Content -Path $stdoutPath } else { @() }
+    $stderrLines = if (Test-Path $stderrPath) { Get-Content -Path $stderrPath } else { @() }
+    $combined = @($stdoutLines + $stderrLines)
 
-        return [pscustomobject]@{
-            ExitCode = $process.ExitCode
-            Lines = $combined
-        }
-    } finally {
-        if ($process) {
-            $process.remove_OutputDataReceived($outputHandler)
-            $process.remove_ErrorDataReceived($errorHandler)
-            $process.Dispose()
-        }
+    $combined | Out-File -FilePath $LogPath -Encoding utf8
+
+    return [pscustomobject]@{
+        ExitCode = $process.ExitCode
+        Lines = $combined
     }
 }
 

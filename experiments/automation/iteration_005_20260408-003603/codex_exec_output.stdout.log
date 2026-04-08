@@ -1,0 +1,14 @@
+The latest native run (`v1-native-byte-transformer-20260408-003604`) has formatting solved (`valid_output_rate = 1.0`), and the main remaining error mode is the `CLARIFICATION` vs `DIRECT_ANSWER` boundary. The biggest miss cluster was vague evaluative prompts like “Is this enough?”, “Should I wait?”, and “Would this work?” being classified as `DIRECT_ANSWER`, so I made one narrow dataset change: I added six seed `CLARIFICATION` examples that reinforce incomplete judgment/fit/choice questions as clarification cases, then rebuilt the processed splits and SFT JSONL so the next training run uses them immediately.
+
+This keeps the experiment comparable and avoids retrying class-balanced loss. After regeneration, the cleaned dataset moved from 93 to 98 `CLARIFICATION` records, and the train split is now 533 rows with 72 `CLARIFICATION` examples.
+
+Files changed:
+- `data/raw/v1_seed_dataset.json`
+- `data/processed/full_dataset.json`
+- `data/processed/preparation_report.json`
+- `data/processed/train.json`
+- `data/processed/validation.json`
+- `data/processed/train_sft.jsonl`
+- `data/processed/validation_sft.jsonl`
+
+AUTOMATION_DECISION: CONTINUE

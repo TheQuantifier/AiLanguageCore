@@ -1,0 +1,14 @@
+I enabled the existing near-duplicate retention hook for clarification examples so the prep step now keeps one extra generated CLARIFICATION variant per fuzzy prompt family instead of collapsing all of them. That directly targets the dominant latest-run error mode, `CLARIFICATION -> DIRECT_ANSWER`, without changing loss weighting or other training settings. After rebuilding the dataset, CLARIFICATION training coverage increased from 53 to 67 examples, while the benchmark stayed at 61 items.
+
+I also regenerated the processed train/validation splits and SFT files so the next run will train on the updated data. `validate_dataset.py` passed for the JSON splits; its CLI does not support JSONL and reports `Extra data` on the `.jsonl` files because they are line-delimited records, not JSON arrays.
+
+Files changed:
+- [scripts/prepare_dataset.py](C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/prepare_dataset.py)
+- [data/processed/full_dataset.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/full_dataset.json)
+- [data/processed/preparation_report.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/preparation_report.json)
+- [data/processed/train.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train.json)
+- [data/processed/validation.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/validation.json)
+- [data/processed/train_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+- [data/processed/validation_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/validation_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

@@ -1,0 +1,16 @@
+I applied one narrow change aimed at the biggest current classification failure: `OUT_OF_SCOPE` vs `TOOL_NEEDED`.
+
+I added 12 hand-written seed examples that contrast refusal cases against account/live-data lookup cases, covering the exact error cluster from the latest benchmark: personalized financial advice, political recommendation, tax evasion, deception, medical/legal advice, and account-specific status checks. Then I regenerated the processed dataset and SFT files so the next training run will consume the new examples immediately. This keeps the experiment comparable and targets the current weak boundary without changing loss, architecture, or decoding.
+
+Files changed:
+- [data/raw/v1_seed_dataset.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\raw\v1_seed_dataset.json)
+- [data/processed/full_dataset.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\full_dataset.json)
+- [data/processed/preparation_report.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\preparation_report.json)
+- [data/processed/train.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train.json)
+- [data/processed/validation.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\validation.json)
+- [data/processed/train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+- [data/processed/validation_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\validation_sft.jsonl)
+
+Verification: the dataset rebuild succeeded, all 12 new boundary examples landed in the train split, and train counts moved from `OUT_OF_SCOPE=78` / `TOOL_NEEDED=216` to `OUT_OF_SCOPE=83` / `TOOL_NEEDED=222`.
+
+AUTOMATION_DECISION: CONTINUE

@@ -57,10 +57,10 @@ function Get-Bar {
 
     $safeWidth = [Math]::Max(8, $Width)
     if ($Indeterminate) {
-        $tick = [int]([DateTime]::UtcNow.Ticks / 10000000)
+        $tick = [long]([DateTime]::UtcNow.Ticks / 10000000)
         $segmentWidth = [Math]::Max(4, [Math]::Floor($safeWidth / 4))
         $travel = [Math]::Max(1, $safeWidth - $segmentWidth)
-        $offset = $tick % ($travel + 1)
+        $offset = [int]($tick % ($travel + 1))
         $chars = New-Object char[] $safeWidth
         for ($i = 0; $i -lt $safeWidth; $i++) {
             $chars[$i] = '.'

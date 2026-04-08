@@ -1,0 +1,14 @@
+I analyzed the latest completed native run at `models/runs/v1-native-byte-transformer-20260408-002124` and its benchmark report. The main failure stayed on the `CLARIFICATION` vs `DIRECT_ANSWER` boundary, so I did not touch loss weighting or output formatting. Instead, I added one narrow contrastive seed set: benchmark-adjacent vague prompts labeled `CLARIFICATION` plus matched concrete prompts with overlapping verbs labeled `DIRECT_ANSWER`. That keeps the next run focused on the current weak boundary rather than broadening the experiment.
+
+I then regenerated the processed dataset and SFT files. Validation passed for `data/raw/v1_seed_dataset.json`, `data/processed/train.json`, `data/processed/validation.json`, `data/processed/full_dataset.json`, and `data/processed/benchmark.json`. The updated train split is now `542` records with `81` `CLARIFICATION` and `156` `DIRECT_ANSWER` examples.
+
+Files changed:
+- `data/raw/v1_seed_dataset.json`
+- `data/processed/full_dataset.json`
+- `data/processed/preparation_report.json`
+- `data/processed/train.json`
+- `data/processed/validation.json`
+- `data/processed/train_sft.jsonl`
+- `data/processed/validation_sft.jsonl`
+
+AUTOMATION_DECISION: CONTINUE

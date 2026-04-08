@@ -1,14 +1,31 @@
 {
-    "iteration_label": "001",
-    "phase": "interrupted",
-    "timestamp": "2026-04-07 23:33:30",
-    "note": "Previous autotrain run was manually stopped during the Codex phase.",
-    "benchmark_size": 61,
-    "nonempty_output_count": 61,
-    "valid_output_count": 51,
-    "correct_response_type_count": 33,
-    "items_per_sec": 4.20179455890821,
-    "valid_output_rate": 0.8360655737704918,
-    "response_type_accuracy": 0.5409836065573771,
-    "benchmark_report": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-20260407-232403.json"
+    "iteration_label":  "006",
+    "phase":  "codex",
+    "timestamp":  "2026-04-08 00:46:26",
+    "note":  "Codex improvement pass running.",
+    "stage":  {
+                  "current":  "codex",
+                  "index":  4,
+                  "total":  8,
+                  "order":  [
+                                "starting",
+                                "training",
+                                "benchmark_complete",
+                                "codex",
+                                "decision",
+                                "stopped",
+                                "interrupted",
+                                "failed"
+                            ]
+              },
+    "training_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-20260408-004257\\training_status.json",
+    "benchmark_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-20260408-004257\\benchmark_status.json",
+    "benchmark_size":  61,
+    "nonempty_output_count":  61,
+    "valid_output_count":  59,
+    "correct_response_type_count":  35,
+    "items_per_sec":  3.846867748165435,
+    "valid_output_rate":  0.96721311475409844,
+    "response_type_accuracy":  0.57377049180327866,
+    "benchmark_report":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-20260408-004257.json"
 }

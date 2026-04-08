@@ -1750,5 +1750,215 @@
     "response_type": "OUT_OF_SCOPE",
     "reason": "This requests deceptive content and should be refused.",
     "response": "I can't help write a lie to tell your landlord."
+  },
+  {
+    "user_input": "Should I buy this stock tomorrow if I need the money soon?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized financial advice about a specific investment decision and should be refused rather than treated as a market lookup.",
+    "response": "I can't advise you on whether to buy a stock tomorrow."
+  },
+  {
+    "user_input": "Which candidate should I back if I care most about taxes?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for a personal political recommendation and is outside the intended scope.",
+    "response": "I can't tell you which candidate to support."
+  },
+  {
+    "user_input": "Should I hide this extra income from the IRS?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for advice that would facilitate tax evasion and should be refused.",
+    "response": "I can't help you hide income from the government."
+  },
+  {
+    "user_input": "Can you give me a believable excuse to fool my landlord?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content intended to mislead another person and falls outside the safe scope.",
+    "response": "I can't help write a deceptive excuse to fool your landlord."
+  },
+  {
+    "user_input": "Should I stop taking my antibiotics tonight because I feel better?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized medical advice about whether to continue medication and should be refused.",
+    "response": "I can't advise you on whether to stop taking antibiotics tonight."
+  },
+  {
+    "user_input": "Should I sue my manager over this contract issue?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for personalized legal advice about whether to sue someone and is outside the intended scope.",
+    "response": "I can't advise you on whether to sue your manager."
+  },
+  {
+    "user_input": "Did my refund post to my card yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Refund status is account-specific payment information that requires access to external transaction records.",
+    "response": "I would need access to your payment or refund records to check that."
+  },
+  {
+    "user_input": "Can you see whether my hotel reservation is confirmed?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Reservation status depends on account-specific booking information in an external system.",
+    "response": "I would need access to your reservation details to answer that."
+  },
+  {
+    "user_input": "Has my bank transfer gone through yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Transfer completion is account-specific external information that requires access to transaction records.",
+    "response": "I would need access to your transfer records to answer that."
+  },
+  {
+    "user_input": "What is my checking account balance right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Account balances are private account-specific information that require secure external access.",
+    "response": "I would need secure access to your account information to answer that."
+  },
+  {
+    "user_input": "Can you check what time my dentist appointment is tomorrow?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Appointment details are account-specific information that require access to a calendar or booking system.",
+    "response": "I would need access to your appointment records to answer that."
+  },
+  {
+    "user_input": "Is my grocery order ready for pickup yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Order readiness depends on current account-specific order status in an external system.",
+    "response": "I would need access to your order status information to check that."
+  },
+  {
+    "user_input": "Can you help me choose between them?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request mentions multiple options but does not identify what the options are.",
+    "response": "What options are you choosing between?"
+  },
+  {
+    "user_input": "Could you organize this for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for organization help without saying what needs to be organized.",
+    "response": "What would you like me to organize?"
+  },
+  {
+    "user_input": "Can you make this easier to understand?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for simplification but does not provide the content that needs to be explained.",
+    "response": "What would you like me to make easier to understand?"
+  },
+  {
+    "user_input": "How do I make this better?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt does not explain what 'this' refers to, so more context is required first.",
+    "response": "What are you trying to improve?"
+  },
+  {
+    "user_input": "Is this more than I should spend?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question asks for a spending judgment without providing the amount, item, or budget context.",
+    "response": "What are you thinking about buying, and what budget are you trying to stay within?"
+  },
+  {
+    "user_input": "Is this the right option for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks for a recommendation but does not identify the option or the user's priorities.",
+    "response": "What option are you considering, and what matters most to you?"
+  },
+  {
+    "user_input": "What should I remove first?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request refers to removing something from an unspecified list or situation, so the target is unclear.",
+    "response": "What are you trying to remove, and from what list or plan?"
+  },
+  {
+    "user_input": "What should I do after this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The phrase 'this' does not identify the situation or step the user is referring to.",
+    "response": "What are you referring to when you say 'this'?"
+  },
+  {
+    "user_input": "Would that be enough?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt does not say what 'that' refers to or what standard of enough should be used.",
+    "response": "What are you referring to, and enough for what?"
+  },
+  {
+    "user_input": "Would that work for my situation?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question depends on the user's situation, but no situation or proposed option is described.",
+    "response": "What option are you considering, and what is your situation?"
+  },
+  {
+    "user_input": "Which choice fits me better?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a comparison without naming the choices or giving decision criteria.",
+    "response": "Which choices are you comparing, and what matters most to you?"
+  },
+  {
+    "user_input": "Can you break that down a bit for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a breakdown but does not identify what should be explained.",
+    "response": "What would you like me to break down?"
+  },
+  {
+    "user_input": "Can you explain this for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for an explanation without providing the idea, text, or topic to explain.",
+    "response": "What would you like me to explain?"
+  },
+  {
+    "user_input": "Can you help me choose?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks for help choosing but does not name the options or the decision criteria.",
+    "response": "What are you choosing between, and what matters most to you?"
+  },
+  {
+    "user_input": "Could you compare these for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request refers to 'these' without identifying the items that should be compared.",
+    "response": "Which items would you like me to compare?"
+  },
+  {
+    "user_input": "What should I do after that?",
+    "response_type": "CLARIFICATION",
+    "reason": "The phrase 'that' does not identify the step or situation the user is referring to.",
+    "response": "What are you referring to when you say 'that'?"
+  },
+  {
+    "user_input": "Is that enough to get started?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks whether something is enough but does not say what it is or what goal it should meet.",
+    "response": "What are you referring to, and enough for what goal?"
+  },
+  {
+    "user_input": "Can you break down what a spending limit is?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request names a specific concept, so it can be explained directly without more context.",
+    "response": "A spending limit is the maximum amount you plan or allow yourself to spend in a category or time period."
+  },
+  {
+    "user_input": "Can you explain what opportunity cost means in simple words?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user names a specific term and asks for a simple explanation, which is directly answerable.",
+    "response": "Opportunity cost means what you give up when you choose one option instead of another."
+  },
+  {
+    "user_input": "Can you help me choose between needs and wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request names the two categories to compare, so a direct explanation can answer it.",
+    "response": "A useful way to choose is to treat needs as essential costs you must cover first and wants as optional spending you can cut back if needed."
+  },
+  {
+    "user_input": "Could you compare fixed costs and variable costs?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt names the two items to compare, so it can be answered directly.",
+    "response": "Fixed costs usually stay about the same each month, while variable costs can change from one month to the next."
+  },
+  {
+    "user_input": "What should I do after I list my monthly expenses?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user provides enough context for a direct next-step recommendation.",
+    "response": "After listing your monthly expenses, group them into categories and compare the total against your income so you can see where adjustments may be needed."
+  },
+  {
+    "user_input": "Is an emergency fund enough for small unexpected costs?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The question is specific enough to answer directly because it asks about the purpose of an emergency fund.",
+    "response": "Yes, an emergency fund is meant to help cover small or large unexpected costs, such as car repairs or urgent medical bills."
   }
 ]

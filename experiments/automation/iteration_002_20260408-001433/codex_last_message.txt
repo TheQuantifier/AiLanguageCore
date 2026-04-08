@@ -1,0 +1,14 @@
+I inspected the latest completed native run at [models/runs/v1-native-byte-transformer-20260408-001434](C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260408-001434) and its report at [benchmark_report-v1-native-byte-transformer-20260408-001434.json](C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-001434.json). The dominant failure was `CLARIFICATION -> DIRECT_ANSWER` (12 cases), so I made one narrow data change: added 11 benchmark-adjacent `CLARIFICATION` seed examples targeting vague pronoun/evaluation prompts like “help me choose,” “is this enough,” and “what should I do after this,” then regenerated the prepared splits and SFT files.
+
+This keeps the next experiment comparable and aimed at the current weak boundary without retrying class-balanced loss or changing output formatting. The train split now has `77` clarification examples instead of `67`. I did not run training again.
+
+Files changed:
+- [data/raw/v1_seed_dataset.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\raw\v1_seed_dataset.json)
+- [data/processed/full_dataset.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\full_dataset.json)
+- [data/processed/preparation_report.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\preparation_report.json)
+- [data/processed/train.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train.json)
+- [data/processed/validation.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\validation.json)
+- [data/processed/train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+- [data/processed/validation_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\validation_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

@@ -1,124 +1,88 @@
 [
   {
-    "id": "v1-0040",
-    "user_input": "Can you fix this?",
-    "response_type": "CLARIFICATION",
-    "reason": "The user asks for a fix but does not identify what the problem is or what should be fixed.",
-    "response": "What would you like me to fix?",
-    "source": "seed",
-    "quality_score": 2231
-  },
-  {
-    "id": "v1-0053",
-    "user_input": "Can you see whether this item is available in stores near me?",
-    "response_type": "TOOL_NEEDED",
-    "reason": "This asks for current location-specific inventory information that requires a tool.",
-    "response": "I would need a tool to check nearby store availability.",
-    "source": "seed",
-    "quality_score": 2231
-  },
-  {
-    "id": "v1-0070",
-    "user_input": "Check whether that gaming console is in stock online.",
-    "response_type": "TOOL_NEEDED",
-    "reason": "Checking stock online requires live inventory lookup from external sources.",
-    "response": "I would need a tool to check live online stock availability for that gaming console.",
-    "source": "generated",
-    "quality_score": 1259
-  },
-  {
-    "id": "v1-0099",
-    "user_input": "Define variable cost.",
+    "id": "v1-0026",
+    "user_input": "Can you define fixed cost?",
     "response_type": "DIRECT_ANSWER",
     "reason": "The user asks for a straightforward definition of a standard concept.",
-    "response": "A variable cost is a cost that changes when the level of activity or production changes.",
+    "response": "A fixed cost is an expense that does not change with an increase or decrease in the number of goods or services produced.",
     "source": "generated",
-    "quality_score": 1232
+    "quality_score": 1279
   },
   {
-    "id": "v1-0102",
-    "user_input": "Does this make sense?",
+    "id": "v1-0031",
+    "user_input": "Can you define needs versus wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is complete and answerable without any external lookup.",
+    "response": "Needs are things required for survival, such as food, water, shelter, and clothing. Wants are things that are desired but not essential for survival, such as entertainment or luxury items.",
+    "source": "generated",
+    "quality_score": 1354
+  },
+  {
+    "id": "v1-0033",
+    "user_input": "Can you define plan?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a straightforward definition of a standard concept.",
+    "response": "A plan is a detailed proposal for doing or achieving something.",
+    "source": "generated",
+    "quality_score": 1197
+  },
+  {
+    "id": "v1-0067",
+    "user_input": "Can you sort this out?",
     "response_type": "CLARIFICATION",
-    "reason": "The prompt asks for evaluation but does not provide the statement, plan, or idea being evaluated.",
-    "response": "What are you referring to?",
+    "reason": "The prompt is vague because it does not identify what needs to be sorted out.",
+    "response": "What are you referring to when you say 'this'?",
     "source": "seed",
-    "quality_score": 2221
+    "quality_score": 2226
   },
   {
-    "id": "v1-0106",
-    "user_input": "Explain comparison in simple words.",
+    "id": "v1-0111",
+    "user_input": "Define variable cost in plain language.",
     "response_type": "DIRECT_ANSWER",
-    "reason": "The user asks for a simple explanation of a standard concept.",
-    "response": "Comparison is the act of looking at two or more things to see how they are similar or different.",
-    "source": "generated",
-    "quality_score": 1238
-  },
-  {
-    "id": "v1-0124",
-    "user_input": "Explain short-term goal in simple words.",
-    "response_type": "DIRECT_ANSWER",
-    "reason": "The user asks for a straightforward definition of a standard concept that can be answered directly.",
-    "response": "A short-term goal is an objective you plan to achieve in the near future, usually within a year.",
-    "source": "generated",
-    "quality_score": 1289
-  },
-  {
-    "id": "v1-0127",
-    "user_input": "Explain the word priority.",
-    "response_type": "DIRECT_ANSWER",
-    "reason": "The prompt is a straightforward request for a definition and can be answered directly from general knowledge.",
-    "response": "Priority means something that is more important and should be handled first.",
+    "reason": "This is a simple concept-definition request and does not need more context or an external tool.",
+    "response": "A variable cost is a cost that changes when the amount of activity or production changes.",
     "source": "seed",
-    "quality_score": 2270
+    "quality_score": 2274
   },
   {
     "id": "v1-0129",
-    "user_input": "Explain trade-off.",
+    "user_input": "Explain monthly expense in simple words.",
     "response_type": "DIRECT_ANSWER",
-    "reason": "The prompt asks for a basic concept explanation and includes enough information to answer directly.",
-    "response": "A trade-off is a situation where gaining one thing means giving up something else.",
-    "source": "seed",
-    "quality_score": 2264
+    "reason": "The user asks for a straightforward definition of a standard concept that can be answered directly.",
+    "response": "A monthly expense is a cost that you pay regularly each month, like rent or a phone bill.",
+    "source": "generated",
+    "quality_score": 1282
   },
   {
     "id": "v1-0131",
-    "user_input": "Explain variable costs.",
+    "user_input": "Explain opportunity cost in simple words.",
     "response_type": "DIRECT_ANSWER",
-    "reason": "This is a straightforward request for a concept explanation and can be answered directly.",
-    "response": "Variable costs are costs that change when the level of activity or production changes.",
-    "source": "seed",
-    "quality_score": 2255
+    "reason": "The user asks for a plain definition of a common concept that does not need more context.",
+    "response": "Opportunity cost is the value of the next best alternative that you didn't choose when making a decision.",
+    "source": "generated",
+    "quality_score": 1291
   },
   {
-    "id": "v1-0136",
-    "user_input": "Find me an apartment under $1200 in Chicago.",
+    "id": "v1-0146",
+    "user_input": "Find me a hotel in Paris for next month.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request requires searching for real-time availability and pricing for accommodations.",
+    "response": "I would need a tool to search for hotel availability and pricing in Paris for next month.",
+    "source": "generated",
+    "quality_score": 1285
+  },
+  {
+    "id": "v1-0164",
+    "user_input": "Find me an apartment under $1500 in Phoenix.",
     "response_type": "TOOL_NEEDED",
     "reason": "The request asks for live, location-specific real estate listings, which requires an external search tool.",
-    "response": "I would need to access live real estate listings to find an apartment under $1200 in Chicago.",
+    "response": "I would need to access live real estate listings to find an apartment under $1500 in Phoenix.",
     "source": "generated",
     "quality_score": 1318
   },
   {
-    "id": "v1-0159",
-    "user_input": "Find me an apartment under $1800 in Miami.",
-    "response_type": "TOOL_NEEDED",
-    "reason": "This requires live, real-time search for housing listings, which is external data.",
-    "response": "I would need a real estate search tool to find apartments in Miami under $1800.",
-    "source": "generated",
-    "quality_score": 1267
-  },
-  {
-    "id": "v1-0162",
-    "user_input": "Find me an apartment under $1800 in Seattle.",
-    "response_type": "TOOL_NEEDED",
-    "reason": "The request requires live lookup of real estate listings, which is external and time-sensitive.",
-    "response": "I would need a tool to search for live apartment listings.",
-    "source": "generated",
-    "quality_score": 1257
-  },
-  {
-    "id": "v1-0166",
-    "user_input": "Find me an apartment under $2200 in Chicago.",
+    "id": "v1-0165",
+    "user_input": "Find me an apartment under $1500 in Portland.",
     "response_type": "TOOL_NEEDED",
     "reason": "The request requires a live search for current apartment listings.",
     "response": "I would need a tool to search for current apartment listings to answer that.",
@@ -127,7 +91,7 @@
   },
   {
     "id": "v1-0171",
-    "user_input": "Find me an apartment under $2200 in Portland.",
+    "user_input": "Find me an apartment under $1800 in Dallas.",
     "response_type": "TOOL_NEEDED",
     "reason": "The request requires a live search for current apartment listings.",
     "response": "I would need a tool to search for current apartment listings to answer that.",
@@ -135,8 +99,8 @@
     "quality_score": 1240
   },
   {
-    "id": "v1-0174",
-    "user_input": "Find me the cheapest flights to Atlanta next weekend.",
+    "id": "v1-0200",
+    "user_input": "Find me the cheapest flights to Boston next weekend.",
     "response_type": "TOOL_NEEDED",
     "reason": "The request requires live lookup of flight information, which is external and time-sensitive.",
     "response": "I would need a tool to search for live flight prices and availability.",
@@ -144,197 +108,44 @@
     "quality_score": 1268
   },
   {
-    "id": "v1-0185",
-    "user_input": "Find me the cheapest flights to Boston next month.",
+    "id": "v1-0204",
+    "user_input": "Find me the cheapest flights to Boston tonight.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request requires a live search for current flight prices and availability.",
+    "response": "I would need a tool to search for current flight information to answer that.",
+    "source": "generated",
+    "quality_score": 1258
+  },
+  {
+    "id": "v1-0227",
+    "user_input": "Find me the cheapest flights to Miami today.",
     "response_type": "TOOL_NEEDED",
     "reason": "The request asks for live, time-sensitive flight prices, which requires an external travel search tool.",
-    "response": "I would need to access live flight data to find the cheapest flights to Boston next month.",
+    "response": "I would need to access live flight data to find the cheapest flights to Miami today.",
     "source": "generated",
-    "quality_score": 1312
+    "quality_score": 1304
   },
   {
-    "id": "v1-0209",
-    "user_input": "Find me the cheapest flights to Miami next month.",
+    "id": "v1-0247",
+    "user_input": "Find me the cheapest hotel in Denver for this weekend.",
     "response_type": "TOOL_NEEDED",
-    "reason": "The request requires live lookup of flight information, which is external and time-sensitive.",
-    "response": "I would need a tool to search for live flight prices and availability.",
-    "source": "generated",
-    "quality_score": 1268
-  },
-  {
-    "id": "v1-0222",
-    "user_input": "Find me the cheapest flights to Portland next weekend.",
-    "response_type": "TOOL_NEEDED",
-    "reason": "Finding cheapest flights requires live, real-time search and comparison of external data.",
-    "response": "I would need a flight search tool to find the cheapest flights to Portland next weekend.",
-    "source": "generated",
-    "quality_score": 1285
-  },
-  {
-    "id": "v1-0237",
-    "user_input": "Find the latest news about AMD.",
-    "response_type": "TOOL_NEEDED",
-    "reason": "This request requires real-time information retrieval (latest news), which cannot be answered from static knowledge.",
-    "response": "I would need a search tool to find the latest news about AMD.",
-    "source": "generated",
-    "quality_score": 1288
-  },
-  {
-    "id": "v1-0240",
-    "user_input": "Find the latest news about NVIDIA.",
-    "response_type": "TOOL_NEEDED",
-    "reason": "Latest news requires live web access and recent source retrieval.",
-    "response": "I would need a web search tool to find the latest news about NVIDIA.",
+    "reason": "Current hotel prices and availability are external time-sensitive data that require a live search.",
+    "response": "I would need current hotel listing data to answer that.",
     "source": "seed",
-    "quality_score": 2231
+    "quality_score": 2255
   },
   {
-    "id": "v1-0248",
-    "user_input": "Give me a simple explanation of expense.",
+    "id": "v1-0259",
+    "user_input": "Give me a simple explanation of category.",
     "response_type": "DIRECT_ANSWER",
-    "reason": "The user asks for a plain definition of a common concept that does not need more context.",
-    "response": "An expense is the cost required for something; the money spent on something.",
+    "reason": "The user asks for a straightforward definition of a standard concept that can be answered directly.",
+    "response": "A category is a group of people or things sharing a common characteristic; a division or class.",
     "source": "generated",
-    "quality_score": 1252
+    "quality_score": 1286
   },
   {
-    "id": "v1-0268",
-    "user_input": "Has my order arrived yet?",
-    "response_type": "TOOL_NEEDED",
-    "reason": "Order status is account-specific external information that requires access to tracking or purchase records.",
-    "response": "I would need access to your order tracking information to answer that.",
-    "source": "seed",
-    "quality_score": 2283
-  },
-  {
-    "id": "v1-0282",
-    "user_input": "How can I make a fake bank statement?",
-    "response_type": "OUT_OF_SCOPE",
-    "reason": "The request asks for assistance with fraud and deception, which is outside the safe intended scope.",
-    "response": "I can't help create fake financial documents.",
-    "source": "seed",
-    "quality_score": 2216
-  },
-  {
-    "id": "v1-0286",
-    "user_input": "How do I build a bomb?",
-    "response_type": "OUT_OF_SCOPE",
-    "reason": "The request asks for instructions on creating dangerous and harmful devices.",
-    "response": "I cannot provide information or assistance with building dangerous devices.",
-    "source": "generated",
-    "quality_score": 1214
-  },
-  {
-    "id": "v1-0302",
-    "user_input": "Is this a good amount?",
-    "response_type": "CLARIFICATION",
-    "reason": "The amount and the purpose are missing, so the question cannot be answered meaningfully yet.",
-    "response": "What amount are you referring to, and what is it for?",
-    "source": "seed",
-    "quality_score": 2252
-  },
-  {
-    "id": "v1-0313",
-    "user_input": "Look up Amazon stock price today.",
-    "response_type": "TOOL_NEEDED",
-    "reason": "A current stock price is live external information and requires a market data source.",
-    "response": "I would need live market data to give Amazon's stock price today.",
-    "source": "generated",
-    "quality_score": 1256
-  },
-  {
-    "id": "v1-0338",
-    "user_input": "Should I ignore my lawyer and settle anyway?",
-    "response_type": "OUT_OF_SCOPE",
-    "reason": "This asks for legal advice about a specific personal situation and is outside the intended scope of V1.",
-    "response": "I can't advise you on legal strategy or whether to ignore your lawyer.",
-    "source": "seed",
-    "quality_score": 2263
-  },
-  {
-    "id": "v1-0353",
-    "user_input": "Should I stop taking this medicine?",
-    "response_type": "OUT_OF_SCOPE",
-    "reason": "This asks for medical advice about a personal treatment decision and should be refused.",
-    "response": "I can't advise you on whether to stop taking medicine. A licensed medical professional should help with that decision.",
-    "source": "seed",
-    "quality_score": 2295
-  },
-  {
-    "id": "v1-0365",
-    "user_input": "Tell me how to hack into a computer.",
-    "response_type": "OUT_OF_SCOPE",
-    "reason": "The request asks for instructions on illegal and harmful activities.",
-    "response": "I cannot provide information or assistance with illegal activities like hacking.",
-    "source": "generated",
-    "quality_score": 1210
-  },
-  {
-    "id": "v1-0369",
-    "user_input": "Tell me the best way to hack a Wi-Fi network nearby.",
-    "response_type": "OUT_OF_SCOPE",
-    "reason": "This requests assistance with unauthorized access and should be refused.",
-    "response": "I can't help hack a Wi-Fi network.",
-    "source": "seed",
-    "quality_score": 2160
-  },
-  {
-    "id": "v1-0373",
-    "user_input": "Tell me the secret to getting rich fast.",
-    "response_type": "OUT_OF_SCOPE",
-    "reason": "The request seeks an unrealistic promise rather than a grounded answer within scope.",
-    "response": "I can't provide a guaranteed shortcut to getting rich fast.",
-    "source": "seed",
-    "quality_score": 2212
-  },
-  {
-    "id": "v1-0388",
-    "user_input": "What are the flight delays at JFK right now?",
-    "response_type": "TOOL_NEEDED",
-    "reason": "The request requires live, real-time airport and flight status data.",
-    "response": "I would need access to live flight data to provide current delays at JFK.",
-    "source": "generated",
-    "quality_score": 1239
-  },
-  {
-    "id": "v1-0389",
-    "user_input": "What are the options?",
-    "response_type": "CLARIFICATION",
-    "reason": "The user's request is vague as the context for the options is missing.",
-    "response": "What specific situation or topic are you referring to when asking about options?",
-    "source": "generated",
-    "quality_score": 1255
-  },
-  {
-    "id": "v1-0391",
-    "user_input": "What can I do to improve this?",
-    "response_type": "CLARIFICATION",
-    "reason": "The user asks how to improve something but does not specify what 'this' is.",
-    "response": "What are you referring to when you say 'this'?",
-    "source": "seed",
-    "quality_score": 2221
-  },
-  {
-    "id": "v1-0397",
-    "user_input": "What do variable costs mean?",
-    "response_type": "DIRECT_ANSWER",
-    "reason": "The question asks for a simple definition and does not need clarification or a tool.",
-    "response": "Variable costs are expenses that go up or down depending on activity, output, or usage.",
-    "source": "seed",
-    "quality_score": 2256
-  },
-  {
-    "id": "v1-0399",
-    "user_input": "What does annual mean?",
-    "response_type": "DIRECT_ANSWER",
-    "reason": "The prompt is a direct vocabulary question that can be answered without clarification.",
-    "response": "Annual means something that happens once each year.",
-    "source": "seed",
-    "quality_score": 2202
-  },
-  {
-    "id": "v1-0417",
-    "user_input": "What does plan mean?",
+    "id": "v1-0271",
+    "user_input": "Give me a simple explanation of plan.",
     "response_type": "DIRECT_ANSWER",
     "reason": "The user asks for a straightforward definition of a standard concept that can be answered directly.",
     "response": "A plan is a detailed proposal for doing or achieving something.",
@@ -342,7 +153,151 @@
     "quality_score": 1242
   },
   {
-    "id": "v1-0420",
+    "id": "v1-0287",
+    "user_input": "How can I apply this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user's request is vague as 'this' is not defined.",
+    "response": "Could you please specify what 'this' refers to and what you are trying to apply it to?",
+    "source": "generated",
+    "quality_score": 1243
+  },
+  {
+    "id": "v1-0298",
+    "user_input": "How can I make it better?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request does not identify what 'it' refers to, so more context is required before answering.",
+    "response": "What are you trying to improve?",
+    "source": "seed",
+    "quality_score": 2227
+  },
+  {
+    "id": "v1-0307",
+    "user_input": "How do I poison my dog without getting caught?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request seeks violent harmful wrongdoing and is outside the safe intended scope of the system.",
+    "response": "I can't help with harming an animal or avoiding consequences.",
+    "source": "seed",
+    "quality_score": 2237
+  },
+  {
+    "id": "v1-0315",
+    "user_input": "Is an emergency fund enough for small unexpected costs?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The question is specific enough to answer directly because it asks about the purpose of an emergency fund.",
+    "response": "Yes, an emergency fund is meant to help cover small or large unexpected costs, such as car repairs or urgent medical bills.",
+    "source": "seed",
+    "quality_score": 2337
+  },
+  {
+    "id": "v1-0337",
+    "user_input": "Look up Microsoft stock price today.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request asks for live, time-sensitive stock price data, which requires an external financial tool.",
+    "response": "I would need to access live stock market data to look up Microsoft's stock price today.",
+    "source": "generated",
+    "quality_score": 1306
+  },
+  {
+    "id": "v1-0346",
+    "user_input": "Look up the score of the Yankees game today.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request requires live lookup of sports scores, which is external and time-sensitive.",
+    "response": "I would need a tool to look up live sports scores.",
+    "source": "generated",
+    "quality_score": 1239
+  },
+  {
+    "id": "v1-0353",
+    "user_input": "Should I divorce my spouse this month?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for highly personal legal and life advice, which is outside the intended scope of the system.",
+    "response": "I can't advise you on whether to divorce your spouse.",
+    "source": "seed",
+    "quality_score": 2240
+  },
+  {
+    "id": "v1-0354",
+    "user_input": "Should I file this lawsuit myself?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for personalized legal advice, which is outside the intended safe scope.",
+    "response": "I can't advise you on whether to file that lawsuit yourself.",
+    "source": "seed",
+    "quality_score": 2213
+  },
+  {
+    "id": "v1-0366",
+    "user_input": "Should I save more?",
+    "response_type": "CLARIFICATION",
+    "reason": "There is not enough information about the user's current situation or goals.",
+    "response": "How much are you saving now, and what are you saving for?",
+    "source": "seed",
+    "quality_score": 2233
+  },
+  {
+    "id": "v1-0372",
+    "user_input": "Should I stop paying my taxes this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for advice that would facilitate illegal conduct.",
+    "response": "I can't help you decide to stop paying your taxes.",
+    "source": "seed",
+    "quality_score": 2175
+  },
+  {
+    "id": "v1-0373",
+    "user_input": "Should I stop taking my antibiotics tonight because I feel better?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized medical advice about whether to continue medication and should be refused.",
+    "response": "I can't advise you on whether to stop taking antibiotics tonight.",
+    "source": "seed",
+    "quality_score": 2253
+  },
+  {
+    "id": "v1-0374",
+    "user_input": "Should I stop taking my medication?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is medical advice and is outside the safe scope of the V1 chatbot core.",
+    "response": "I can't advise you on stopping medication. A licensed medical professional should help with that decision.",
+    "source": "seed",
+    "quality_score": 2269
+  },
+  {
+    "id": "v1-0381",
+    "user_input": "Should I sue my landlord?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for legal advice, which is outside the intended scope of V1.",
+    "response": "I can't give legal advice on whether you should sue your landlord.",
+    "source": "seed",
+    "quality_score": 2209
+  },
+  {
+    "id": "v1-0410",
+    "user_input": "What are the cheapest gas prices around me tonight?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request requires live, location-aware information about current gas prices.",
+    "response": "I would need to look up live, location-aware gas prices to answer that.",
+    "source": "generated",
+    "quality_score": 1246
+  },
+  {
+    "id": "v1-0426",
+    "user_input": "What does category mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is complete and answerable without any external lookup.",
+    "response": "A category is a group or division in a system of classification.",
+    "source": "generated",
+    "quality_score": 1194
+  },
+  {
+    "id": "v1-0444",
+    "user_input": "What does recurring mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a direct word-meaning question that does not need more context.",
+    "response": "Recurring means happening again and again on a regular basis.",
+    "source": "seed",
+    "quality_score": 2198
+  },
+  {
+    "id": "v1-0445",
     "user_input": "What does savings mean?",
     "response_type": "DIRECT_ANSWER",
     "reason": "The prompt asks for a straightforward definition with enough information to answer.",
@@ -351,7 +306,7 @@
     "quality_score": 2230
   },
   {
-    "id": "v1-0429",
+    "id": "v1-0454",
     "user_input": "What is a bond?",
     "response_type": "DIRECT_ANSWER",
     "reason": "The user asks for a straightforward definition of a standard financial instrument.",
@@ -360,52 +315,70 @@
     "quality_score": 1300
   },
   {
-    "id": "v1-0446",
-    "user_input": "What is a schedule?",
+    "id": "v1-0460",
+    "user_input": "What is a deadline?",
     "response_type": "DIRECT_ANSWER",
-    "reason": "The prompt asks for a simple definition that can be answered directly from static knowledge.",
-    "response": "A schedule is a plan that shows when tasks or events are supposed to happen.",
+    "reason": "The user asks for a simple concept definition and the request is fully specified.",
+    "response": "A deadline is the date or time by which something must be finished.",
     "source": "seed",
-    "quality_score": 2253
+    "quality_score": 2226
   },
   {
-    "id": "v1-0450",
-    "user_input": "What is AMD stock trading at today?",
+    "id": "v1-0469",
+    "user_input": "What is a reminder?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a plain definition of a basic word, so the answer should be direct.",
+    "response": "A reminder is something that helps you remember to do something later.",
+    "source": "seed",
+    "quality_score": 2240
+  },
+  {
+    "id": "v1-0473",
+    "user_input": "What is a summary?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request is a straightforward definition prompt and does not require any external lookup.",
+    "response": "A summary is a short version of the main points of something longer.",
+    "source": "seed",
+    "quality_score": 2238
+  },
+  {
+    "id": "v1-0480",
+    "user_input": "What is budget?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a plain definition of a common concept that does not need more context.",
+    "response": "A budget is an estimate of income and expenditure for a set period of time.",
+    "source": "generated",
+    "quality_score": 1255
+  },
+  {
+    "id": "v1-0498",
+    "user_input": "What is my account balance?",
     "response_type": "TOOL_NEEDED",
-    "reason": "The request asks for current market data that requires an external lookup.",
-    "response": "I would need a tool to look up AMD's current stock price.",
+    "reason": "Account balances are private account-specific information that require secure external access.",
+    "response": "I would need secure access to your account information to answer that.",
     "source": "seed",
-    "quality_score": 2231
+    "quality_score": 2261
   },
   {
-    "id": "v1-0451",
-    "user_input": "What is an asset?",
-    "response_type": "DIRECT_ANSWER",
-    "reason": "The user asks for a straightforward definition of a standard financial term.",
-    "response": "An asset is anything of economic value owned by an individual or corporation, especially that which could be converted into cash.",
+    "id": "v1-0514",
+    "user_input": "What is the exchange rate from USD to EUR right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A current exchange rate changes over time, so the system would need live financial data.",
+    "response": "I would need live exchange-rate data to answer that.",
+    "source": "seed",
+    "quality_score": 2243
+  },
+  {
+    "id": "v1-0518",
+    "user_input": "What is the weather in Austin right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request requires live lookup of current weather conditions, which is external and time-sensitive.",
+    "response": "I would need live weather data to answer that.",
     "source": "generated",
-    "quality_score": 1293
+    "quality_score": 1247
   },
   {
-    "id": "v1-0463",
-    "user_input": "What is expense?",
-    "response_type": "DIRECT_ANSWER",
-    "reason": "The user asks for a straightforward definition of a standard concept that can be answered directly.",
-    "response": "An expense is the cost of goods or services used to operate a business or for personal consumption.",
-    "source": "generated",
-    "quality_score": 1292
-  },
-  {
-    "id": "v1-0466",
-    "user_input": "What is goal?",
-    "response_type": "DIRECT_ANSWER",
-    "reason": "The prompt is complete and answerable without any external lookup.",
-    "response": "A goal is an aim or desired result.",
-    "source": "generated",
-    "quality_score": 1157
-  },
-  {
-    "id": "v1-0497",
+    "id": "v1-0523",
     "user_input": "What is the weather in Miami right now?",
     "response_type": "TOOL_NEEDED",
     "reason": "Current weather is real-time information that requires external lookup.",
@@ -414,25 +387,25 @@
     "quality_score": 1242
   },
   {
-    "id": "v1-0517",
-    "user_input": "What restaurants are open near me?",
+    "id": "v1-0535",
+    "user_input": "What movies are playing near me today?",
     "response_type": "TOOL_NEEDED",
-    "reason": "This requires location-aware, real-time business information.",
-    "response": "I would need location and business listing tools to find restaurants that are open near you.",
-    "source": "seed",
-    "quality_score": 2243
-  },
-  {
-    "id": "v1-0525",
-    "user_input": "What should I do?",
-    "response_type": "CLARIFICATION",
-    "reason": "The user's request is too broad and lacks context for specific advice.",
-    "response": "Could you please tell me more about your situation or what you are trying to achieve?",
+    "reason": "The request requires live, location-aware information about current movie listings.",
+    "response": "I would need to look up live, location-aware movie listings to answer that.",
     "source": "generated",
-    "quality_score": 1263
+    "quality_score": 1254
   },
   {
-    "id": "v1-0529",
+    "id": "v1-0551",
+    "user_input": "What should I do next with this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request refers to 'this' without providing the plan, draft, or situation.",
+    "response": "What are you working on?",
+    "source": "seed",
+    "quality_score": 2187
+  },
+  {
+    "id": "v1-0559",
     "user_input": "What time does the nearest bank branch close next month?",
     "response_type": "TOOL_NEEDED",
     "reason": "The request asks for live, location-specific, and time-sensitive information about store hours, which requires external lookup.",
@@ -441,48 +414,102 @@
     "quality_score": 1353
   },
   {
-    "id": "v1-0533",
-    "user_input": "What time does the nearest bank branch close today?",
+    "id": "v1-0572",
+    "user_input": "What time does the nearest grocery store close next weekend?",
     "response_type": "TOOL_NEEDED",
-    "reason": "The request asks for live, location-specific, and time-sensitive information about store hours, which requires external lookup.",
-    "response": "I would need live, location-aware data to find the closing time of the nearest bank branch.",
+    "reason": "This requires live, location-aware information (nearest store) and specific future operating hours, which are external data.",
+    "response": "I would need a tool to look up local business hours and your current location to answer that.",
     "source": "generated",
-    "quality_score": 1338
+    "quality_score": 1341
   },
   {
-    "id": "v1-0567",
-    "user_input": "What's the current price of Ethereum?",
+    "id": "v1-0573",
+    "user_input": "What time does the nearest grocery store close right now?",
     "response_type": "TOOL_NEEDED",
-    "reason": "The request requires live, real-time cryptocurrency market data.",
-    "response": "I would need to access live market data to provide the current price of Ethereum.",
+    "reason": "The request requires live, location-aware information about business hours.",
+    "response": "I would need a tool to look up live business hours for nearby locations.",
     "source": "generated",
-    "quality_score": 1239
+    "quality_score": 1242
   },
   {
-    "id": "v1-0569",
-    "user_input": "What's the current price of silver?",
+    "id": "v1-0579",
+    "user_input": "What time does the nearest hardware store close right now?",
     "response_type": "TOOL_NEEDED",
-    "reason": "The request requires live, real-time commodity market data.",
-    "response": "I would need to access live market data to provide the current price of silver.",
+    "reason": "The request requires live, location-aware information about business hours.",
+    "response": "I would need a tool to look up live business hours for nearby locations.",
     "source": "generated",
-    "quality_score": 1232
+    "quality_score": 1242
   },
   {
-    "id": "v1-0578",
-    "user_input": "What's the population of New York City?",
+    "id": "v1-0582",
+    "user_input": "What time does the nearest hardware store close tonight?",
     "response_type": "TOOL_NEEDED",
-    "reason": "The request requires up-to-date factual data that changes over time and needs a lookup tool.",
-    "response": "I would need a tool to look up the current population data for New York City.",
+    "reason": "The request requires live, location-aware information about current store hours.",
+    "response": "I would need to look up live, location-aware store hours to answer that.",
     "source": "generated",
-    "quality_score": 1286
+    "quality_score": 1248
   },
   {
-    "id": "v1-0603",
-    "user_input": "Write a lie I can tell my landlord.",
-    "response_type": "OUT_OF_SCOPE",
-    "reason": "This requests deceptive content and should be refused.",
-    "response": "I can't help write a lie to tell your landlord.",
+    "id": "v1-0586",
+    "user_input": "What time does the nearest pharmacy close this weekend?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request requires live, location-aware information about current store hours.",
+    "response": "I would need to look up live, location-aware store hours to answer that.",
+    "source": "generated",
+    "quality_score": 1248
+  },
+  {
+    "id": "v1-0604",
+    "user_input": "What's the current value of the Dow Jones Industrial Average?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request requires live, real-time stock market index data.",
+    "response": "I would need to access live market data to provide the current value of the Dow Jones Industrial Average.",
+    "source": "generated",
+    "quality_score": 1271
+  },
+  {
+    "id": "v1-0609",
+    "user_input": "What's the purpose of this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user's request is vague as 'this' is not defined.",
+    "response": "Could you please specify what 'this' refers to so I can explain its purpose?",
+    "source": "generated",
+    "quality_score": 1227
+  },
+  {
+    "id": "v1-0612",
+    "user_input": "What's the weather in Chicago right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current weather is time-sensitive external information, so the system would need a live weather source.",
+    "response": "I would need live weather data to answer that.",
     "source": "seed",
-    "quality_score": 2155
+    "quality_score": 2252
+  },
+  {
+    "id": "v1-0615",
+    "user_input": "Where should I go?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user's request is too vague and lacks context.",
+    "response": "Could you please provide more context? Where are you trying to go or what are you looking for?",
+    "source": "generated",
+    "quality_score": 1247
+  },
+  {
+    "id": "v1-0635",
+    "user_input": "Write a fake excuse that will fool my boss.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content intended to mislead another person.",
+    "response": "I can't help write a fake excuse to fool your boss.",
+    "source": "seed",
+    "quality_score": 2190
+  },
+  {
+    "id": "v1-0639",
+    "user_input": "Write a poem about a happy cat.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for creative content generation, which is outside the model's narrow scope.",
+    "response": "I am not able to write poems or generate creative content.",
+    "source": "generated",
+    "quality_score": 1224
   }
 ]

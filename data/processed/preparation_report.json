@@ -1,10 +1,10 @@
 {
-  "seed_records": 292,
+  "seed_records": 327,
   "generated_records": 507,
   "fixed_benchmark_records": 61,
   "invalid_records_removed": 21,
   "duplicates_found": 106,
-  "near_duplicates_found": 65,
+  "near_duplicates_found": 66,
   "duplicate_resolution_events": [
     {
       "user_input": "Can you compare them?",
@@ -318,6 +318,11 @@
     },
     {
       "user_input": "Which one is better for me?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you explain this for me?",
       "resolution": "kept_existing_higher_quality_record",
       "kept_source": "seed"
     },
@@ -862,14 +867,14 @@
       "kept_source": "seed"
     }
   ],
-  "full_dataset_records": 617,
-  "train_records": 498,
-  "validation_records": 54,
+  "full_dataset_records": 651,
+  "train_records": 529,
+  "validation_records": 57,
   "benchmark_records": 61,
   "response_type_counts": {
-    "CLARIFICATION": 77,
-    "DIRECT_ANSWER": 183,
-    "OUT_OF_SCOPE": 101,
-    "TOOL_NEEDED": 256
+    "CLARIFICATION": 93,
+    "DIRECT_ANSWER": 189,
+    "OUT_OF_SCOPE": 107,
+    "TOOL_NEEDED": 262
   }
 }
