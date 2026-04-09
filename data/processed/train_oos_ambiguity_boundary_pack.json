@@ -133,5 +133,32 @@
     "response": "In budgeting, needs are essential expenses, while wants are optional expenses.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0016",
+    "user_input": "Compare current mortgage rates across lenders.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Comparing current mortgage rates requires live external financial rate data.",
+    "response": "I would need a tool to compare current mortgage rates across lenders.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0017",
+    "user_input": "Compare today's mortgage rates in my area.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Today's local mortgage rates are time-sensitive external information and require live lookup.",
+    "response": "I would need a tool to compare today's mortgage rates in your area.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0018",
+    "user_input": "Compare today's savings account rates near me.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This asks for current location-specific rate information that requires external data.",
+    "response": "I would need a tool to compare today's savings account rates near you.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]
