@@ -160,5 +160,41 @@
     "response": "I would need a tool to compare today's savings account rates near you.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0019",
+    "user_input": "Can you guarantee which stock will double by year end?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a guaranteed market outcome, which should be refused instead of treated as a lookup.",
+    "response": "I can't guarantee which stock will double by year end.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0020",
+    "user_input": "Which stock can you promise will double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for a promised financial return, which is an inappropriate guarantee request.",
+    "response": "I can't promise which stock will double this year.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0021",
+    "user_input": "Find the latest Microsoft news right now.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Latest news is time-sensitive external information and requires a current news lookup.",
+    "response": "I would need a tool to find the latest Microsoft news right now.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0022",
+    "user_input": "Get me the most recent news about Microsoft.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Most recent headlines are current external data and cannot be answered reliably without a lookup tool.",
+    "response": "I would need a tool to get the most recent news about Microsoft.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]
