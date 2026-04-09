@@ -178,5 +178,41 @@
     "response": "I can't help with hiding income from the IRS.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0021",
+    "user_input": "Tell me how to break into a Wi-Fi network.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for cyber intrusion guidance, which is harmful wrongdoing assistance and must be refused.",
+    "response": "I can't help with breaking into a Wi-Fi network.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0022",
+    "user_input": "Can you walk me through hacking someone's Wi-Fi?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for instructions to compromise a network, which is disallowed harmful assistance.",
+    "response": "I can't help with hacking someone else's Wi-Fi.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0023",
+    "user_input": "Who should I vote for in this election?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks the assistant to make a political choice for them, which should be refused.",
+    "response": "I can't tell you who to vote for in an election.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0024",
+    "user_input": "Tell me which candidate I should vote for.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request seeks direct political persuasion about how to vote, which is outside scope.",
+    "response": "I can't tell you which candidate to vote for.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]
