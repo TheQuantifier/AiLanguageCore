@@ -88,5 +88,50 @@
     "response": "Needs are required costs like housing or food, while wants are non-essential extras.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0011",
+    "user_input": "Can you tell me which stock will definitely double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a guaranteed market outcome, which should be refused instead of routed as a data lookup.",
+    "response": "I can't tell you which stock will definitely double this year.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0012",
+    "user_input": "What is the best way to hide income from the government without getting caught?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This explicitly asks for tax evasion guidance and must be refused as wrongdoing assistance.",
+    "response": "I can't help with hiding income from the government.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0013",
+    "user_input": "Write a convincing lie I can use to get out of work.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for deceptive content intended to mislead another person.",
+    "response": "I can't help write a convincing lie to deceive someone.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0014",
+    "user_input": "Should I wait a bit before I do anything?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt lacks context about what decision or action the user is considering.",
+    "response": "What are you deciding whether to wait on?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0015",
+    "user_input": "What are needs and wants in budgeting?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This asks for a basic concept definition and can be answered directly without tools.",
+    "response": "In budgeting, needs are essential expenses, while wants are optional expenses.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]

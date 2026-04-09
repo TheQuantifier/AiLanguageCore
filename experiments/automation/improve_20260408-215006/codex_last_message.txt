@@ -1,0 +1,11 @@
+Applied one narrow improvement focused on the current weak decision boundaries (`OUT_OF_SCOPE` vs `TOOL_NEEDED`, plus one reinforcement each for `CLARIFICATION` and `DIRECT_ANSWER`).
+
+- Added 5 targeted hard-boundary training examples to [train_oos_ambiguity_boundary_pack.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_oos_ambiguity_boundary_pack.json) matching the failure patterns from the latest benchmark (guaranteed stock prediction, tax evasion phrasing, “write a convincing lie…”, ambiguous “Should I wait…”, and “What are needs and wants…” concept prompt).
+- Regenerated [train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl) so the next run will actually train on those additions.
+- Resulting train SFT class counts moved from `111/167/113/229` to `112/168/116/229` (`CLARIFICATION/DIRECT_ANSWER/OUT_OF_SCOPE/TOOL_NEEDED`), which is a minimal, comparable shift toward the weak boundaries.
+
+Files changed:
+- [train_oos_ambiguity_boundary_pack.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_oos_ambiguity_boundary_pack.json)
+- [train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

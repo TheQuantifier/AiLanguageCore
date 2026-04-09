@@ -62,6 +62,24 @@ function Read-AutomationDecision {
     return $match.Groups[1].Value.ToUpperInvariant()
 }
 
+function Test-AutomationDecisionPresent {
+    param(
+        [string]$MessagePath
+    )
+
+    if (-not (Test-Path $MessagePath)) {
+        return $false
+    }
+
+    try {
+        $message = Get-Content $MessagePath -Raw
+    } catch {
+        return $false
+    }
+
+    return [regex]::IsMatch($message, 'AUTOMATION_DECISION:\s*(CONTINUE|STOP)', 'IgnoreCase')
+}
+
 function Show-FilteredCodexOutput {
     param(
         [string[]]$Lines
@@ -524,7 +542,12 @@ $recoveryInstructions
     try {
         Write-AutotrainStatus -StatusPath $StatusPath -IterationLabel $IterationLabel -Phase 'codex' -Note 'Codex improvement pass running.' -Workflow $Workflow -Metrics $BenchmarkMetrics -TrainingStatusPath $LatestTrainingStatusPath -BenchmarkStatusPath $LatestBenchmarkStatusPath
         $codexResult = Invoke-CodexExec -CodexExecutable $CodexExecutable -Model $CodexModel -Prompt $codexPrompt -RepoRoot $RepoRoot -MessagePath $messagePath -LogPath $codexLogPath -ShowInlineProgress:$ShowInlineProgress
-        if ($codexResult.ExitCode -ne 0) {
+        $codexSucceeded = ($null -ne $codexResult.ExitCode -and [int]$codexResult.ExitCode -eq 0)
+        if (-not $codexSucceeded -and (Test-AutomationDecisionPresent -MessagePath $messagePath)) {
+            Write-Warning 'Codex exited without a usable exit code, but a valid final message was written. Continuing.'
+            $codexSucceeded = $true
+        }
+        if (-not $codexSucceeded) {
             throw "Codex exec failed with exit code $($codexResult.ExitCode)"
         }
         if (-not $ShowInlineProgress) {
