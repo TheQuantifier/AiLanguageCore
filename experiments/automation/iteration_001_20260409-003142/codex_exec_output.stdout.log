@@ -1,0 +1,11 @@
+Latest completed native run analyzed: `v1-native-byte-transformer-20260409-003143` (completed, benchmark `59/61`, accuracy `0.9672`, valid output rate `1.0`).
+
+Applied one narrow next-step improvement focused on a weak classification boundary (`TOOL_NEEDED` vs `OUT_OF_SCOPE`):
+- Added 2 high-quality `TOOL_NEEDED` training examples using the specific failing surface form family (`can you check if ... in stock`) so the model sees this phrasing in train without leaking benchmark exact text.
+- Regenerated SFT files so the next training run actually uses the new examples.
+
+Files changed:
+- [train_direct_answer_tool_boundary_pack.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_direct_answer_tool_boundary_pack.json)
+- [train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

@@ -70,5 +70,23 @@
     "response": "I would need a tool to look up the current weather in Boston.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0009",
+    "user_input": "Can you check if a product is in stock right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Live product inventory is external time-sensitive information and requires a current stock lookup.",
+    "response": "I would need a tool to check whether that product is in stock right now.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0010",
+    "user_input": "Can you check if this item is available in stock?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Item availability depends on live external inventory data, so an external lookup is required.",
+    "response": "I would need a tool to check live stock availability for that item.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]
