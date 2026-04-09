@@ -55,6 +55,19 @@ def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def compute_training_metrics(
+    started_at: float,
+    global_step: int,
+    train_examples: int,
+    num_train_epochs: int,
+) -> tuple[float, float, float]:
+    elapsed_seconds = max(0.0, time.perf_counter() - started_at)
+    steps_per_second = (global_step / elapsed_seconds) if elapsed_seconds > 0 else 0.0
+    total_seen_samples = train_examples * num_train_epochs
+    samples_per_second = (total_seen_samples / elapsed_seconds) if elapsed_seconds > 0 else 0.0
+    return elapsed_seconds, steps_per_second, samples_per_second
+
+
 def make_run_output_dir(base_output_dir: Path) -> Path:
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     candidate = base_output_dir.parent / f"{base_output_dir.name}-{timestamp}"
@@ -743,6 +756,12 @@ def main() -> int:
 
                 current_epoch = epoch_index + (batch_offset / total_batches_per_epoch)
                 if global_step == 1 or global_step % int(config["logging_steps"]) == 0 or global_step == total_steps:
+                    elapsed_seconds, steps_per_second, samples_per_second = compute_training_metrics(
+                        started_at=training_started_at,
+                        global_step=global_step,
+                        train_examples=len(train_examples),
+                        num_train_epochs=int(config["num_train_epochs"]),
+                    )
                     status_writer.update(
                         status="training",
                         global_step=global_step,
@@ -750,10 +769,11 @@ def main() -> int:
                         latest_log={
                             "train_loss": loss_value,
                             "epoch": round(current_epoch, 4),
+                            "train_runtime": elapsed_seconds,
+                            "train_steps_per_second": steps_per_second,
+                            "train_samples_per_second": samples_per_second,
                         },
                     )
-                    elapsed_seconds = time.perf_counter() - training_started_at
-                    steps_per_second = global_step / elapsed_seconds if elapsed_seconds > 0 else 0.0
                     print_progress_block(
                         current=global_step,
                         total=total_steps,
@@ -769,17 +789,24 @@ def main() -> int:
 
                 if global_step % int(config["eval_steps"]) == 0 or global_step == total_steps:
                     validation_loss = evaluate_loss(validation_examples)
+                    elapsed_seconds, steps_per_second, samples_per_second = compute_training_metrics(
+                        started_at=training_started_at,
+                        global_step=global_step,
+                        train_examples=len(train_examples),
+                        num_train_epochs=int(config["num_train_epochs"]),
+                    )
                     latest_log = dict(status_writer.state.get("latest_log", {}))
                     latest_log["validation_loss"] = validation_loss
                     latest_log["epoch"] = round(current_epoch, 4)
+                    latest_log["train_runtime"] = elapsed_seconds
+                    latest_log["train_steps_per_second"] = steps_per_second
+                    latest_log["train_samples_per_second"] = samples_per_second
                     status_writer.update(
                         status="training",
                         global_step=global_step,
                         epoch=round(current_epoch, 4),
                         latest_log=latest_log,
                     )
-                    elapsed_seconds = time.perf_counter() - training_started_at
-                    steps_per_second = global_step / elapsed_seconds if elapsed_seconds > 0 else 0.0
                     print_progress_block(
                         current=global_step,
                         total=total_steps,
@@ -802,6 +829,12 @@ def main() -> int:
                 del labels
 
         total_train_loss = float(status_writer.state.get("latest_log", {}).get("train_loss", 0.0))
+        elapsed_seconds, steps_per_second, samples_per_second = compute_training_metrics(
+            started_at=training_started_at,
+            global_step=global_step,
+            train_examples=len(train_examples),
+            num_train_epochs=int(config["num_train_epochs"]),
+        )
         sys.stdout.write("\n")
         model_path = output_dir / "model.pt"
         torch.save(build_cpu_state_dict(model), model_path)
@@ -828,6 +861,9 @@ def main() -> int:
                 "train_loss": total_train_loss,
                 "validation_loss": best_validation_loss if best_validation_loss != float("inf") else None,
                 "epoch": float(config["num_train_epochs"]),
+                "train_runtime": elapsed_seconds,
+                "train_steps_per_second": steps_per_second,
+                "train_samples_per_second": samples_per_second,
             },
             best_validation_loss=None if best_validation_loss == float("inf") else best_validation_loss,
             benchmark_status=str(output_dir / "benchmark_status.json"),
@@ -844,6 +880,9 @@ def main() -> int:
                 "train_loss": total_train_loss,
                 "validation_loss": best_validation_loss if best_validation_loss != float("inf") else None,
                 "epoch": float(config["num_train_epochs"]),
+                "train_runtime": elapsed_seconds,
+                "train_steps_per_second": steps_per_second,
+                "train_samples_per_second": samples_per_second,
             },
             benchmark_report=str(benchmark_report_path),
             best_validation_loss=None if best_validation_loss == float("inf") else best_validation_loss,

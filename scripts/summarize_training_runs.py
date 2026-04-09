@@ -1,6 +1,7 @@
 import argparse
 import csv
 import json
+from datetime import datetime
 from pathlib import Path
 
 
@@ -49,6 +50,45 @@ def load_json(path: Path) -> dict:
         return json.load(handle)
 
 
+def parse_iso_datetime(value: object) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def fallback_training_metrics(status: dict, latest_log: dict) -> tuple[object, object, object]:
+    runtime = latest_log.get("train_runtime")
+    steps_per_second = latest_log.get("train_steps_per_second")
+    samples_per_second = latest_log.get("train_samples_per_second")
+    if runtime is not None and steps_per_second is not None and samples_per_second is not None:
+        return runtime, steps_per_second, samples_per_second
+
+    started_at = parse_iso_datetime(status.get("started_at"))
+    completed_at = parse_iso_datetime(status.get("completed_at")) or parse_iso_datetime(status.get("updated_at"))
+    if started_at is None or completed_at is None:
+        return runtime, steps_per_second, samples_per_second
+
+    runtime_seconds = max(0.0, (completed_at - started_at).total_seconds())
+    if runtime is None:
+        runtime = runtime_seconds
+    if runtime_seconds <= 0:
+        return runtime, steps_per_second, samples_per_second
+
+    if steps_per_second is None:
+        global_step = status.get("global_step")
+        if isinstance(global_step, (int, float)):
+            steps_per_second = float(global_step) / runtime_seconds
+    if samples_per_second is None:
+        train_examples = status.get("train_examples")
+        epoch = status.get("epoch")
+        if isinstance(train_examples, (int, float)) and isinstance(epoch, (int, float)):
+            samples_per_second = (float(train_examples) * float(epoch)) / runtime_seconds
+    return runtime, steps_per_second, samples_per_second
+
+
 def format_float(value: object, digits: int = 3) -> str:
     if isinstance(value, (int, float)):
         return f"{value:.{digits}f}"
@@ -88,6 +128,7 @@ def build_rows(runs_dir: Path, reports_dir: Path) -> list[dict]:
         run_dir = status_path.parent
         run_name = run_dir.name
         latest_log = status.get("latest_log", {})
+        train_runtime_s, train_steps_per_second, train_samples_per_second = fallback_training_metrics(status, latest_log)
         run_date, run_time = split_run_timestamp(run_name)
         report_path = None
         report_path_value = status.get("benchmark_report")
@@ -107,6 +148,7 @@ def build_rows(runs_dir: Path, reports_dir: Path) -> list[dict]:
 
         rows.append(
             {
+                "training_category": "category_prediction",
                 "run": run_name,
                 "run_date": run_date,
                 "run_time": run_time,
@@ -115,9 +157,9 @@ def build_rows(runs_dir: Path, reports_dir: Path) -> list[dict]:
                 "global_step": status.get("global_step"),
                 "train_examples": status.get("train_examples"),
                 "validation_examples": status.get("validation_examples"),
-                "train_runtime_s": latest_log.get("train_runtime"),
-                "train_steps_per_second": latest_log.get("train_steps_per_second"),
-                "train_samples_per_second": latest_log.get("train_samples_per_second"),
+                "train_runtime_s": train_runtime_s,
+                "train_steps_per_second": train_steps_per_second,
+                "train_samples_per_second": train_samples_per_second,
                 "train_loss": latest_log.get("train_loss"),
                 "benchmark_size": report.get("benchmark_size"),
                 "valid_json_rate": report.get("valid_json_rate"),
@@ -131,6 +173,7 @@ def build_rows(runs_dir: Path, reports_dir: Path) -> list[dict]:
 def write_csv(rows: list[dict], path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
+        "training_category",
         "run",
         "run_date",
         "run_time",
@@ -166,6 +209,7 @@ def write_csv(rows: list[dict], path: Path) -> Path:
 
 def render_table(rows: list[dict], csv_out: Path | None = None) -> str:
     headers = [
+        ("training_category", "Category"),
         ("run", "Run"),
         ("run_date", "Date"),
         ("run_time", "Time"),
@@ -187,6 +231,7 @@ def render_table(rows: list[dict], csv_out: Path | None = None) -> str:
     for row in rows:
         rendered_rows.append(
             {
+                "training_category": row["training_category"],
                 "run": row["run"],
                 "run_date": row["run_date"] or "-",
                 "run_time": row["run_time"] or "-",

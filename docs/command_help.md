@@ -11,6 +11,7 @@ Set a reusable Python helper once per PowerShell session:
 ```powershell
 $AiLanguageCoreRoot = 'C:\Users\jhand\Documents\Github\AiLanguageCore'
 $py = Join-Path $AiLanguageCoreRoot '.python\python.exe'
+if (Test-Path Alias:set) { Remove-Item Alias:set -Force }
 ```
 
 Optional: add short PowerShell helpers for common commands:
@@ -36,9 +37,25 @@ function create_data {
         Pop-Location
     }
 }
+function set {
+    param(
+        [Parameter(Position = 0)][string]$type
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        if ($PSBoundParameters.ContainsKey('type')) {
+            .\set.ps1 $type
+        } else {
+            .\set.ps1
+        }
+    } finally {
+        Pop-Location
+    }
+}
 function train {
     param(
-        [Parameter(Position = 0)][object]$type_or_epochs = 'stress',
+        [Parameter(Position = 0)][object]$type_or_epochs,
         [Parameter(Position = 1)][int]$epochs
     )
 
@@ -49,25 +66,29 @@ function train {
             return
         }
 
-        $parsedEpoch = 0
-        if ([int]::TryParse([string]$type_or_epochs, [ref]$parsedEpoch)) {
-            .\train.ps1 $parsedEpoch
-            return
-        }
-
         if ($PSBoundParameters.ContainsKey('epochs')) {
             .\train.ps1 $type_or_epochs $epochs
-        } else {
+        } elseif ($PSBoundParameters.ContainsKey('type_or_epochs')) {
             .\train.ps1 $type_or_epochs
+        } else {
+            .\train.ps1
         }
     } finally {
         Pop-Location
     }
 }
 function improve {
+    param(
+        [Parameter(Position = 0)][string]$type
+    )
+
     Push-Location $AiLanguageCoreRoot
     try {
-        .\scripts\run_autotrain_loop.ps1 -Command improve -OpenStatusWindow:$false
+        if ($PSBoundParameters.ContainsKey('type')) {
+            .\scripts\run_autotrain_loop.ps1 -Command improve -Type $type -OpenStatusWindow:$false
+        } else {
+            .\scripts\run_autotrain_loop.ps1 -Command improve -OpenStatusWindow:$false
+        }
     } finally {
         Pop-Location
     }
@@ -87,7 +108,7 @@ function eval_native {
 }
 function benchmark {
     param(
-        [Parameter(Position = 0)][string]$type = 'stress',
+        [Parameter(Position = 0)][string]$type,
         [Parameter(Position = 1)][string]$model_path
     )
 
@@ -95,8 +116,10 @@ function benchmark {
     try {
         if ($PSBoundParameters.ContainsKey('model_path')) {
             .\benchmark.ps1 $type $model_path
-        } else {
+        } elseif ($PSBoundParameters.ContainsKey('type')) {
             .\benchmark.ps1 $type
+        } else {
+            .\benchmark.ps1
         }
     } finally {
         Pop-Location
@@ -104,6 +127,50 @@ function benchmark {
 }
 function status { Push-Location $AiLanguageCoreRoot; try { .\scripts\show_training_status.ps1 -Watch } finally { Pop-Location } }
 function summarize { Push-Location $AiLanguageCoreRoot; try { & $py scripts\summarize_training_runs.py; if (Test-Path .\experiments\training_runs_summary.csv) { Invoke-Item .\experiments\training_runs_summary.csv } } finally { Pop-Location } }
+function autotrain {
+    param(
+        [Parameter(Position = 0)][object]$type_or_iterations,
+        [Parameter(Position = 1)][int]$max_iterations,
+        [Parameter(Position = 2)][int]$epochs
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        $type = $null
+        if ($null -ne $type_or_iterations) {
+            if ($type_or_iterations -is [int] -or $type_or_iterations -is [long]) {
+                $max_iterations = [int]$type_or_iterations
+            } else {
+                $parsedIterations = 0
+                if ([int]::TryParse([string]$type_or_iterations, [ref]$parsedIterations)) {
+                    $max_iterations = $parsedIterations
+                } else {
+                    $type = [string]$type_or_iterations
+                }
+            }
+        }
+
+        if ($PSBoundParameters.ContainsKey('epochs')) {
+            if ($type) {
+                .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations -NumTrainEpochs $epochs
+            } else {
+                .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations -NumTrainEpochs $epochs
+            }
+        } elseif ($PSBoundParameters.ContainsKey('max_iterations')) {
+            if ($type) {
+                .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations
+            } else {
+                .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations
+            }
+        } elseif ($type) {
+            .\scripts\run_autotrain_loop.ps1 -Type $type
+        } else {
+            .\scripts\run_autotrain_loop.ps1
+        }
+    } finally {
+        Pop-Location
+    }
+}
 ```
 
 ## 1. Collect AI Training Data
@@ -197,6 +264,9 @@ benchmark for the selected type automatically after training completes successfu
 With the helper above, you can just run:
 
 ```powershell
+set
+set stress
+set default
 train
 train stress
 train default
@@ -211,11 +281,12 @@ The helper now:
 - starts the native trainer from the correct working directory
 
 Default training baseline:
-- `train` defaults to the `stress` type
+- `train` defaults to the type saved in `config/command_defaults.json`
+- `set` changes the saved default trainable type used by `train`, `benchmark`, `autotrain`, and `improve`
 - `stress` uses `models\configs\v1_native_byte_transformer_stress_config.json`
 - `default`, `core`, and `base` use `models\configs\v1_native_byte_transformer_config.json`
 - all configs default to `50` epochs
-- use `train <N>` or `.\train.ps1 <N>` only when you want to override epochs for the default type
+- `train <N>` or `.\train.ps1 <N>` uses the currently set default type with an epoch override
 
 Run just the Codex improvement pass against the latest completed training run:
 
@@ -227,6 +298,7 @@ With the helper above, you can just run:
 
 ```powershell
 improve
+improve stress
 ```
 
 This command:
@@ -269,6 +341,7 @@ eval_native <printed_native_run_output_dir>
 benchmark
 benchmark stress
 benchmark default
+benchmark account
 benchmark stress <printed_native_run_output_dir>
 ```
 
@@ -280,7 +353,8 @@ Named benchmark types:
 - `oos_tool` -> `data/processed/benchmark_oos_vs_tool_boundary_native_sft.jsonl`
 
 Default benchmark baseline:
-- `benchmark` defaults to the `stress` type
+- `benchmark` defaults to the currently set default trainable type
+- `account`, `medical`, and `oos_tool` are benchmark-only explicit types
 - use `benchmark default` when you want the original default benchmark
 
 Show a table of all training runs and the currently saved benchmark report for each run:
@@ -319,6 +393,7 @@ current session:
 ```powershell
 $AiLanguageCoreRoot = 'C:\Users\jhand\Documents\Github\AiLanguageCore'
 $py = Join-Path $AiLanguageCoreRoot '.python\python.exe'
+if (Test-Path Alias:set) { Remove-Item Alias:set -Force }
 
 function create_data {
     param(
@@ -341,9 +416,26 @@ function create_data {
     }
 }
 
+function set {
+    param(
+        [Parameter(Position = 0)][string]$type
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        if ($PSBoundParameters.ContainsKey('type')) {
+            .\set.ps1 $type
+        } else {
+            .\set.ps1
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
 function train {
     param(
-        [Parameter(Position = 0)][object]$type_or_epochs = 'stress',
+        [Parameter(Position = 0)][object]$type_or_epochs,
         [Parameter(Position = 1)][int]$epochs
     )
 
@@ -354,16 +446,12 @@ function train {
             return
         }
 
-        $parsedEpoch = 0
-        if ([int]::TryParse([string]$type_or_epochs, [ref]$parsedEpoch)) {
-            .\train.ps1 $parsedEpoch
-            return
-        }
-
         if ($PSBoundParameters.ContainsKey('epochs')) {
             .\train.ps1 $type_or_epochs $epochs
-        } else {
+        } elseif ($PSBoundParameters.ContainsKey('type_or_epochs')) {
             .\train.ps1 $type_or_epochs
+        } else {
+            .\train.ps1
         }
     } finally {
         Pop-Location
@@ -371,9 +459,17 @@ function train {
 }
 
 function improve {
+    param(
+        [Parameter(Position = 0)][string]$type
+    )
+
     Push-Location $AiLanguageCoreRoot
     try {
-        .\scripts\run_autotrain_loop.ps1 -Command improve -OpenStatusWindow:$false
+        if ($PSBoundParameters.ContainsKey('type')) {
+            .\scripts\run_autotrain_loop.ps1 -Command improve -Type $type -OpenStatusWindow:$false
+        } else {
+            .\scripts\run_autotrain_loop.ps1 -Command improve -OpenStatusWindow:$false
+        }
     } finally {
         Pop-Location
     }
@@ -395,7 +491,7 @@ function eval_native {
 
 function benchmark {
     param(
-        [Parameter(Position = 0)][string]$type = 'stress',
+        [Parameter(Position = 0)][string]$type,
         [Parameter(Position = 1)][string]$model_path
     )
 
@@ -403,8 +499,10 @@ function benchmark {
     try {
         if ($PSBoundParameters.ContainsKey('model_path')) {
             .\benchmark.ps1 $type $model_path
-        } else {
+        } elseif ($PSBoundParameters.ContainsKey('type')) {
             .\benchmark.ps1 $type
+        } else {
+            .\benchmark.ps1
         }
     } finally {
         Pop-Location
@@ -434,16 +532,43 @@ function summarize {
 
 function autotrain {
     param(
-        [int]$max_iterations = 50,
+        [Parameter(Position = 0)][object]$type_or_iterations,
+        [Parameter(Position = 1)][int]$max_iterations,
         [int]$epochs
     )
 
     Push-Location $AiLanguageCoreRoot
     try {
+        $type = $null
+        if ($null -ne $type_or_iterations) {
+            if ($type_or_iterations -is [int] -or $type_or_iterations -is [long]) {
+                $max_iterations = [int]$type_or_iterations
+            } else {
+                $parsedIterations = 0
+                if ([int]::TryParse([string]$type_or_iterations, [ref]$parsedIterations)) {
+                    $max_iterations = $parsedIterations
+                } else {
+                    $type = [string]$type_or_iterations
+                }
+            }
+        }
+
         if ($PSBoundParameters.ContainsKey('epochs')) {
-            .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations -NumTrainEpochs $epochs
+            if ($type) {
+                .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations -NumTrainEpochs $epochs
+            } else {
+                .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations -NumTrainEpochs $epochs
+            }
+        } elseif ($PSBoundParameters.ContainsKey('max_iterations')) {
+            if ($type) {
+                .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations
+            } else {
+                .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations
+            }
+        } elseif ($type) {
+            .\scripts\run_autotrain_loop.ps1 -Type $type
         } else {
-            .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations
+            .\scripts\run_autotrain_loop.ps1
         }
     } finally {
         Pop-Location
@@ -469,12 +594,14 @@ Direct command:
 
 ```powershell
 .\scripts\run_autotrain_loop.ps1
+.\scripts\run_autotrain_loop.ps1 -Type stress
 ```
 
 Standalone Codex improvement command:
 
 ```powershell
 .\scripts\run_autotrain_loop.ps1 -Command improve
+.\scripts\run_autotrain_loop.ps1 -Command improve -Type stress
 ```
 
 Stop after a fixed number of iterations:
@@ -494,8 +621,11 @@ With the helper block above loaded:
 ```powershell
 autotrain
 autotrain 3
+autotrain stress
+autotrain stress 3
 autotrain 10 50
 improve
+improve stress
 ```
 
 Notes:

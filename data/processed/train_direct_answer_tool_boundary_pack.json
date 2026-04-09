@@ -232,5 +232,77 @@
     "response": "I would need a tool to look up which laptops are on sale today.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0027",
+    "user_input": "Can you compare mortgage rates that are available right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Comparing mortgage rates that are available right now requires current external rate data.",
+    "response": "I would need a tool to compare mortgage rates that are available right now.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0028",
+    "user_input": "Could you check which mortgage rates lenders are offering today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on live lender rate data for today, so an external lookup is required.",
+    "response": "I would need a tool to check which mortgage rates lenders are offering today.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0029",
+    "user_input": "Please compare mortgage rates currently offered by banks.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current bank mortgage rates are time-sensitive external information that require lookup.",
+    "response": "I would need a tool to compare mortgage rates currently offered by banks.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0030",
+    "user_input": "Can you check AMD stock price at the moment?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "AMD's stock price at the moment is live market data and requires an external lookup.",
+    "response": "I would need a tool to check AMD's stock price at the moment.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0031",
+    "user_input": "What is AMD trading for this minute?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A stock's value this minute is live market information that requires current external data.",
+    "response": "I would need a tool to look up what AMD is trading for this minute.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0032",
+    "user_input": "Could you look up AMD shares right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Looking up AMD shares right now requires live market data from an external source.",
+    "response": "I would need a tool to look up AMD shares right now.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0033",
+    "user_input": "What does mortgage rate mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This asks for a definition of a stable concept and can be answered directly.",
+    "response": "A mortgage rate is the interest rate charged on a home loan.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0034",
+    "user_input": "What does stock price mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for a definition of a general term rather than current market data.",
+    "response": "A stock price is the current amount one share of a company's stock is selling for in the market.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]

@@ -91,6 +91,12 @@ def load_records(path: Path) -> list[dict]:
     return data
 
 
+def load_optional_records(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    return load_records(path)
+
+
 def build_assistant_target(record: dict) -> str:
     return str(record["response_type"])
 
@@ -141,9 +147,12 @@ def merge_extra_train_records(
 ) -> tuple[list[dict], dict]:
     merged_train_records = list(train_records)
     train_keys = {normalize_user_input(record["user_input"]) for record in train_records}
+    focused_benchmark_records = []
+    for focused_input_path, _ in NATIVE_FOCUSED_BENCHMARKS:
+        focused_benchmark_records.extend(load_optional_records(focused_input_path))
     blocked_keys = {
         normalize_user_input(record["user_input"])
-        for record in validation_records + benchmark_records
+        for record in validation_records + benchmark_records + focused_benchmark_records
     }
     stats = {
         "extra_inputs_seen": 0,

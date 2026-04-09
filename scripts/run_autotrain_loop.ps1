@@ -1,9 +1,10 @@
 param(
     [ValidateSet('autotrain', 'improve')]
     [string]$Command = 'autotrain',
+    [string]$Type,
     [int]$MaxIterations = 50,
     [int]$NumTrainEpochs,
-    [string]$Config = 'models\configs\v1_native_byte_transformer_config.json',
+    [string]$Config,
     [string]$Prompt = 'Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.',
     [string]$CodexPath,
     [string]$CodexModel = 'gpt-5.3-codex',
@@ -12,6 +13,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+. (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
 
 function Resolve-CodexExecutable {
     param(
@@ -319,12 +322,12 @@ function Invoke-CodexExec {
 
 function Get-LatestRunStatus {
     param(
-        [string]$RepoRoot
+        [string]$RepoRoot,
+        [string]$TypeName
     )
 
-    $latestStatusPath = Get-ChildItem -Path (Join-Path $RepoRoot 'models\runs') -Filter training_status.json -Recurse -File |
-        Sort-Object LastWriteTime -Descending |
-        Select-Object -First 1 -ExpandProperty FullName
+    $latestRunPath = Get-AiLanguageCoreLatestCompletedRunPath -RepoRoot $RepoRoot -TypeName $TypeName
+    $latestStatusPath = Join-Path $latestRunPath 'training_status.json'
 
     if (-not $latestStatusPath) {
         throw 'Could not find a training_status.json file under models\runs.'
@@ -547,6 +550,7 @@ You are running inside the AiLanguageCore repository.
 The training command has just completed successfully.
 Inspect the latest native run under models/runs and its benchmark report under experiments.
 Make the next improvement directly in the repo so the next training iteration is the best next step.
+Current training type: $selectedType
 Current benchmark summary:
 - valid_output_rate: $($BenchmarkMetrics.ValidOutputRate)
 - response_type_accuracy: $($BenchmarkMetrics.ResponseTypeAccuracy)
@@ -598,9 +602,21 @@ $recoveryInstructions
     }
 }
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $pythonPath = Join-Path $repoRoot '.python\python.exe'
-$configPath = Join-Path $repoRoot $Config
+$selectedType = if ($Type) {
+    Resolve-AiLanguageCoreType -TypeName $Type -RequireTrainable
+} else {
+    Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot
+}
+$configPath = if ($Config) {
+    if ([System.IO.Path]::IsPathRooted($Config)) {
+        $Config
+    } else {
+        Join-Path $repoRoot $Config
+    }
+} else {
+    Resolve-AiLanguageCoreTrainingConfig -RepoRoot $repoRoot -TypeName $selectedType
+}
 $codexExecutable = Resolve-CodexExecutable -OverridePath $CodexPath
 $logRoot = Join-Path $repoRoot 'experiments\automation'
 $statusPath = Join-Path $logRoot 'latest_status.json'
@@ -618,6 +634,7 @@ New-Item -ItemType Directory -Force -Path $logRoot | Out-Null
 
 Write-Host "Repo root: $repoRoot"
 Write-Host "Python: $pythonPath"
+Write-Host "Type: $selectedType"
 Write-Host "Config: $configPath"
 Write-Host "Codex: $codexExecutable"
 Write-Host "Codex model: $CodexModel"
@@ -653,7 +670,7 @@ try {
         $iterationDir = Join-Path $logRoot "improve_$timestamp"
         New-Item -ItemType Directory -Force -Path $iterationDir | Out-Null
 
-        $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot
+        $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot -TypeName $selectedType
         $latestTrainingStatusPath = ''
         $latestBenchmarkStatusPath = ''
         if ($latestRunStatus.output_dir) {
@@ -701,7 +718,7 @@ try {
 
         Invoke-TrainingRun -RepoRoot $repoRoot -PythonPath $pythonPath -ConfigPath $configPath -NumTrainEpochs $NumTrainEpochs -HasEpochOverride $PSBoundParameters.ContainsKey('NumTrainEpochs')
 
-        $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot
+        $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot -TypeName $selectedType
         if ($latestRunStatus.output_dir) {
             $latestTrainingStatusPath = Join-Path $latestRunStatus.output_dir 'training_status.json'
             $latestBenchmarkStatusPath = Join-Path $latestRunStatus.output_dir 'benchmark_status.json'

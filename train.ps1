@@ -1,6 +1,6 @@
 param(
     [Parameter(Position = 0)]
-    [object]$TypeOrEpoch = 'stress',
+    [object]$TypeOrEpoch,
     [Parameter(Position = 1)]
     [int]$Epochs,
     [string]$Config
@@ -10,25 +10,9 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $pythonPath = Join-Path $repoRoot '.python\python.exe'
+. (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
 
-function Resolve-NativeTrainingConfig {
-    param(
-        [string]$SelectedType
-    )
-
-    $normalized = $SelectedType.Trim().ToLowerInvariant()
-    switch ($normalized) {
-        'default' { return 'models\configs\v1_native_byte_transformer_config.json' }
-        'core' { return 'models\configs\v1_native_byte_transformer_config.json' }
-        'base' { return 'models\configs\v1_native_byte_transformer_config.json' }
-        'stress' { return 'models\configs\v1_native_byte_transformer_stress_config.json' }
-        default {
-            throw "Unknown training type '$SelectedType'. Valid types: default, core, base, stress."
-        }
-    }
-}
-
-$Type = 'stress'
+$Type = Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot
 if ($null -ne $TypeOrEpoch) {
     $parsedEpoch = 0
     if ($TypeOrEpoch -is [int] -or $TypeOrEpoch -is [long]) {
@@ -36,7 +20,7 @@ if ($null -ne $TypeOrEpoch) {
     } elseif ([int]::TryParse([string]$TypeOrEpoch, [ref]$parsedEpoch)) {
         $Epochs = $parsedEpoch
     } else {
-        $Type = [string]$TypeOrEpoch
+        $Type = Resolve-AiLanguageCoreType -TypeName ([string]$TypeOrEpoch) -RequireTrainable
     }
 }
 
@@ -47,7 +31,7 @@ if (-not (Test-Path $pythonPath)) {
 $resolvedConfig = if ($PSBoundParameters.ContainsKey('Config')) {
     $Config
 } else {
-    Resolve-NativeTrainingConfig -SelectedType $Type
+    Resolve-AiLanguageCoreTrainingConfig -RepoRoot $repoRoot -TypeName $Type
 }
 
 $configPath = if ([System.IO.Path]::IsPathRooted($resolvedConfig)) {

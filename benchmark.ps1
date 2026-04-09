@@ -1,6 +1,6 @@
 param(
     [Parameter(Position = 0)]
-    [string]$Type = 'stress',
+    [string]$Type,
     [Parameter(Position = 1)]
     [string]$ModelPath,
     [string]$OutputReport
@@ -10,58 +10,19 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $pythonPath = Join-Path $repoRoot '.python\python.exe'
+. (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
 
-function Resolve-NativeBenchmarkFile {
-    param(
-        [string]$SelectedType
-    )
-
-    $normalized = $SelectedType.Trim().ToLowerInvariant()
-    switch ($normalized) {
-        'default' { return 'data\processed\benchmark_sft.jsonl' }
-        'core' { return 'data\processed\benchmark_sft.jsonl' }
-        'base' { return 'data\processed\benchmark_sft.jsonl' }
-        'stress' { return 'data\processed\benchmark_stress_native_sft.jsonl' }
-        'account' { return 'data\processed\benchmark_account_tool_boundary_native_sft.jsonl' }
-        'medical' { return 'data\processed\benchmark_medical_refusal_boundary_native_sft.jsonl' }
-        'oos_tool' { return 'data\processed\benchmark_oos_vs_tool_boundary_native_sft.jsonl' }
-        default {
-            throw "Unknown benchmark type '$SelectedType'. Valid types: default, core, base, stress, account, medical, oos_tool."
-        }
-    }
-}
-
-function Get-LatestCompletedRunPath {
-    param(
-        [string]$RunsRoot
-    )
-
-    $statusPath = Get-ChildItem -Path $RunsRoot -Filter training_status.json -Recurse -File |
-        Sort-Object LastWriteTime -Descending |
-        Where-Object {
-            try {
-                $status = Get-Content $_.FullName -Raw | ConvertFrom-Json
-                $runDir = Split-Path -Parent $_.FullName
-                (Test-Path (Join-Path $runDir 'model.pt')) -and ($status.global_step -gt 0)
-            } catch {
-                $false
-            }
-        } |
-        Select-Object -First 1 -ExpandProperty FullName
-
-    if (-not $statusPath) {
-        throw "Could not find a completed training run under $RunsRoot"
-    }
-
-    return Split-Path -Parent $statusPath
+$resolvedType = if ($Type) {
+    Resolve-AiLanguageCoreType -TypeName $Type
+} else {
+    Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot
 }
 
 if (-not (Test-Path $pythonPath)) {
     throw "Python runtime not found: $pythonPath"
 }
 
-$benchmarkRelativePath = Resolve-NativeBenchmarkFile -SelectedType $Type
-$benchmarkPath = Join-Path $repoRoot $benchmarkRelativePath
+$benchmarkPath = Resolve-AiLanguageCoreBenchmarkFile -RepoRoot $repoRoot -TypeName $resolvedType
 if (-not (Test-Path $benchmarkPath)) {
     throw "Benchmark file not found: $benchmarkPath"
 }
@@ -73,7 +34,8 @@ $resolvedModelPath = if ($ModelPath) {
         Join-Path $repoRoot $ModelPath
     }
 } else {
-    Get-LatestCompletedRunPath -RunsRoot (Join-Path $repoRoot 'models\runs')
+    $modelType = if ($resolvedType -in @('default', 'stress')) { $resolvedType } else { $null }
+    Get-AiLanguageCoreLatestCompletedRunPath -RepoRoot $repoRoot -TypeName $modelType
 }
 
 if (-not (Test-Path $resolvedModelPath)) {
@@ -81,7 +43,7 @@ if (-not (Test-Path $resolvedModelPath)) {
 }
 
 Write-Host "Evaluating native model from $repoRoot"
-Write-Host "Type: $Type"
+Write-Host "Type: $resolvedType"
 Write-Host "Model: $resolvedModelPath"
 Write-Host "Benchmark file: $benchmarkPath"
 
