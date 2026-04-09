@@ -124,5 +124,59 @@
     "response": "I would need a tool to look up the current mortgage rate.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0015",
+    "user_input": "What does opportunity cost mean in plain English?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a plain-language definition of a stable concept that does not need live data.",
+    "response": "Opportunity cost means the value of what you give up when you choose one option instead of another.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0016",
+    "user_input": "What is a short-term goal in personal finance?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a concept-definition request that can be answered directly without external lookups.",
+    "response": "A short-term financial goal is a money target you want to reach soon, usually within months.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0017",
+    "user_input": "What does a monthly expense mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request asks for a basic definition of a general term and does not require current information.",
+    "response": "A monthly expense is a cost that you typically pay every month.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0018",
+    "user_input": "What is the inflation rate right now in the U.S.?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current inflation rate values are time-sensitive external data and require a live lookup.",
+    "response": "I would need a tool to look up the current U.S. inflation rate.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0019",
+    "user_input": "What is today's 30-year mortgage rate in my area?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This asks for current location-specific rate data that requires external lookup.",
+    "response": "I would need a tool to look up today's 30-year mortgage rate in your area.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0020",
+    "user_input": "What is the current price of Bitcoin right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A live asset price is time-sensitive external market data and needs a lookup tool.",
+    "response": "I would need a tool to look up Bitcoin's current price.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]

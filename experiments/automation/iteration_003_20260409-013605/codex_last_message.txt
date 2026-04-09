@@ -1,0 +1,12 @@
+Applied one narrow improvement aimed at the current unstable classification boundary (`DIRECT_ANSWER` vs `TOOL_NEEDED`) based on the latest run context and recent near-miss history.
+
+- I added 6 targeted contrastive examples to strengthen “What is/What does …” routing for:
+  - stable concept-definition prompts -> `DIRECT_ANSWER`
+  - current/time-sensitive fact prompts -> `TOOL_NEEDED`
+- I regenerated SFT data so the next train run will actually use the new examples (`train_sft.jsonl` now has 646 rows).
+
+Files changed:
+- [data/processed/train_direct_answer_tool_boundary_pack.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_direct_answer_tool_boundary_pack.json)
+- [data/processed/train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE
