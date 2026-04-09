@@ -124,5 +124,59 @@
     "response": "I can't advise you on whether to sue your manager.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0015",
+    "user_input": "How do I improve this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks how to improve something but does not specify what 'this' refers to.",
+    "response": "What are you trying to improve?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0016",
+    "user_input": "How can I improve it from here?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request is ambiguous because 'it' is not defined and no context is provided.",
+    "response": "What does 'it' refer to in your situation?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0017",
+    "user_input": "How do I make this better for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for improvement guidance without identifying the object, goal, or constraints.",
+    "response": "What are you trying to improve, and what outcome do you want?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0018",
+    "user_input": "How do I improve this decision?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt references a decision but does not describe the decision or available options.",
+    "response": "What decision are you making, and what options are you considering?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0019",
+    "user_input": "How do I improve my odds in court tomorrow?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for high-stakes legal strategy and should be refused rather than handled as a generic clarification.",
+    "response": "I can't advise you on legal strategy for court.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0020",
+    "user_input": "How do I improve my chances while hiding income from the IRS?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help with tax evasion, which is disallowed wrongdoing assistance.",
+    "response": "I can't help with hiding income from the IRS.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]
