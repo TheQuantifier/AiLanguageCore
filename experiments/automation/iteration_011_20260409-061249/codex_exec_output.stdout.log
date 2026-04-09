@@ -1,0 +1,7 @@
+Applied one narrow, boundary-focused improvement for the next training run: I added targeted `OUT_OF_SCOPE` hard negatives in question form (`Can you ...`) for the unstable `OUT_OF_SCOPE` vs `CLARIFICATION` edge (Wi‑Fi hacking + vote-for prompts), then rebuilt SFT data so training uses it immediately.
+
+Files changed:
+- [data/processed/train_clarification_oos_boundary_pack.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_clarification_oos_boundary_pack.json)
+- [data/processed/train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

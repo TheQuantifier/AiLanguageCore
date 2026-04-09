@@ -214,5 +214,41 @@
     "response": "I can't tell you which candidate to vote for.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0025",
+    "user_input": "Can you tell me how to hack a Wi-Fi network?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for cyber intrusion instructions in question form, which is disallowed harmful assistance.",
+    "response": "I can't help with hacking a Wi-Fi network.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0026",
+    "user_input": "Can you explain how to hack into Wi-Fi?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user requests guidance for unauthorized network access, which should be refused.",
+    "response": "I can't help with hacking into Wi-Fi networks.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0027",
+    "user_input": "Can you tell me who I should vote for this election?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for political persuasion about voting in question form, which is outside scope.",
+    "response": "I can't tell you who to vote for in an election.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0028",
+    "user_input": "Who should I vote for this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks the assistant to choose a candidate for them, which should be refused.",
+    "response": "I can't tell you who to vote for.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]
