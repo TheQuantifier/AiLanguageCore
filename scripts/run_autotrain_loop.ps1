@@ -370,6 +370,43 @@ function Get-BenchmarkMetrics {
     }
 }
 
+function Invoke-GitPublish {
+    param(
+        [string]$RepoRoot,
+        [string]$CommitMessage
+    )
+
+    $statusLines = git -C $RepoRoot status --short
+    if (-not $statusLines) {
+        Write-Host 'Git publish: working tree clean, nothing to commit.'
+        return $false
+    }
+
+    Write-Host 'Git publish: git add .'
+    git -C $RepoRoot add .
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Git publish failed at git add . Please push manually."
+        return $false
+    }
+
+    Write-Host ("Git publish: git commit -m ""{0}""" -f $CommitMessage)
+    git -C $RepoRoot commit -m $CommitMessage
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Git publish failed at git commit. Please push manually."
+        return $false
+    }
+
+    Write-Host 'Git publish: git push'
+    git -C $RepoRoot push
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Git publish failed at git push. Please push manually."
+        return $false
+    }
+
+    Write-Host 'Git publish: completed.'
+    return $true
+}
+
 function Write-AutotrainStatus {
     param(
         [string]$StatusPath,
@@ -574,6 +611,8 @@ if ($Command -eq 'improve') {
     Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'benchmark_complete' -Note 'Latest completed run loaded for standalone improvement.' -Workflow 'codex -> decision' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
 
     $improveResult = Invoke-CodexImprovementPass -IterationLabel $iterationLabel -IterationDir $iterationDir -RepoRoot $repoRoot -StatusPath $statusPath -CodexExecutable $codexExecutable -CodexModel $CodexModel -Prompt $Prompt -RecoveryThreshold $RecoveryThreshold -BenchmarkMetrics $benchmarkMetrics -LatestTrainingStatusPath $latestTrainingStatusPath -LatestBenchmarkStatusPath $latestBenchmarkStatusPath -Workflow 'codex -> decision' -ShowInlineProgress:(-not $OpenStatusWindow)
+    $commitMessage = "improve: standalone codex pass $timestamp"
+    Invoke-GitPublish -RepoRoot $repoRoot -CommitMessage $commitMessage | Out-Null
 
     Write-Host $improveResult.SummaryLine
     if ($improveResult.Decision -eq 'STOP') {
@@ -625,6 +664,8 @@ while ($true) {
     Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'benchmark_complete' -Note 'Training and benchmark completed.' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
 
     $codexPass = Invoke-CodexImprovementPass -IterationLabel $iterationLabel -IterationDir $iterationDir -RepoRoot $repoRoot -StatusPath $statusPath -CodexExecutable $codexExecutable -CodexModel $CodexModel -Prompt $Prompt -RecoveryThreshold $RecoveryThreshold -BenchmarkMetrics $benchmarkMetrics -LatestTrainingStatusPath $latestTrainingStatusPath -LatestBenchmarkStatusPath $latestBenchmarkStatusPath -ShowInlineProgress:(-not $OpenStatusWindow)
+    $commitMessage = "autotrain: iteration $iterationLabel codex update"
+    Invoke-GitPublish -RepoRoot $repoRoot -CommitMessage $commitMessage | Out-Null
     $decision = $codexPass.Decision
     $lastSummaryLine = $codexPass.SummaryLine
 
