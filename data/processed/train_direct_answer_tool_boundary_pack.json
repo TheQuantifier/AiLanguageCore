@@ -88,5 +88,41 @@
     "response": "I would need a tool to check live stock availability for that item.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0011",
+    "user_input": "What does opportunity cost mean in personal finance?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for a definition of a stable concept, so it can be answered directly without live data.",
+    "response": "In personal finance, opportunity cost means the value of the next best option you give up when you choose something else.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0012",
+    "user_input": "What is a short-term goal in budgeting?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a general concept-definition request and does not depend on external or time-sensitive information.",
+    "response": "A short-term goal in budgeting is a money target you plan to reach soon, such as within weeks or months.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0013",
+    "user_input": "What does AMD stock cost today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A stock price today is live market data and requires an external lookup.",
+    "response": "I would need a tool to look up AMD's stock price today.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0014",
+    "user_input": "What is the current mortgage rate right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current mortgage rates change over time and require live external data.",
+    "response": "I would need a tool to look up the current mortgage rate.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]

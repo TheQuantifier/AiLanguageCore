@@ -1,0 +1,7 @@
+Applied one narrow boundary-focused improvement for the current weak spot (`DIRECT_ANSWER` vs `TOOL_NEEDED`) by extending the direct/tool boundary pack with 4 minimal-contrast examples (2 concept-definition direct answers and 2 time-sensitive lookup tool-needed prompts), then regenerated the SFT files so the next train run uses them immediately.
+
+Files changed:
+- [data/processed/train_direct_answer_tool_boundary_pack.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_direct_answer_tool_boundary_pack.json)
+- [data/processed/train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

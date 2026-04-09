@@ -1,7 +1,8 @@
 run,run_date,run_time,status,epoch,global_step,train_examples,validation_examples,train_runtime_s,train_steps_per_second,train_samples_per_second,train_loss,benchmark_size,valid_json_rate,response_type_accuracy,report_path
 v1-native-byte-transformer-smoke-20260407-195655,2026-04-07,19:56:55,completed,1.0,28,448,48,,,,0.00213009980507195,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-smoke-20260407-195655.json
 v1-native-byte-transformer-smoke-20260407-190751,2026-04-07,19:07:51,completed,1.0,2,16,4,,,,5.635192394256592,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-smoke-20260407-190751.json
-v1-native-byte-transformer-20260409-003143,2026-04-09,00:31:43,running_benchmark,50.0,7950,634,61,,,,6.446889165090397e-05,61,1.0,0.9672131147540983,experiments\benchmark_report-v1-native-byte-transformer-20260409-003143.json
+v1-native-byte-transformer-20260409-010347,2026-04-09,01:03:47,running_benchmark,50.0,7950,636,61,,,,8.152500231517479e-05,61,1.0,0.9672131147540983,experiments\benchmark_report-v1-native-byte-transformer-20260409-010347.json
+v1-native-byte-transformer-20260409-003143,2026-04-09,00:31:43,completed,50.0,7950,634,61,,,,6.446889165090397e-05,61,1.0,0.9672131147540983,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-003143.json
 v1-native-byte-transformer-20260408-231927,2026-04-08,23:19:27,completed,50.0,7900,630,61,,,,2.788518941088114e-05,61,1.0,0.9344262295081968,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-231927.json
 v1-native-byte-transformer-20260408-231831,2026-04-08,23:18:31,failed,0.0,1,630,61,,,,,,,,
 v1-native-byte-transformer-20260408-231154,2026-04-08,23:11:54,training,0.3544,56,630,61,,,,1.177514910697937,,,,
