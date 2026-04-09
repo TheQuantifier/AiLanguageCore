@@ -1,0 +1,15 @@
+Implemented one narrow, boundary-focused improvement for the latest native run: I reinforced the `CLARIFICATION` vs `DIRECT_ANSWER` boundary around underspecified “Can you … this?” prompts (the current weakest boundary with 2/3 misses).
+
+What I changed:
+- Added 4 new non-benchmark `CLARIFICATION` training examples closely matching the missed patterns:
+  - “Can you break this down a little?”
+  - “Can you help me decide on this?”
+  - “Can you unpack this for me?”
+  - “Can you walk me through this?”
+- Regenerated SFT data so the next train run includes the update.
+
+Files changed:
+- [data/processed/train_clarification_boundary_pack.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_clarification_boundary_pack.json)
+- [data/processed/train_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

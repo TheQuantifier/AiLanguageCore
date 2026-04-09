@@ -106,5 +106,41 @@
     "response": "What options are you choosing between, and what matters most to you?",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0014",
+    "user_input": "Can you break this down a little?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a breakdown but does not identify what content should be explained.",
+    "response": "What would you like me to break down?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0015",
+    "user_input": "Can you help me decide on this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for help deciding but does not provide options or decision criteria.",
+    "response": "What are you deciding between, and what matters most to you?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0016",
+    "user_input": "Can you unpack this for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks for explanation but does not specify what 'this' refers to.",
+    "response": "What would you like me to unpack?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0017",
+    "user_input": "Can you walk me through this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user requests a walkthrough without identifying the topic, process, or material.",
+    "response": "What would you like me to walk through?",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]
