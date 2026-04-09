@@ -61,5 +61,50 @@
     "response": "Which options are you comparing, and what matters most to you?",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0009",
+    "user_input": "Can you organize this for me quickly?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for organization but does not provide what needs to be organized.",
+    "response": "What would you like me to organize?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0010",
+    "user_input": "Can you simplify this for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for simplification but does not include the content to simplify.",
+    "response": "What would you like me to simplify?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0011",
+    "user_input": "What is the best option for me in this case?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question asks for the best option without listing the options or the decision criteria.",
+    "response": "What options are you considering, and what matters most to you?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0012",
+    "user_input": "Which one is best for me here?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a recommendation but does not identify alternatives or priorities.",
+    "response": "Which options are you choosing between, and what matters most to you?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0013",
+    "user_input": "Can you help me pick the best option for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user requests a choice recommendation without enough context about the options or goals.",
+    "response": "What options are you choosing between, and what matters most to you?",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]

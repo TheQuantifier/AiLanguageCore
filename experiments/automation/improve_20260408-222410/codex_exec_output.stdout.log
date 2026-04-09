@@ -1,0 +1,7 @@
+Added one narrow boundary-data improvement aimed at the current largest error mode (`CLARIFICATION` vs `DIRECT_ANSWER`): I expanded the clarification hard-example pack with 5 new terse, underspecified prompts close to the failing benchmark patterns (`organize/simplify/best option` phrasing), then regenerated training JSONL so the next run uses them.
+
+Files changed:
+- [data/processed/train_clarification_boundary_pack.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_clarification_boundary_pack.json)
+- [data/processed/train_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE
