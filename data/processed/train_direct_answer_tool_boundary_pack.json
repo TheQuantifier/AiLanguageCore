@@ -214,5 +214,23 @@
     "response": "I would need a tool to look up current gas prices near you.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0025",
+    "user_input": "What laptop deals are available today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Available deals today are time-sensitive external shopping data and require a live lookup.",
+    "response": "I would need a tool to look up laptop deals that are available today.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0026",
+    "user_input": "Which laptops are on sale today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Which items are on sale today depends on current retailer data and cannot be answered from static knowledge.",
+    "response": "I would need a tool to look up which laptops are on sale today.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]
