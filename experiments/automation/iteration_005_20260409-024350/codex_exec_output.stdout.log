@@ -1,0 +1,13 @@
+Applied one narrow boundary-focused improvement aimed at the most unstable recent class boundary: `DIRECT_ANSWER` vs `TOOL_NEEDED` for `What are ...` prompts.
+
+Change made:
+- Added 4 contrastive training examples to strengthen routing:
+- `DIRECT_ANSWER`: concept-definition `What are ...` prompts
+- `TOOL_NEEDED`: time-sensitive/live-data `What are ...` prompts
+- Regenerated training SFT so the next run uses these examples immediately (train rows now include the 4 new IDs at lines 619-622).
+
+Files changed:
+- [data/processed/train_direct_answer_tool_boundary_pack.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_direct_answer_tool_boundary_pack.json#L183)
+- [data/processed/train_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl#L619)
+
+AUTOMATION_DECISION: CONTINUE

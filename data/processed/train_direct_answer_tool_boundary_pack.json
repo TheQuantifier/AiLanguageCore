@@ -178,5 +178,41 @@
     "response": "I would need a tool to look up Bitcoin's current price.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0021",
+    "user_input": "What are fixed and variable costs?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user is asking for definitions of stable finance concepts that can be explained without external data.",
+    "response": "Fixed costs stay about the same each period, while variable costs change based on usage or activity.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0022",
+    "user_input": "What are short-term and long-term financial goals?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a concept comparison request that can be answered directly from general knowledge.",
+    "response": "Short-term goals are targets you plan to reach soon, while long-term goals are targets you work toward over years.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0023",
+    "user_input": "What are today's mortgage rates at major banks?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Today's mortgage rates are time-sensitive external information and require a live lookup.",
+    "response": "I would need a tool to look up today's mortgage rates at major banks.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0024",
+    "user_input": "What are current gas prices near me?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current local gas prices are time- and location-sensitive external data that require a lookup.",
+    "response": "I would need a tool to look up current gas prices near you.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]
