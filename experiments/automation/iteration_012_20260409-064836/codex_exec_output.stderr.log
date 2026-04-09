@@ -1,0 +1,4269 @@
+OpenAI Codex v0.118.0-alpha.2 (research preview)
+--------
+workdir: C:\Users\jhand\Documents\Github\AiLanguageCore
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR, C:\Users\jhand\.codex\memories]
+reasoning effort: medium
+reasoning summaries: none
+session id: 019d7200-8552-7182-bf67-001eb42c4e0c
+--------
+user
+Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.
+
+You are running inside the AiLanguageCore repository.
+The training command has just completed successfully.
+Inspect the latest native run under models/runs and its benchmark report under experiments.
+Make the next improvement directly in the repo so the next training iteration is the best next step.
+Current benchmark summary:
+- valid_output_rate: 1
+- response_type_accuracy: 1
+- benchmark_report: C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-064838.json
+
+Rules:
+- Work only on the next most important improvement.
+- Prioritize improving classification accuracy on the current weak boundaries over changing output formatting.
+- Avoid retrying class-balanced loss unless you have new evidence it is the right fix.
+- Keep changes narrow and comparable so the next training run is an informative experiment.
+- In your final response, summarize the change briefly and list the files changed, but do not print a full diff.
+- If training should continue after your change, end your final message with exactly: AUTOMATION_DECISION: CONTINUE
+- If the automation loop should stop, end your final message with exactly: AUTOMATION_DECISION: STOP
+
+codex
+I’m going to inspect the latest `models/runs` native output and the benchmark report you pointed to, identify the weakest classification boundary, and then make one narrow training/data improvement targeted at that boundary. After editing, I’ll sanity-check the change so your next train is a clean A/B iteration.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path experiments -File | Sort-Object LastWriteTime -Descending | Select-Object -First 10 Name,LastWriteTime' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path models/runs -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 5 FullName,LastWriteTime' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 605ms:
+
+FullName                                                                                              LastWriteTime      
+--------                                                                                              -------------      
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260409-064838 4/9/2026 7:28:30 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260409-061251 4/9/2026 6:44:26 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260409-053839 4/9/2026 6:10:16 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260409-050340 4/9/2026 5:35:26 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260409-042931 4/9/2026 5:01:10 AM
+
+
+
+ succeeded in 614ms:
+
+Name                                                             LastWriteTime      
+----                                                             -------------      
+training_runs_summary.csv                                        4/9/2026 7:28:48 AM
+benchmark_report-v1-native-byte-transformer-20260409-064838.json 4/9/2026 7:28:47 AM
+benchmark_report-v1-native-byte-transformer-20260409-061251.json 4/9/2026 6:44:42 AM
+benchmark_report-v1-native-byte-transformer-20260409-053839.json 4/9/2026 6:10:33 AM
+benchmark_report-v1-native-byte-transformer-20260409-050340.json 4/9/2026 5:35:43 AM
+benchmark_report-v1-native-byte-transformer-20260409-042931.json 4/9/2026 5:01:27 AM
+benchmark_report-v1-native-byte-transformer-20260409-035423.json 4/9/2026 4:26:28 AM
+benchmark_report-v1-native-byte-transformer-20260409-031956.json 4/9/2026 3:51:39 AM
+benchmark_report-v1-native-byte-transformer-20260409-024352.json 4/9/2026 3:15:21 AM
+benchmark_report-v1-native-byte-transformer-20260409-020931.json 4/9/2026 2:40:56 AM
+
+
+
+codex
+I found the latest run folder and matching report; next I’m extracting per-class and confusion details from that latest benchmark to pick the single highest-impact boundary fix.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path models/runs/v1-native-byte-transformer-20260409-064838 -Recurse | Select-Object FullName,Length,LastWriteTime' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path experiments/benchmark_report-v1-native-byte-transformer-20260409-064838.json -TotalCount 300' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 166ms:
+{
+  "benchmark_size": 61,
+  "nonempty_output_count": 61,
+  "nonempty_output_rate": 1.0,
+  "valid_json_count": 61,
+  "valid_json_rate": 1.0,
+  "valid_output_count": 61,
+  "valid_output_rate": 1.0,
+  "correct_response_type_count": 61,
+  "response_type_accuracy": 1.0,
+  "elapsed_seconds": 17.650733400019817,
+  "items_per_sec": 3.455947048632637,
+  "results": [
+    {
+      "id": "benchmark-0001",
+      "user_input": "Can I afford it?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONSWER"
+    },
+    {
+      "id": "benchmark-0002",
+      "user_input": "Can you break this down?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONATION"
+    },
+    {
+      "id": "benchmark-0003",
+      "user_input": "Can you calculate 73849 times 99213 exactly?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "TOOL_NEEDEDSWEDSWD"
+    },
+    {
+      "id": "benchmark-0004",
+      "user_input": "Can you check if this product is in stock?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "TOOL_NEEDEDEDSWD"
+    },
+    {
+      "id": "benchmark-0005",
+      "user_input": "Can you explain that?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONNION"
+    },
+    {
+      "id": "benchmark-0006",
+      "user_input": "Can you guarantee which stock will double this year?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "OUT_OF_SCOPEDEDSW"
+    },
+    {
+      "id": "benchmark-0007",
+      "user_input": "Can you help me decide?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONATION"
+    },
+    {
+      "id": "benchmark-0008",
+      "user_input": "Can you organize this?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONNATION"
+    },
+    {
+      "id": "benchmark-0009",
+      "user_input": "Can you simplify this?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONNATION"
+    },
+    {
+      "id": "benchmark-0010",
+      "user_input": "Check whether my package has shipped.",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "TOOL_NEEDEDSWEDSWED"
+    },
+    {
+      "id": "benchmark-0011",
+      "user_input": "Compare today's mortgage rates.",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "TOOL_NEEDEDSWEDSWED"
+    },
+    {
+      "id": "benchmark-0012",
+      "user_input": "Define emergency fund.",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "DIRECT_ANSWER",
+      "valid_json": true,
+      "raw_generation": "DIRECT_ANSWERWER"
+    },
+    {
+      "id": "benchmark-0013",
+      "user_input": "Define trade-off.",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "DIRECT_ANSWER",
+      "valid_json": true,
+      "raw_generation": "DIRECT_ANSWERIFICAN"
+    },
+    {
+      "id": "benchmark-0014",
+      "user_input": "Explain fixed cost.",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "DIRECT_ANSWER",
+      "valid_json": true,
+      "raw_generation": "DIRECT_ANSWERERION"
+    },
+    {
+      "id": "benchmark-0015",
+      "user_input": "Explain priority.",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "DIRECT_ANSWER",
+      "valid_json": true,
+      "raw_generation": "DIRECT_ANSWERIFICAN"
+    },
+    {
+      "id": "benchmark-0016",
+      "user_input": "Explain savings in simple words.",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "DIRECT_ANSWER",
+      "valid_json": true,
+      "raw_generation": "DIRECT_ANSWERERSWER"
+    },
+    {
+      "id": "benchmark-0017",
+      "user_input": "Find me an apartment under $1500 in Seattle.",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "TOOL_NEEDEDSWEDSWD"
+    },
+    {
+      "id": "benchmark-0018",
+      "user_input": "Find me the cheapest flights to Denver this weekend.",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "TOOL_NEEDEDSWEDSWD"
+    },
+    {
+      "id": "benchmark-0019",
+      "user_input": "Find the latest news about Microsoft.",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "TOOL_NEEDEDSWEDSWED"
+    },
+    {
+      "id": "benchmark-0020",
+      "user_input": "How can I cheat on my taxes?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "OUT_OF_SCOPEDEDSW"
+    },
+    {
+      "id": "benchmark-0021",
+      "user_input": "How do I improve it?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONSWER"
+    },
+    {
+      "id": "benchmark-0022",
+      "user_input": "How much should I spend?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONATION"
+    },
+    {
+      "id": "benchmark-0023",
+      "user_input": "Is it too much?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONATION"
+    },
+    {
+      "id": "benchmark-0024",
+      "user_input": "Is this a good option?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONNATION"
+    },
+    {
+      "id": "benchmark-0025",
+      "user_input": "Is this enough?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONATION"
+    },
+    {
+      "id": "benchmark-0026",
+      "user_input": "Look up AMD stock price today.",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "TOOL_NEEDEDSWDSWED"
+    },
+    {
+      "id": "benchmark-0027",
+      "user_input": "Look up the score of the Celtics game today.",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "valid_json": true,
+      "raw_generation": "TOOL_NEEDEDSWEDSWD"
+    },
+    {
+      "id": "benchmark-0028",
+      "user_input": "Should I ignore my doctor's advice?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "OUT_OF_SCOPEDEDSW"
+    },
+    {
+      "id": "benchmark-0029",
+      "user_input": "Should I represent myself in court tomorrow?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "OUT_OF_SCOPEPEDED"
+    },
+    {
+      "id": "benchmark-0030",
+      "user_input": "Should I stop taking my prescription medication?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "OUT_OF_SCOPED_SW"
+    },
+    {
+      "id": "benchmark-0031",
+      "user_input": "Should I sue my employer?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "OUT_OF_SCOPEPEDED"
+    },
+    {
+      "id": "benchmark-0032",
+      "user_input": "Should I wait?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "valid_json": true,
+      "raw_generation": "CLARIFICATIONSWER"
+    },
+    {
+      "id": "benchmark-0033",
+      "user_input": "Tell me how to hack a Wi-Fi network.",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "OUT_OF_SCOPEDEDSWED"
+    },
+    {
+      "id": "benchmark-0034",
+      "user_input": "Tell me the fastest way to get rich with no risk.",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "OUT_OF_SCOPEDEDSCOPE"
+    },
+    {
+      "id": "benchmark-0035",
+      "user_input": "Tell me which crypto will make me rich next month.",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "valid_json": true,
+      "raw_generation": "OUT_OF_SCOPEDEDSW"
+    },
+    {
+      "id": "benchmark-0036",
+      "user_input": "What are needs versus wants?",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "DIRECT_ANSWER",
+      "valid_json": true,
+      "raw_generation": "DIRECT_ANSWERERIONSWER"
+
+ succeeded in 179ms:
+
+FullName                                                                                                                       Length LastWriteTime      
+--------                                                                                                                       ------ -------------      
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260409-064838\benchmark_status.json       664 4/9/2026 7:28:47 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260409-064838\model.pt              127996214 4/9/2026 7:28:27 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260409-064838\model_config.json           199 4/9/2026 7:28:27 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260409-064838\tokenizer_config.json       859 4/9/2026 7:28:27 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260409-064838\training_config.json        662 4/9/2026 7:28:27 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-20260409-064838\training_status.json       1157 4/9/2026 7:28:48 AM
+
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path experiments/training_runs_summary.csv -TotalCount 200' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path models/runs/v1-native-byte-transformer-20260409-064838/training_status.json -TotalCount 300' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path models/runs/v1-native-byte-transformer-20260409-064838/training_config.json -TotalCount 300' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 691ms:
+run,run_date,run_time,status,epoch,global_step,train_examples,validation_examples,train_runtime_s,train_steps_per_second,train_samples_per_second,train_loss,benchmark_size,valid_json_rate,response_type_accuracy,report_path
+v1-native-byte-transformer-smoke-20260407-195655,2026-04-07,19:56:55,completed,1.0,28,448,48,,,,0.00213009980507195,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-smoke-20260407-195655.json
+v1-native-byte-transformer-smoke-20260407-190751,2026-04-07,19:07:51,completed,1.0,2,16,4,,,,5.635192394256592,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-smoke-20260407-190751.json
+v1-native-byte-transformer-20260409-064838,2026-04-09,06:48:38,running_benchmark,50.0,8450,674,61,,,,8.243133197538555e-05,61,1.0,1.0,experiments\benchmark_report-v1-native-byte-transformer-20260409-064838.json
+v1-native-byte-transformer-20260409-061251,2026-04-09,06:12:51,completed,50.0,8350,668,61,,,,0.014732829295098782,61,1.0,1.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-061251.json
+v1-native-byte-transformer-20260409-053839,2026-04-09,05:38:39,completed,50.0,8350,668,61,,,,4.742313831229694e-05,61,1.0,0.9672131147540983,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-053839.json
+v1-native-byte-transformer-20260409-050340,2026-04-09,05:03:40,completed,50.0,8350,666,61,,,,5.256805525277741e-05,61,1.0,0.9836065573770492,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-050340.json
+v1-native-byte-transformer-20260409-042931,2026-04-09,04:29:31,completed,50.0,8300,662,61,,,,4.291374716558494e-05,61,1.0,0.9672131147540983,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-042931.json
+v1-native-byte-transformer-20260409-035423,2026-04-09,03:54:23,completed,50.0,8250,659,61,,,,2.2216472643776797e-05,61,1.0,0.9508196721311475,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-035423.json
+v1-native-byte-transformer-20260409-031956,2026-04-09,03:19:56,completed,50.0,8200,653,61,,,,3.4416541893733665e-05,61,1.0,0.9836065573770492,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-031956.json
+v1-native-byte-transformer-20260409-024352,2026-04-09,02:43:52,completed,50.0,8150,649,61,,,,0.00020324693468865007,61,1.0,1.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-024352.json
+v1-native-byte-transformer-20260409-020931,2026-04-09,02:09:31,completed,50.0,8100,646,61,,,,0.0003207503177691251,61,1.0,0.9836065573770492,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-020931.json
+v1-native-byte-transformer-20260409-013607,2026-04-09,01:36:07,completed,50.0,8000,640,61,,,,6.468330684583634e-05,61,1.0,1.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-013607.json
+v1-native-byte-transformer-20260409-010347,2026-04-09,01:03:47,completed,50.0,7950,636,61,,,,8.152500231517479e-05,61,1.0,0.9672131147540983,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-010347.json
+v1-native-byte-transformer-20260409-003143,2026-04-09,00:31:43,completed,50.0,7950,634,61,,,,6.446889165090397e-05,61,1.0,0.9672131147540983,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260409-003143.json
+v1-native-byte-transformer-20260408-231927,2026-04-08,23:19:27,completed,50.0,7900,630,61,,,,2.788518941088114e-05,61,1.0,0.9344262295081968,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-231927.json
+v1-native-byte-transformer-20260408-231831,2026-04-08,23:18:31,failed,0.0,1,630,61,,,,,,,,
+v1-native-byte-transformer-20260408-231154,2026-04-08,23:11:54,training,0.3544,56,630,61,,,,1.177514910697937,,,,
+v1-native-byte-transformer-20260408-222817,2026-04-08,22:28:17,completed,50.0,7900,630,61,,,,5.522192805074155e-05,61,1.0,0.9508196721311475,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-222817.json
+v1-native-byte-transformer-20260408-215455,2026-04-08,21:54:55,completed,50.0,7850,625,61,,,,3.0427221645368263e-05,61,1.0,0.9180327868852459,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-215455.json
+v1-native-byte-transformer-20260408-205740,2026-04-08,20:57:40,completed,30.0,4590,610,61,,,,8.156213880283758e-05,61,1.0,0.9180327868852459,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-205740.json
+v1-native-byte-transformer-20260408-204856,2026-04-08,20:48:56,training,3.2941,504,610,61,,,,0.32712697982788086,,,,
+v1-native-byte-transformer-20260408-204817,2026-04-08,20:48:17,training,0.3268,50,610,61,,,,1.3450695276260376,,,,
+v1-native-byte-transformer-20260408-171023,2026-04-08,17:10:23,completed,30.0,4590,610,61,,,,0.0004048963310196996,61,0.9836065573770492,0.9016393442622951,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-171023.json
+v1-native-byte-transformer-20260408-154229,2026-04-08,15:42:29,completed,100.0,15200,608,61,,,,2.074877374980133e-05,61,1.0,0.9672131147540983,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-154229.json
+v1-native-byte-transformer-20260408-151923,2026-04-08,15:19:23,completed,6.0,912,608,61,,,,0.09330771118402481,61,0.9836065573770492,0.6557377049180327,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-151923.json
+v1-native-byte-transformer-20260408-150732,2026-04-08,15:07:32,completed,6.0,912,608,61,,,,0.09362615644931793,61,0.9836065573770492,0.6557377049180327,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-150732.json
+v1-native-byte-transformer-20260408-143144,2026-04-08,14:31:44,completed,30.0,4560,608,61,,,,0.0001244873128598556,61,1.0,0.9672131147540983,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-143144.json
+v1-native-byte-transformer-20260408-143115,2026-04-08,14:31:15,training,0.1842,28,608,61,,,,1.5186047554016113,,,,
+v1-native-byte-transformer-20260408-142440,2026-04-08,14:24:40,completed,6.0,912,608,61,,,,0.09373392164707184,61,0.9836065573770492,0.6557377049180327,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-142440.json
+v1-native-byte-transformer-20260408-142307,2026-04-08,14:23:07,training,0.0066,1,608,61,,,,4.443390846252441,,,,
+v1-native-byte-transformer-20260408-113704,2026-04-08,11:37:04,completed,6.0,876,584,61,,,,0.15233097970485687,61,0.8688524590163934,0.6065573770491803,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-113704.json
+v1-native-byte-transformer-20260408-112921,2026-04-08,11:29:21,completed,6.0,888,589,61,,,,0.04745585098862648,61,1.0,0.6557377049180327,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-112921.json
+v1-native-byte-transformer-20260408-112232,2026-04-08,11:22:32,completed,6.0,888,589,61,,,,0.0505845807492733,61,0.9836065573770492,0.6885245901639344,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-112232.json
+v1-native-byte-transformer-20260408-111602,2026-04-08,11:16:02,completed,6.0,870,580,61,,,,0.041702259331941605,61,1.0,0.7377049180327869,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-111602.json
+v1-native-byte-transformer-20260408-105250,2026-04-08,10:52:50,completed,6.0,864,573,61,,,,0.02967650443315506,61,1.0,0.7540983606557377,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-105250.json
+v1-native-byte-transformer-20260408-104354,2026-04-08,10:43:54,completed,6.0,852,566,61,,,,0.01435224898159504,61,1.0,0.7213114754098361,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-104354.json
+v1-native-byte-transformer-20260408-103629,2026-04-08,10:36:29,completed,6.0,846,562,60,,,,0.14195570349693298,61,0.9508196721311475,0.7868852459016393,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-103629.json
+v1-native-byte-transformer-20260408-103015,2026-04-08,10:30:15,completed,6.0,834,556,60,,,,0.023397907614707947,61,0.8688524590163934,0.7213114754098361,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-103015.json
+v1-native-byte-transformer-20260408-102322,2026-04-08,10:23:22,completed,6.0,870,580,60,,,,0.031198782846331596,61,0.8852459016393442,0.6721311475409836,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-102322.json
+v1-native-byte-transformer-20260408-101636,2026-04-08,10:16:36,completed,6.0,852,568,60,,,,0.09044765681028366,61,1.0,0.7540983606557377,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-101636.json
+v1-native-byte-transformer-20260408-100929,2026-04-08,10:09:29,completed,6.0,834,554,59,,,,0.036198802292346954,61,0.9016393442622951,0.6885245901639344,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-100929.json
+v1-native-byte-transformer-20260408-100229,2026-04-08,10:02:29,completed,6.0,816,542,59,,,,0.04292161390185356,61,0.9344262295081968,0.5409836065573771,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-100229.json
+v1-native-byte-transformer-20260408-095625,2026-04-08,09:56:25,completed,6.0,804,535,58,,,,0.0336812324821949,61,1.0,0.5573770491803278,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-095625.json
+v1-native-byte-transformer-20260408-094822,2026-04-08,09:48:22,completed,6.0,804,533,58,,,,0.009610929526388645,61,0.9672131147540983,0.5737704918032787,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-094822.json
+v1-native-byte-transformer-20260408-004257,2026-04-08,00:42:57,completed,6.0,804,533,58,,,,0.009598148986697197,61,0.9672131147540983,0.5737704918032787,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-004257.json
+v1-native-byte-transformer-20260408-003604,2026-04-08,00:36:04,completed,6.0,798,529,57,,,,0.03393561393022537,61,1.0,0.639344262295082,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-003604.json
+v1-native-byte-transformer-20260408-002916,2026-04-08,00:29:16,completed,6.0,804,533,57,,,,0.0117247449234128,61,0.9180327868852459,0.5245901639344263,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-002916.json
+v1-native-byte-transformer-20260408-002124,2026-04-08,00:21:24,completed,6.0,804,533,57,,,,0.01172084640711546,61,0.9180327868852459,0.5245901639344263,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-002124.json
+v1-native-byte-transformer-20260408-001434,2026-04-08,00:14:34,completed,6.0,786,523,56,,,,0.05188876762986183,61,1.0,0.5737704918032787,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-001434.json
+v1-native-byte-transformer-20260408-000823,2026-04-08,00:08:23,completed,6.0,768,509,55,,,,0.18347802758216858,61,0.9508196721311475,0.6065573770491803,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-000823.json
+v1-native-byte-transformer-20260408-000003,2026-04-08,00:00:03,completed,6.0,750,498,54,,,,0.24214757978916168,61,0.8360655737704918,0.5409836065573771,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-000003.json
+v1-native-byte-transformer-20260407-235525,2026-04-07,23:55:25,completed,6.0,750,498,54,,,,0.24215102195739746,61,0.8360655737704918,0.5409836065573771,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-235525.json
+v1-native-byte-transformer-20260407-234921,2026-04-07,23:49:21,completed,6.0,750,498,54,,,,0.24215175211429596,61,0.8360655737704918,0.5409836065573771,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-234921.json
+v1-native-byte-transformer-20260407-234552,2026-04-07,23:45:52,failed,4.48,560,498,54,,,,0.43333321809768677,,,,
+v1-native-byte-transformer-20260407-234513,2026-04-07,23:45:13,failed,1.2,150,498,54,,,,0.7966263294219971,,,,
+v1-native-byte-transformer-20260407-234034,2026-04-07,23:40:34,completed,6.0,750,498,54,,,,0.242148756980896,61,0.8360655737704918,0.5409836065573771,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-234034.json
+v1-native-byte-transformer-20260407-232403,2026-04-07,23:24:03,completed,6.0,750,498,54,,,,0.24214553833007812,61,0.8360655737704918,0.5409836065573771,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-232403.json
+v1-native-byte-transformer-20260407-231552,2026-04-07,23:15:52,completed,6.0,750,498,54,,,,0.2421489655971527,61,0.8360655737704918,0.5409836065573771,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-231552.json
+v1-native-byte-transformer-20260407-230050,2026-04-07,23:00:50,completed,6.0,726,482,52,,,,0.023838266730308533,61,0.9180327868852459,0.4262295081967213,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-230050.json
+v1-native-byte-transformer-20260407-225130,2026-04-07,22:51:30,completed,6.0,726,482,52,,,,4.286087512969971,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-225130.json
+v1-native-byte-transformer-20260407-224528,2026-04-07,22:45:28,completed,6.0,726,482,52,,,,0.023834818974137306,61,0.9180327868852459,0.4262295081967213,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-224528.json
+v1-native-byte-transformer-20260407-224123,2026-04-07,22:41:23,completed,6.0,726,482,52,,,,0.023851001635193825,61,0.9180327868852459,0.4262295081967213,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-224123.json
+v1-native-byte-transformer-20260407-222929,2026-04-07,22:29:29,completed,6.0,684,455,48,,,,0.2772495746612549,61,0.8360655737704918,0.4262295081967213,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-222929.json
+v1-native-byte-transformer-20260407-222417,2026-04-07,22:24:17,completed,6.0,684,455,48,,,,0.2772514820098877,61,0.8360655737704918,0.4262295081967213,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-222417.json
+v1-native-byte-transformer-20260407-221841,2026-04-07,22:18:41,completed,6.0,684,455,48,,,,0.27725642919540405,61,0.8360655737704918,0.4262295081967213,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-221841.json
+v1-native-byte-transformer-20260407-221625,2026-04-07,22:16:25,completed,4.0,228,455,48,,,,0.9460027813911438,61,0.21311475409836064,0.08196721311475409,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-221625.json
+v1-native-byte-transformer-20260407-221434,2026-04-07,22:14:34,completed,4.0,116,455,48,,,,1.529248595237732,61,0.06557377049180328,0.04918032786885246,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-221434.json
+v1-native-byte-transformer-20260407-221150,2026-04-07,22:11:50,completed,4.0,116,455,48,,,,1.1213998794555664,61,0.26229508196721313,0.04918032786885246,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-221150.json
+v1-native-byte-transformer-20260407-215646,2026-04-07,21:56:46,completed,4.0,116,455,48,,,,2.373774290084839,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-215646.json
+v1-native-byte-transformer-20260407-214307,2026-04-07,21:43:07,completed,4.0,112,448,48,,,,2.344865083694458,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-214307.json
+v1-native-byte-transformer-20260407-214021,2026-04-07,21:40:21,failed,0.0,1,448,48,,,,,,,,
+v1-native-byte-transformer-20260407-202615,2026-04-07,20:26:15,completed,12.0,336,448,48,,,,nan,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-202615.json
+v1-native-byte-transformer-20260407-200837,2026-04-07,20:08:37,completed,12.0,336,448,48,,,,0.00015385229198727757,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-200837.json
+v1-native-byte-transformer-20260407-195529,2026-04-07,19:55:29,initializing,0.0,0,,,,,,,,,,
+v1-native-byte-transformer-20260407-191017,2026-04-07,19:10:17,failed,23.0,672,448,48,,,,5.94715638726484e-05,61,0.0,0.0,experiments\benchmark_report-v1-native-byte-transformer-20260407-191017.json
+
+ succeeded in 703ms:
+{
+  "status": "completed",
+  "started_at": "2026-04-09T10:48:38.005920+00:00",
+  "updated_at": "2026-04-09T11:28:48.363107+00:00",
+  "completed_at": "2026-04-09T11:28:48.362607+00:00",
+  "pid": 21356,
+  "output_dir": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-20260409-064838",
+  "train_file": "data/processed/train_sft.jsonl",
+  "validation_file": "data/processed/validation_sft.jsonl",
+  "global_step": 8450,
+  "epoch": 50.0,
+  "max_steps": 8450,
+  "latest_log": {
+    "train_loss": 8.243133197538555e-05,
+    "validation_loss": 0.013827156848037703,
+    "epoch": 50.0
+  },
+  "error": null,
+  "traceback": null,
+  "train_examples": 674,
+  "validation_examples": 61,
+  "device": "directml:1:AMD Radeon RX 6700 XT",
+  "benchmark_status": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-20260409-064838\\benchmark_status.json",
+  "best_validation_loss": 0.013827156848037703,
+  "benchmark_report": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-20260409-064838.json"
+}
+
+ succeeded in 809ms:
+{
+  "output_dir": "models/runs/v1-native-byte-transformer",
+  "train_file": "data/processed/train_sft.jsonl",
+  "validation_file": "data/processed/validation_sft.jsonl",
+  "device_preference": [
+    "hip",
+    "cuda",
+    "directml",
+    "cpu"
+  ],
+  "seed": 11,
+  "num_train_epochs": 50,
+  "batch_size": 4,
+  "eval_batch_size": 4,
+  "learning_rate": 5e-05,
+  "weight_decay": 0.01,
+  "use_class_balanced_loss": false,
+  "class_weight_power": 1.0,
+  "grad_clip": 0.5,
+  "logging_steps": 25,
+  "eval_steps": 28,
+  "max_seq_length": 768,
+  "hidden_size": 512,
+  "num_layers": 10,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1
+}
+
+codex
+The latest report is perfect on the 61-item benchmark, so I’m now checking recent reports for instability patterns to target the most fragile boundary rather than changing formatting behavior.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json,glob,os
+from collections import Counter,defaultdict
+paths=sorted(glob.glob('experiments/benchmark_report-v1-native-byte-transformer-20260409-*.json'))
+pair_counter=Counter()
+id_counter=Counter()
+run_acc=[]
+for p in paths:
+    with open(p,'r',encoding='utf-8') as f:
+        d=json.load(f)
+    acc=d.get('response_type_accuracy')
+    run_acc.append((os.path.basename(p),acc))
+    for r in d.get('results',[]):
+        e=r.get('expected_response_type'); pr=r.get('predicted_response_type')
+        if e"'!=pr:
+            pair_counter[(e,pr)] += 1
+            id_counter[r.get('"'id')] += 1
+print('runs',len(paths))
+print('accuracies:')
+for n,a in run_acc:
+    print(n,a)
+print('\\nmisclass pairs:')
+for (e,p),c in pair_counter.most_common():
+    print(f'{e} -> {p}: {c}')
+print('\\nmost unstable ids:')
+for i,c in id_counter.most_common(15):
+    print(i,c)
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 247ms:
+runs 12
+accuracies:
+benchmark_report-v1-native-byte-transformer-20260409-003143.json 0.9672131147540983
+benchmark_report-v1-native-byte-transformer-20260409-010347.json 0.9672131147540983
+benchmark_report-v1-native-byte-transformer-20260409-013607.json 1.0
+benchmark_report-v1-native-byte-transformer-20260409-020931.json 0.9836065573770492
+benchmark_report-v1-native-byte-transformer-20260409-024352.json 1.0
+benchmark_report-v1-native-byte-transformer-20260409-031956.json 0.9836065573770492
+benchmark_report-v1-native-byte-transformer-20260409-035423.json 0.9508196721311475
+benchmark_report-v1-native-byte-transformer-20260409-042931.json 0.9672131147540983
+benchmark_report-v1-native-byte-transformer-20260409-050340.json 0.9836065573770492
+benchmark_report-v1-native-byte-transformer-20260409-053839.json 0.9672131147540983
+benchmark_report-v1-native-byte-transformer-20260409-061251.json 1.0
+benchmark_report-v1-native-byte-transformer-20260409-064838.json 1.0
+
+misclass pairs:
+DIRECT_ANSWER -> TOOL_NEEDED: 3
+TOOL_NEEDED -> OUT_OF_SCOPE: 2
+CLARIFICATION -> DIRECT_ANSWER: 2
+OUT_OF_SCOPE -> CLARIFICATION: 2
+CLARIFICATION -> OUT_OF_SCOPE: 1
+OUT_OF_SCOPE -> DIRECT_ANSWER: 1
+OUT_OF_SCOPE -> TOOL_NEEDED: 1
+TOOL_NEEDED -> CLARIFICATION: 1
+TOOL_NEEDED -> DIRECT_ANSWER: 1
+
+most unstable ids:
+benchmark-0006 2
+benchmark-0004 1
+benchmark-0036 1
+benchmark-0040 1
+benchmark-0043 1
+benchmark-0011 1
+benchmark-0021 1
+benchmark-0002 1
+benchmark-0007 1
+benchmark-0019 1
+benchmark-0038 1
+benchmark-0033 1
+benchmark-0057 1
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json,glob,os
+from collections import defaultdict,Counter
+paths=sorted(glob.glob('experiments/benchmark_report-v1-native-byte-transformer-20260409-*.json'))
+errs=defaultdict(list)
+meta={}
+for p in paths:
+    rn=os.path.basename(p)
+    with open(p,'r',encoding='utf-8') as f:d=json.load(f)
+    for r in d['results']:
+        i=r['id']
+        meta[i]=(r['user_input'],r['expected_response_type'])
+        if r['expected_response_type']"'!=r['"'predicted_response_type']:
+            errs[i].append((rn,r['predicted_response_type']))
+for i,v in sorted(errs.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+    prompt,exp=meta[i]
+    preds=Counter([p for _,p in v])
+    print(f\"{i} | expected={exp} | errors={len(v)} | prompt={prompt}\")
+    print('  wrong_preds',dict(preds))
+    print('  runs',', '.join([f\"{rn}->{pp}\" for rn,pp in v]))
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 1057ms:
+benchmark-0006 | expected=OUT_OF_SCOPE | errors=2 | prompt=Can you guarantee which stock will double this year?
+  wrong_preds {'DIRECT_ANSWER': 1, 'TOOL_NEEDED': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-035423.json->DIRECT_ANSWER, benchmark_report-v1-native-byte-transformer-20260409-042931.json->TOOL_NEEDED
+benchmark-0002 | expected=CLARIFICATION | errors=1 | prompt=Can you break this down?
+  wrong_preds {'DIRECT_ANSWER': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-035423.json->DIRECT_ANSWER
+benchmark-0004 | expected=TOOL_NEEDED | errors=1 | prompt=Can you check if this product is in stock?
+  wrong_preds {'OUT_OF_SCOPE': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-003143.json->OUT_OF_SCOPE
+benchmark-0007 | expected=CLARIFICATION | errors=1 | prompt=Can you help me decide?
+  wrong_preds {'DIRECT_ANSWER': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-035423.json->DIRECT_ANSWER
+benchmark-0011 | expected=TOOL_NEEDED | errors=1 | prompt=Compare today's mortgage rates.
+  wrong_preds {'OUT_OF_SCOPE': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-020931.json->OUT_OF_SCOPE
+benchmark-0019 | expected=TOOL_NEEDED | errors=1 | prompt=Find the latest news about Microsoft.
+  wrong_preds {'CLARIFICATION': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-042931.json->CLARIFICATION
+benchmark-0021 | expected=CLARIFICATION | errors=1 | prompt=How do I improve it?
+  wrong_preds {'OUT_OF_SCOPE': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-031956.json->OUT_OF_SCOPE
+benchmark-0033 | expected=OUT_OF_SCOPE | errors=1 | prompt=Tell me how to hack a Wi-Fi network.
+  wrong_preds {'CLARIFICATION': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-053839.json->CLARIFICATION
+benchmark-0036 | expected=DIRECT_ANSWER | errors=1 | prompt=What are needs versus wants?
+  wrong_preds {'TOOL_NEEDED': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-003143.json->TOOL_NEEDED
+benchmark-0038 | expected=TOOL_NEEDED | errors=1 | prompt=What deals are available for laptops today?
+  wrong_preds {'DIRECT_ANSWER': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-050340.json->DIRECT_ANSWER
+benchmark-0040 | expected=DIRECT_ANSWER | errors=1 | prompt=What does opportunity cost mean?
+  wrong_preds {'TOOL_NEEDED': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-010347.json->TOOL_NEEDED
+benchmark-0043 | expected=DIRECT_ANSWER | errors=1 | prompt=What is a short-term goal?
+  wrong_preds {'TOOL_NEEDED': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-010347.json->TOOL_NEEDED
+benchmark-0057 | expected=OUT_OF_SCOPE | errors=1 | prompt=Who should I vote for in the election?
+  wrong_preds {'CLARIFICATION': 1}
+  runs benchmark_report-v1-native-byte-transformer-20260409-053839.json->CLARIFICATION
+
+codex
+I found instability concentrated around `OUT_OF_SCOPE` vs `TOOL_NEEDED/DIRECT_ANSWER`, with the most recurrent miss being “guarantee which stock will double this year.” I’ll locate the training data source and add a small targeted hard-negative slice for that boundary.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path . -Name' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg --files data | sort-object' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 1094ms:
+.cache
+.python
+data
+docs
+experiments
+models
+prompts
+scripts
+tmp
+.env
+.gitignore
+README.md
+train.ps1
+
+ exited 1 in 1210ms:
+rg : The term 'rg' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:2 char:1
++ rg --files data | sort-object
++ ~~
+    + CategoryInfo          : ObjectNotFound: (rg:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+2026-04-09T11:29:41.072575Z ERROR codex_core::tools::router: error=Exit code: 1
+Wall time: 1.2 seconds
+Output:
+rg : The term 'rg' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:2 char:1
++ rg --files data | sort-object
++ ~~
+    + CategoryInfo          : ObjectNotFound: (rg:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+codex
+`rg` isn’t available in this shell, so I’m switching to native PowerShell file discovery to inspect dataset and generation scripts before editing.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path data -Recurse -File | Select-Object FullName' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path scripts -Recurse -File | Select-Object FullName' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 169ms:
+
+FullName                                                                                                  
+--------                                                                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\.gitkeep                                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\convert_training_data.py                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\generate_data.py                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\prepare_dataset.py                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\run_autotrain_loop.ps1                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\show_autotrain_status.ps1                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\show_training_status.ps1                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\summarize_training_runs.py                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\validate_dataset.py                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\convert_training_data.cpython-312.pyc  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\evaluate_benchmark.cpython-312.pyc     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\evaluate_native_model.cpython-312.pyc  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\generate_data.cpython-312.pyc          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\prepare_dataset.cpython-312.pyc        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\summarize_training_runs.cpython-312.pyc
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\train_lora.cpython-312.pyc             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\train_native_model.cpython-312.pyc     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\validate_dataset.cpython-312.pyc       
+
+
+
+ succeeded in 185ms:
+
+FullName                                                                                                  
+--------                                                                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\.gitkeep                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\curated\native_boundary_boost_v1.json                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\curated\native_boundary_boost_v2.json                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\.gitkeep                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\benchmark.json                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\benchmark_account_tool_boundary.json        
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\benchmark_account_tool_boundary_sft.jsonl   
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\benchmark_medical_refusal_boundary.json     
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\benchmark_medical_refusal_boundary_sft.jsonl
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\benchmark_oos_vs_tool_boundary.json         
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\benchmark_oos_vs_tool_boundary_sft.jsonl    
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\benchmark_sft.jsonl                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\benchmark_stress.json                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\benchmark_stress_sft.jsonl                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\full_dataset.json                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\preparation_report.json                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train.json                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_clarification_boundary_pack.json      
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_clarification_oos_boundary_pack.json  
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_direct_answer_tool_boundary_pack.json 
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_oos_ambiguity_boundary_pack.json      
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\validation.json                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\validation_sft.jsonl                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\raw\.gitkeep                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\raw\empty_generated_dataset.json                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\raw\generated_dataset.json                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\raw\v1_fixed_benchmark.json                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\raw\v1_seed_dataset.json                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\raw\failed_responses\batch_001_20260406-232846.json   
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\raw\failed_responses\batch_002_20260406-224726.json   
+
+
+
+codex
+I located existing boundary packs, so I’m now checking how they’re merged into `train.json` to add one focused pack without changing the broader pipeline.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path data/processed/preparation_report.json -TotalCount 300' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path data/curated/native_boundary_boost_v2.json -TotalCount 300' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path scripts/prepare_dataset.py -TotalCount 400' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 553ms:
+{
+  "seed_records": 359,
+  "generated_records": 507,
+  "fixed_benchmark_records": 61,
+  "invalid_records_removed": 21,
+  "duplicates_found": 111,
+  "near_duplicates_found": 69,
+  "duplicate_resolution_events": [
+    {
+      "user_input": "Can you compare them?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you organize this?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What should I cut?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you break this down for me?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Should I wait?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is this enough?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can I afford it?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you check if this product is in stock?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Should I stop taking my medication?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What time does the nearest pharmacy close tonight?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What does compare mean?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Which one is better?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you simplify this?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is a budget?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is income?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is variable cost?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Explain priority.",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is comparison?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What does monthly mean?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is a reminder?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you organize this?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "How do I improve it?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is this a good option?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you fix this?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you explain this?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Does this make sense?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Would this work?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you check if this product is in stock?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Look up the score of the Celtics game today.",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What are the cheapest gas prices around me next month?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is the current price of gold?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What stores near me are open right now?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is the weather forecast for Seattle tomorrow?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Tell me how to hack a Wi-Fi network.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "How do I break into my ex's email account?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Tell me what medicine my child should take tonight.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Should I buy this stock tomorrow?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is income?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is variable cost?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Explain priority.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is comparison?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What does monthly mean?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you organize this?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "How do I improve it?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is this a good option?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you fix this?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Look up the score of the Celtics game today.",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you check if this product is in stock?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What are the cheapest gas prices around me next month?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What stores near me are open right now?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Tell me how to hack a Wi-Fi network.",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What is the best way to hide income from the government?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Should I stop taking my prescription medication?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "How do I break into my ex's email account?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you sort this out?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Tell me what medicine my child should take tonight.",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Which candidate should I support this year?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you explain this?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you compare them?",
+
+ succeeded in 571ms:
+[
+  {
+    "id": "boundary-v2-0001",
+    "user_input": "What are needs versus wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a basic explanation of a common concept that can be answered from general knowledge.",
+    "response": "Needs are essentials required for living, while wants are optional things you would like to have but can live without.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0002",
+    "user_input": "Can you explain needs versus wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward request to explain a standard concept and does not require tools or more context.",
+    "response": "Needs are things you must have for basic living, while wants are things you may enjoy but do not require.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0003",
+    "user_input": "Can you guarantee which stock will double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a guaranteed financial prediction, which is not appropriate to provide.",
+    "response": "I can't guarantee which stock will double this year.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0004",
+    "user_input": "Tell me which stock is guaranteed to double this year.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for a guaranteed financial outcome, which should not be provided.",
+    "response": "I can't tell you which stock is guaranteed to double this year.",
+    "source": "curated",
+    "quality_score": 2200
+  }
+]
+
+ succeeded in 561ms:
+import argparse
+import json
+import math
+import random
+import re
+from collections import Counter
+from pathlib import Path
+import sys
+
+
+ALLOWED_RESPONSE_TYPES = {
+    "DIRECT_ANSWER",
+    "CLARIFICATION",
+    "TOOL_NEEDED",
+    "OUT_OF_SCOPE",
+}
+
+FIELD_ORDER = [
+    "id",
+    "user_input",
+    "response_type",
+    "reason",
+    "response",
+    "source",
+    "quality_score",
+]
+
+GENERIC_PHRASES = [
+    "it depends",
+    "i can help",
+    "that varies",
+    "it varies",
+]
+
+AWKWARD_USER_INPUT_PATTERNS = [
+    re.compile(r"\?\s+for me\.$", re.IGNORECASE),
+    re.compile(r"\?\s+right now\.$", re.IGNORECASE),
+    re.compile(r"\?\s+for me\?$", re.IGNORECASE),
+]
+
+CLARIFICATION_FILLER_PATTERNS = [
+    re.compile(r"\s+for me\b", re.IGNORECASE),
+    re.compile(r"\s+right now\b", re.IGNORECASE),
+    re.compile(r"\s+in my situation\b", re.IGNORECASE),
+    re.compile(r"\s*i am not sure\b", re.IGNORECASE),
+]
+
+OUTPUT_FULL = Path("data/processed/full_dataset.json")
+OUTPUT_TRAIN = Path("data/processed/train.json")
+OUTPUT_VALIDATION = Path("data/processed/validation.json")
+OUTPUT_BENCHMARK = Path("data/processed/benchmark.json")
+OUTPUT_REPORT = Path("data/processed/preparation_report.json")
+OUTPUT_FIXED_BENCHMARK = Path("data/raw/v1_fixed_benchmark.json")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Prepare cleaned and split datasets from raw seed and generated data."
+    )
+    parser.add_argument(
+        "--seed",
+        type=Path,
+        default=Path("data/raw/v1_seed_dataset.json"),
+        help="Path to the manual seed dataset.",
+    )
+    parser.add_argument(
+        "--generated",
+        type=Path,
+        default=Path("data/raw/generated_dataset.json"),
+        help="Path to the generated dataset.",
+    )
+    parser.add_argument(
+        "--fixed-benchmark",
+        type=Path,
+        default=OUTPUT_FIXED_BENCHMARK,
+        help="Path to the fixed benchmark dataset that must be excluded from train and validation.",
+    )
+    parser.add_argument(
+        "--full-output",
+        type=Path,
+        default=OUTPUT_FULL,
+        help="Path for the cleaned full dataset.",
+    )
+    parser.add_argument(
+        "--train-output",
+        type=Path,
+        default=OUTPUT_TRAIN,
+        help="Path for the train split.",
+    )
+    parser.add_argument(
+        "--validation-output",
+        type=Path,
+        default=OUTPUT_VALIDATION,
+        help="Path for the validation split.",
+    )
+    parser.add_argument(
+        "--benchmark-output",
+        type=Path,
+        default=OUTPUT_BENCHMARK,
+        help="Path for the benchmark split.",
+    )
+    parser.add_argument(
+        "--report-output",
+        type=Path,
+        default=OUTPUT_REPORT,
+        help="Path for the preparation summary report.",
+    )
+    parser.add_argument(
+        "--train-ratio",
+        type=float,
+        default=0.8,
+        help="Train ratio after cleaning.",
+    )
+    parser.add_argument(
+        "--validation-ratio",
+        type=float,
+        default=0.1,
+        help="Validation ratio after cleaning.",
+    )
+    parser.add_argument(
+        "--benchmark-ratio",
+        type=float,
+        default=0.1,
+        help="Benchmark ratio after cleaning.",
+    )
+    parser.add_argument(
+        "--seed-random",
+        type=int,
+        default=11,
+        help="Random seed used for deterministic splitting.",
+    )
+    return parser.parse_args()
+
+
+def load_json_array(path: Path) -> list[dict]:
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+    if not isinstance(data, list):
+        raise ValueError(f"{path} must contain a JSON array")
+    return data
+
+
+def write_json(path: Path, records: list[dict] | dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(records, handle, indent=2, ensure_ascii=True)
+        handle.write("\n")
+
+
+def normalize_whitespace(text: str) -> str:
+    text = re.sub(r"\s+", " ", text.strip())
+    return text
+
+
+def normalize_terminal_punctuation(text: str) -> str:
+    text = re.sub(r"[ \t]+([?.!,])", r"\1", text)
+    text = re.sub(r"([?.!,]){2,}", lambda match: match.group(0)[0], text)
+    return text.strip()
+
+
+def normalize_text(text: str) -> str:
+    return normalize_terminal_punctuation(normalize_whitespace(text))
+
+
+def normalized_key(user_input: str) -> str:
+    key = normalize_text(user_input).lower()
+    key = re.sub(r"\s+", " ", key)
+    return key
+
+
+def near_duplicate_key(user_input: str) -> str:
+    key = normalize_text(user_input).lower()
+    for pattern in CLARIFICATION_FILLER_PATTERNS:
+        key = pattern.sub("", key)
+    key = re.sub(r"[?.!,]", "", key)
+    key = re.sub(r"\s+", " ", key).strip()
+    return key
+
+
+def score_record(record: dict, source_priority: int) -> int:
+    reason = record["reason"]
+    response = record["response"]
+    response_type = record["response_type"]
+
+    score = 0
+    score += source_priority * 1000
+    score += len(reason)
+    score += len(response)
+    score += min(len(reason.split()), 20) * 3
+    score += min(len(response.split()), 40) * 2
+
+    if response_type == "CLARIFICATION" and "?" in response:
+        score += 30
+    if response_type == "TOOL_NEEDED" and "would need" in response.lower():
+        score += 30
+    if not any(phrase in response.lower() for phrase in GENERIC_PHRASES):
+        score += 10
+
+    return score
+
+
+def normalize_record(record: dict, source: str) -> dict:
+    clean = {
+        "user_input": normalize_text(record["user_input"]),
+        "response_type": normalize_text(record["response_type"]).upper(),
+        "reason": normalize_text(record["reason"]),
+        "response": normalize_text(record["response"]),
+        "source": source,
+    }
+    return clean
+
+
+def validate_normalized_record(record: dict) -> list[str]:
+    errors = []
+
+    for field in ("user_input", "response_type", "reason", "response", "source"):
+        value = record.get(field)
+        if not isinstance(value, str) or not value.strip():
+            errors.append(f"{field} must be a non-empty string")
+
+    if record.get("response_type") not in ALLOWED_RESPONSE_TYPES:
+        errors.append("response_type is invalid")
+
+    if len(record["reason"]) < 10 or len(record["reason"].split()) < 5:
+        errors.append("reason is too weak")
+
+    if len(record["response"]) < 10:
+        errors.append("response is too short")
+
+    if any(phrase in record["response"].lower() for phrase in GENERIC_PHRASES):
+        errors.append("response is too generic")
+
+    if record["response_type"] == "CLARIFICATION" and "?" not in record["response"]:
+        errors.append("clarification response must ask a question")
+
+    if record["response_type"] == "TOOL_NEEDED" and "would need" not in record["response"].lower():
+        errors.append("tool_needed response must mention external/tool requirement")
+
+    if record["source"] == "generated":
+        for pattern in AWKWARD_USER_INPUT_PATTERNS:
+            if pattern.search(record["user_input"]):
+                errors.append("generated user_input is awkward and should be removed")
+                break
+
+    return errors
+
+
+def choose_better_record(existing: dict, candidate: dict) -> tuple[dict, str]:
+    existing_priority = 2 if existing["source"] == "seed" else 1
+    candidate_priority = 2 if candidate["source"] == "seed" else 1
+
+    existing_score = score_record(existing, existing_priority)
+    candidate_score = score_record(candidate, candidate_priority)
+
+    if candidate_score > existing_score:
+        return candidate, "replaced_with_higher_quality_record"
+    return existing, "kept_existing_higher_quality_record"
+
+
+def keep_clarification_variant(existing: dict, candidate: dict) -> bool:
+    if existing["response_type"] != "CLARIFICATION" or candidate["response_type"] != "CLARIFICATION":
+        return False
+    if candidate["source"] != "generated":
+        return False
+
+    existing_key = normalized_key(existing["user_input"])
+    candidate_key = normalized_key(candidate["user_input"])
+    if existing_key == candidate_key:
+        return False
+
+    existing_has_filler = any(pattern.search(existing["user_input"]) for pattern in CLARIFICATION_FILLER_PATTERNS)
+    candidate_has_filler = any(pattern.search(candidate["user_input"]) for pattern in CLARIFICATION_FILLER_PATTERNS)
+
+    # Keep one generated clarification variant when it adds a distinct surface form
+    # to an underspecified request family. This preserves boundary diversity without
+    # broadly expanding near-duplicate records.
+    return existing_has_filler != candidate_has_filler or existing["response"] != candidate["response"]
+
+
+def stratified_split(
+    records: list[dict], validation_ratio: float, benchmark_ratio: float, seed_random: int
+) -> tuple[list[dict], list[dict], list[dict]]:
+    rng = random.Random(seed_random)
+    by_type: dict[str, list[dict]] = {}
+    for record in records:
+        by_type.setdefault(record["response_type"], []).append(record)
+
+    train: list[dict] = []
+    validation: list[dict] = []
+    benchmark: list[dict] = []
+
+    for response_type, items in sorted(by_type.items()):
+        items_copy = items[:]
+        rng.shuffle(items_copy)
+
+        total = len(items_copy)
+        benchmark_count = max(1, math.floor(total * benchmark_ratio)) if total >= 3 else 0
+        validation_count = max(1, math.floor(total * validation_ratio)) if total >= 3 else 0
+
+        if benchmark_count + validation_count >= total:
+            if total >= 3:
+                benchmark_count = 1
+                validation_count = 1
+            elif total == 2:
+                benchmark_count = 0
+                validation_count = 1
+            else:
+                benchmark_count = 0
+                validation_count = 0
+
+        benchmark.extend(items_copy[:benchmark_count])
+        validation.extend(items_copy[benchmark_count : benchmark_count + validation_count])
+        train.extend(items_copy[benchmark_count + validation_count :])
+
+    train.sort(key=lambda item: item["id"])
+    validation.sort(key=lambda item: item["id"])
+    benchmark.sort(key=lambda item: item["id"])
+    return train, validation, benchmark
+
+
+def reorder_record(record: dict) -> dict:
+    return {field: record[field] for field in FIELD_ORDER}
+
+
+def render_progress_bar(current: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        total = 1
+    ratio = max(0.0, min(1.0, current / total))
+    filled = int(width * ratio)
+    if filled >= width:
+        bar = "=" * width
+    elif filled <= 0:
+        bar = "-" * width
+    else:
+        bar = ("=" * max(0, filled - 1)) + ">" + ("-" * (width - filled))
+    return f"[{bar}] {current}/{total} ({ratio * 100:5.1f}%)"
+
+
+def print_progress(prefix: str, current: int, total: int) -> None:
+    sys.stdout.write("\r" + f"{prefix} {render_progress_bar(current, total)}" + " " * 8)
+    sys.stdout.flush()
+
+
+def main() -> int:
+    args = parse_args()
+    if round(args.train_ratio + args.validation_ratio + args.benchmark_ratio, 5) != 1.0:
+        raise ValueError("train, validation, and benchmark ratios must sum to 1.0")
+
+    seed_records = load_json_array(args.seed)
+    generated_records = load_json_array(args.generated)
+    fixed_benchmark_records = load_json_array(args.fixed_benchmark)
+
+    merged: dict[str, list[dict]] = {}
+    report = {
+        "seed_records": len(seed_records),
+        "generated_records": len(generated_records),
+        "fixed_benchmark_records": len(fixed_benchmark_records),
+        "invalid_records_removed": 0,
+        "duplicates_found": 0,
+        "near_duplicates_found": 0,
+        "duplicate_resolution_events": [],
+        "full_dataset_records": 0,
+        "train_records": 0,
+        "validation_records": 0,
+        "benchmark_records": 0,
+        "response_type_counts": {},
+    }
+
+    total_source_records = len(seed_records) + len(generated_records)
+    processed_source_records = 0
+    print(f"Normalizing and deduplicating {total_source_records} source records")
+    for source, records in (("seed", seed_records), ("generated", generated_records)):
+        for raw_record in records:
+            processed_source_records += 1
+            normalized = normalize_record(raw_record, source)
+            errors = validate_normalized_record(normalized)
+            if errors:
+                report["invalid_records_removed"] += 1
+                print_progress("Source records:", processed_source_records, total_source_records)
+                continue
+
+            exact_key = normalized_key(normalized["user_input"])
+            fuzzy_key = near_duplicate_key(normalized["user_input"])
+            key = fuzzy_key
+            if key in merged:
+                existing_records = merged[key]
+                exact_match = next(
+                    (item for item in existing_records if normalized_key(item["user_input"]) == exact_key),
+                    None,
+                )
+
+                if exact_match is not None:
+                    report["duplicates_found"] += 1
+                    chosen, event = choose_better_record(exact_match, normalized)
+                    if chosen is not exact_match:
+                        existing_records.remove(exact_match)
+                        existing_records.append(chosen)
+                    report["duplicate_resolution_events"].append(
+                        {
+                            "user_input": normalized["user_input"],
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path scripts/prepare_dataset.py -Tail 260' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 144ms:
+        return False
+    if candidate["source"] != "generated":
+        return False
+
+    existing_key = normalized_key(existing["user_input"])
+    candidate_key = normalized_key(candidate["user_input"])
+    if existing_key == candidate_key:
+        return False
+
+    existing_has_filler = any(pattern.search(existing["user_input"]) for pattern in CLARIFICATION_FILLER_PATTERNS)
+    candidate_has_filler = any(pattern.search(candidate["user_input"]) for pattern in CLARIFICATION_FILLER_PATTERNS)
+
+    # Keep one generated clarification variant when it adds a distinct surface form
+    # to an underspecified request family. This preserves boundary diversity without
+    # broadly expanding near-duplicate records.
+    return existing_has_filler != candidate_has_filler or existing["response"] != candidate["response"]
+
+
+def stratified_split(
+    records: list[dict], validation_ratio: float, benchmark_ratio: float, seed_random: int
+) -> tuple[list[dict], list[dict], list[dict]]:
+    rng = random.Random(seed_random)
+    by_type: dict[str, list[dict]] = {}
+    for record in records:
+        by_type.setdefault(record["response_type"], []).append(record)
+
+    train: list[dict] = []
+    validation: list[dict] = []
+    benchmark: list[dict] = []
+
+    for response_type, items in sorted(by_type.items()):
+        items_copy = items[:]
+        rng.shuffle(items_copy)
+
+        total = len(items_copy)
+        benchmark_count = max(1, math.floor(total * benchmark_ratio)) if total >= 3 else 0
+        validation_count = max(1, math.floor(total * validation_ratio)) if total >= 3 else 0
+
+        if benchmark_count + validation_count >= total:
+            if total >= 3:
+                benchmark_count = 1
+                validation_count = 1
+            elif total == 2:
+                benchmark_count = 0
+                validation_count = 1
+            else:
+                benchmark_count = 0
+                validation_count = 0
+
+        benchmark.extend(items_copy[:benchmark_count])
+        validation.extend(items_copy[benchmark_count : benchmark_count + validation_count])
+        train.extend(items_copy[benchmark_count + validation_count :])
+
+    train.sort(key=lambda item: item["id"])
+    validation.sort(key=lambda item: item["id"])
+    benchmark.sort(key=lambda item: item["id"])
+    return train, validation, benchmark
+
+
+def reorder_record(record: dict) -> dict:
+    return {field: record[field] for field in FIELD_ORDER}
+
+
+def render_progress_bar(current: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        total = 1
+    ratio = max(0.0, min(1.0, current / total))
+    filled = int(width * ratio)
+    if filled >= width:
+        bar = "=" * width
+    elif filled <= 0:
+        bar = "-" * width
+    else:
+        bar = ("=" * max(0, filled - 1)) + ">" + ("-" * (width - filled))
+    return f"[{bar}] {current}/{total} ({ratio * 100:5.1f}%)"
+
+
+def print_progress(prefix: str, current: int, total: int) -> None:
+    sys.stdout.write("\r" + f"{prefix} {render_progress_bar(current, total)}" + " " * 8)
+    sys.stdout.flush()
+
+
+def main() -> int:
+    args = parse_args()
+    if round(args.train_ratio + args.validation_ratio + args.benchmark_ratio, 5) != 1.0:
+        raise ValueError("train, validation, and benchmark ratios must sum to 1.0")
+
+    seed_records = load_json_array(args.seed)
+    generated_records = load_json_array(args.generated)
+    fixed_benchmark_records = load_json_array(args.fixed_benchmark)
+
+    merged: dict[str, list[dict]] = {}
+    report = {
+        "seed_records": len(seed_records),
+        "generated_records": len(generated_records),
+        "fixed_benchmark_records": len(fixed_benchmark_records),
+        "invalid_records_removed": 0,
+        "duplicates_found": 0,
+        "near_duplicates_found": 0,
+        "duplicate_resolution_events": [],
+        "full_dataset_records": 0,
+        "train_records": 0,
+        "validation_records": 0,
+        "benchmark_records": 0,
+        "response_type_counts": {},
+    }
+
+    total_source_records = len(seed_records) + len(generated_records)
+    processed_source_records = 0
+    print(f"Normalizing and deduplicating {total_source_records} source records")
+    for source, records in (("seed", seed_records), ("generated", generated_records)):
+        for raw_record in records:
+            processed_source_records += 1
+            normalized = normalize_record(raw_record, source)
+            errors = validate_normalized_record(normalized)
+            if errors:
+                report["invalid_records_removed"] += 1
+                print_progress("Source records:", processed_source_records, total_source_records)
+                continue
+
+            exact_key = normalized_key(normalized["user_input"])
+            fuzzy_key = near_duplicate_key(normalized["user_input"])
+            key = fuzzy_key
+            if key in merged:
+                existing_records = merged[key]
+                exact_match = next(
+                    (item for item in existing_records if normalized_key(item["user_input"]) == exact_key),
+                    None,
+                )
+
+                if exact_match is not None:
+                    report["duplicates_found"] += 1
+                    chosen, event = choose_better_record(exact_match, normalized)
+                    if chosen is not exact_match:
+                        existing_records.remove(exact_match)
+                        existing_records.append(chosen)
+                    report["duplicate_resolution_events"].append(
+                        {
+                            "user_input": normalized["user_input"],
+                            "resolution": event,
+                            "kept_source": chosen["source"],
+                        }
+                    )
+                else:
+                    report["near_duplicates_found"] += 1
+                    retained_variant = False
+                    strongest_existing = max(
+                        existing_records,
+                        key=lambda item: score_record(
+                            item, 2 if item["source"] == "seed" else 1
+                        ),
+                    )
+
+                    has_generated_variant = any(item["source"] == "generated" for item in existing_records)
+                    if not has_generated_variant and keep_clarification_variant(strongest_existing, normalized):
+                        existing_records.append(normalized)
+                        retained_variant = True
+                        report["duplicate_resolution_events"].append(
+                            {
+                                "user_input": normalized["user_input"],
+                                "resolution": "retained_clarification_variant",
+                                "kept_source": normalized["source"],
+                            }
+                        )
+
+                    if not retained_variant:
+                        chosen, event = choose_better_record(strongest_existing, normalized)
+                        if chosen is not strongest_existing:
+                            existing_records.remove(strongest_existing)
+                            existing_records.append(chosen)
+                        report["duplicate_resolution_events"].append(
+                            {
+                                "user_input": normalized["user_input"],
+                                "resolution": event,
+                                "kept_source": chosen["source"],
+                            }
+                        )
+            else:
+                merged[key] = [normalized]
+            print_progress("Source records:", processed_source_records, total_source_records)
+    sys.stdout.write("\n")
+
+    cleaned_records = []
+    flattened_records = []
+    for record_group in merged.values():
+        flattened_records.extend(record_group)
+
+    print(f"Assigning ids to {len(flattened_records)} cleaned records")
+    for index, record in enumerate(
+        sorted(flattened_records, key=lambda item: item["user_input"].lower()), start=1
+    ):
+        record["id"] = f"v1-{index:04d}"
+        record["quality_score"] = score_record(record, 2 if record["source"] == "seed" else 1)
+        cleaned_records.append(reorder_record(record))
+        print_progress("Cleaned records:", index, len(flattened_records))
+    sys.stdout.write("\n")
+
+    fixed_benchmark_normalized = []
+    fixed_benchmark_keys = set()
+    print(f"Preparing {len(fixed_benchmark_records)} benchmark records")
+    for raw_record in fixed_benchmark_records:
+        normalized = normalize_record(raw_record, "benchmark")
+        errors = validate_normalized_record({**normalized, "source": "seed"})
+        if errors:
+            raise ValueError(f"Invalid fixed benchmark record for '{normalized['user_input']}': {errors}")
+        fixed_benchmark_keys.add(normalized_key(normalized["user_input"]))
+        fixed_benchmark_normalized.append(normalized)
+        print_progress("Benchmark records:", len(fixed_benchmark_normalized), len(fixed_benchmark_records))
+    sys.stdout.write("\n")
+
+    benchmark_records = []
+    for index, record in enumerate(
+        sorted(fixed_benchmark_normalized, key=lambda item: item["user_input"].lower()), start=1
+    ):
+        prepared = {
+            "id": f"benchmark-{index:04d}",
+            "user_input": record["user_input"],
+            "response_type": record["response_type"],
+            "reason": record["reason"],
+            "response": record["response"],
+            "source": "benchmark",
+            "quality_score": score_record({**record, "source": "seed"}, 2),
+        }
+        benchmark_records.append(reorder_record(prepared))
+
+    train_validation_pool = [
+        record for record in cleaned_records if normalized_key(record["user_input"]) not in fixed_benchmark_keys
+    ]
+
+    train_records, validation_records, _unused_benchmark = stratified_split(
+        train_validation_pool,
+        validation_ratio=args.validation_ratio,
+        benchmark_ratio=0.0,
+        seed_random=args.seed_random,
+    )
+
+    report["full_dataset_records"] = len(train_validation_pool) + len(benchmark_records)
+    report["train_records"] = len(train_records)
+    report["validation_records"] = len(validation_records)
+    report["benchmark_records"] = len(benchmark_records)
+    report["response_type_counts"] = dict(
+        sorted(Counter(record["response_type"] for record in (train_validation_pool + benchmark_records)).items())
+    )
+
+    write_json(args.full_output, train_validation_pool + benchmark_records)
+    write_json(args.train_output, train_records)
+    write_json(args.validation_output, validation_records)
+    write_json(args.benchmark_output, benchmark_records)
+    write_json(args.report_output, report)
+
+    print(f"Prepared full dataset: {args.full_output} ({len(cleaned_records)} records)")
+    print(f"Train split: {args.train_output} ({len(train_records)} records)")
+    print(f"Validation split: {args.validation_output} ({len(validation_records)} records)")
+    print(f"Benchmark split: {args.benchmark_output} ({len(benchmark_records)} records)")
+    print(f"Report: {args.report_output}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path data/raw/generated_dataset.json -TotalCount 120' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path scripts/generate_data.py -TotalCount 420' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 1172ms:
+[
+  {
+    "user_input": "Explain budget in simple words.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is complete and answerable without any external lookup.",
+    "response": "A budget is a plan for how you will spend and save your money over a certain period.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "What restaurants are open near me?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This request requires real-time location data and a live search for businesses and their operating hours, which cannot be answered from static knowledge.",
+    "response": "I would need a tool that can access your location and search for local businesses to answer that question.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Can you break this down? for me.",
+    "response_type": "CLARIFICATION",
+    "reason": "The item to be broken down is not specified.",
+    "response": "What would you like me to break down?",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Find the latest news about AMD.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This request requires real-time information retrieval (latest news), which cannot be answered from static knowledge.",
+    "response": "I would need a search tool to find the latest news about AMD.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "How can I cheat on my taxes?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This request asks for advice on illegal activities, which is outside the safe and ethical scope of the model.",
+    "response": "I cannot provide information or advice on how to cheat on taxes, as this involves illegal activities.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Should I wait? for me.",
+    "response_type": "CLARIFICATION",
+    "reason": "The question is too vague because it does not describe what the user would be waiting for.",
+    "response": "What decision or situation are you asking about?",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Compare today's mortgage rates.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This request requires live, current financial data that changes frequently and cannot be answered from static knowledge.",
+    "response": "I would need a tool to look up and compare today's current mortgage rates.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Can you define comparison?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is complete and answerable without any external lookup.",
+    "response": "Comparison is the act of examining two or more things to discover similarities and differences.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "What is goal?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is complete and answerable without any external lookup.",
+    "response": "A goal is an aim or desired result.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "What movies are playing near me tonight?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires live, location-specific information about movie showtimes, which cannot be answered from static knowledge.",
+    "response": "I would need a tool to look up current movie listings and showtimes based on your location.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Can you define needs versus wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is complete and answerable without any external lookup.",
+    "response": "Needs are things required for survival, such as food, water, shelter, and clothing. Wants are things that are desired but not essential for survival, such as entertainment or luxury items.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "What does category mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt is complete and answerable without any external lookup.",
+    "response": "A category is a group or division in a system of classification.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "What should I do next?.",
+    "response_type": "CLARIFICATION",
+    "reason": "The question is too vague and lacks context about the situation or goal.",
+    "response": "What situation or task are you referring to?",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-05"
+  },
+  {
+    "user_input": "Who should I vote for in the election?",
+
+ succeeded in 1175ms:
+import argparse
+import json
+import os
+import random
+import socket
+import sys
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+
+ALLOWED_RESPONSE_TYPES = {
+    "DIRECT_ANSWER",
+    "CLARIFICATION",
+    "TOOL_NEEDED",
+    "OUT_OF_SCOPE",
+}
+
+DEFAULT_OUTPUT = Path("data/raw/generated_dataset.json")
+DEFAULT_SEED = Path("data/raw/v1_seed_dataset.json")
+DEFAULT_PROMPT_TEMPLATE = Path("prompts/teacher_generation_prompt_v1.md")
+DEFAULT_ENV_FILE = Path(".env")
+DEFAULT_FAILED_RESPONSES_DIR = Path("data/raw/failed_responses")
+DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
+DEFAULT_BATCH_SIZE = 100
+TOKENS_PER_RECORD_ESTIMATE = 120
+
+DIRECT_ANSWER_TOPICS = [
+    "budget",
+    "income",
+    "expense",
+    "savings",
+    "goal",
+    "priority",
+    "plan",
+    "category",
+    "comparison",
+    "needs versus wants",
+    "spending limit",
+    "emergency fund",
+    "financial goal",
+    "monthly expense",
+    "fixed cost",
+    "variable cost",
+    "short-term goal",
+    "long-term goal",
+    "trade-off",
+    "opportunity cost",
+]
+
+CLARIFICATION_BASES = [
+    "Help me choose",
+    "Is this enough",
+    "Can I afford it",
+    "What should I do next",
+    "Can you explain that",
+    "How much should I spend",
+    "Which one is better",
+    "Can you break this down",
+    "Should I wait",
+    "What is the best option for me",
+    "Can you organize this",
+    "Is it too much",
+    "What should I cut",
+    "Can you simplify this",
+    "Is this a good amount",
+]
+
+TOOL_NEEDED_PROMPTS = [
+    "Find me the cheapest flights to {city} {timeframe}.",
+    "What is the weather in {city} right now?",
+    "Look up {company} stock price today.",
+    "What restaurants are open near me {timeframe}?",
+    "Check whether {product} is in stock online.",
+    "Find the latest news about {company}.",
+    "What time does the nearest {store_type} close {timeframe}?",
+    "Compare today's mortgage rates.",
+    "Check whether my {package_type} has shipped.",
+    "What movies are playing near me {timeframe}?",
+    "Find me an apartment under {price} in {city}.",
+    "What are the cheapest gas prices around me {timeframe}?",
+    "Can you calculate {large_number_a} times {large_number_b} exactly?",
+    "What deals are available for {product_plural} today?",
+    "Look up the score of the {sports_team} game today.",
+]
+
+OUT_OF_SCOPE_PROMPTS = [
+    "Should I stop taking my prescription medication?",
+    "Tell me how to hack a Wi-Fi network.",
+    "Who should I vote for in the election?",
+    "Can you guarantee which stock will double this year?",
+    "Write a convincing lie for me.",
+    "Should I sue my employer?",
+    "Tell me the fastest way to get rich with no risk.",
+    "How can I cheat on my taxes?",
+    "What is the best way to hide income from the government?",
+    "Should I represent myself in court tomorrow?",
+    "Tell me which crypto will make me rich next month.",
+    "Write a false excuse that my boss will believe.",
+]
+
+CITY_OPTIONS = [
+    "Seattle",
+    "Dallas",
+    "Chicago",
+    "Denver",
+    "Boston",
+    "Atlanta",
+    "Phoenix",
+    "Miami",
+    "Portland",
+    "Austin",
+]
+
+TIMEFRAME_OPTIONS = [
+    "right now",
+    "tonight",
+    "this weekend",
+    "next weekend",
+    "next month",
+    "today",
+]
+
+COMPANY_OPTIONS = [
+    "Tesla",
+    "AMD",
+    "NVIDIA",
+    "Apple",
+    "Microsoft",
+    "Amazon",
+]
+
+PRODUCT_OPTIONS = [
+    "this laptop",
+    "that phone",
+    "this TV",
+    "that gaming console",
+    "this refrigerator",
+]
+
+PRODUCT_PLURAL_OPTIONS = [
+    "laptops",
+    "phones",
+    "TVs",
+    "headphones",
+    "gaming consoles",
+]
+
+STORE_TYPE_OPTIONS = [
+    "grocery store",
+    "pharmacy",
+    "hardware store",
+    "bank branch",
+    "coffee shop",
+]
+
+PACKAGE_TYPE_OPTIONS = [
+    "package",
+    "order",
+    "delivery",
+]
+
+SPORTS_TEAM_OPTIONS = [
+    "Lakers",
+    "Yankees",
+    "Cowboys",
+    "Celtics",
+    "Dodgers",
+]
+
+PRICE_OPTIONS = [
+    "$1200",
+    "$1500",
+    "$1800",
+    "$2200",
+]
+
+LARGE_NUMBER_OPTIONS = [
+    ("73849", "99213"),
+    ("54821", "77654"),
+    ("91327", "44812"),
+]
+
+DIRECT_TEMPLATES = [
+    "Define {topic}.",
+    "Can you define {topic}?",
+    "Explain {topic} in simple words.",
+    "What is {topic}?",
+    "What does {topic} mean?",
+    "Give me a simple explanation of {topic}.",
+]
+
+CLARIFICATION_SUFFIXES = [
+    "?",
+    " for me?",
+    " right now?",
+    " in my situation?",
+    "? I am not sure.",
+]
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate structured training examples using a teacher model."
+    )
+    parser.add_argument("--count", type=int, default=50, help="Number of examples to request.")
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=DEFAULT_BATCH_SIZE,
+        help="Number of prompts to request per API call.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT,
+        help="Path to the JSON file where generated examples will be stored.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=Path,
+        default=DEFAULT_SEED,
+        help="Path to the manual seed dataset used for few-shot examples.",
+    )
+    parser.add_argument(
+        "--prompt-template",
+        type=Path,
+        default=DEFAULT_PROMPT_TEMPLATE,
+        help="Path to the teacher prompt template file.",
+    )
+    parser.add_argument(
+        "--env-file",
+        type=Path,
+        default=DEFAULT_ENV_FILE,
+        help="Path to a local .env file with TEACHER_* variables.",
+    )
+    parser.add_argument(
+        "--failed-responses-dir",
+        type=Path,
+        default=DEFAULT_FAILED_RESPONSES_DIR,
+        help="Directory where raw failed model responses will be written for inspection.",
+    )
+    parser.add_argument(
+        "--few-shot-count",
+        type=int,
+        default=6,
+        help="Number of seed examples to include in the teacher prompt.",
+    )
+    parser.add_argument(
+        "--teacher-model",
+        default=os.environ.get("TEACHER_MODEL", DEFAULT_MODEL),
+        help="Teacher model name.",
+    )
+    parser.add_argument(
+        "--api-base-url",
+        default=os.environ.get("TEACHER_API_BASE_URL", DEFAULT_API_BASE_URL),
+        help="OpenAI-compatible API base URL.",
+    )
+    parser.add_argument(
+        "--api-key-env",
+        default="TEACHER_API_KEY",
+        help="Environment variable name that stores the API key.",
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.3,
+        help="Sampling temperature sent to the teacher model.",
+    )
+    parser.add_argument(
+        "--max-output-tokens",
+        type=int,
+        default=0,
+        help="Max completion tokens sent to the teacher model. Use 0 to omit the limit and let the API decide.",
+    )
+    parser.add_argument(
+        "--request-delay",
+        type=float,
+        default=6.0,
+        help="Delay in seconds between successful batches.",
+    )
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=0,
+        help="Maximum retries for retryable API failures such as rate limits. Default is 0 for low daily quota use.",
+    )
+    parser.add_argument(
+        "--retry-backoff-seconds",
+        type=float,
+        default=2.0,
+        help="Initial backoff in seconds for retryable API failures.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Generate prompts and print them without calling the API.",
+    )
+    return parser.parse_args()
+
+
+def load_env_file(path: Path) -> None:
+    if not path.exists():
+        return
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+
+        if not key:
+            continue
+
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+            value = value[1:-1]
+
+        os.environ.setdefault(key, value)
+
+
+def load_json_array(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def save_json_array(path: Path, records: list[dict]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(records, handle, indent=2, ensure_ascii=True)
+        handle.write("\n")
+
+
+def render_progress_bar(current: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        total = 1
+    ratio = max(0.0, min(1.0, current / total))
+    filled = int(width * ratio)
+    if filled >= width:
+        bar = "=" * width
+    elif filled <= 0:
+        bar = "-" * width
+    else:
+        bar = ("=" * max(0, filled - 1)) + ">" + ("-" * (width - filled))
+    return f"[{bar}] {current}/{total} ({ratio * 100:5.1f}%)"
+
+
+def print_overall_progress(current_batch: int, total_batches: int, generated_count: int, target_count: int) -> None:
+    print(
+        f"{render_progress_bar(current_batch, total_batches)} | "
+        f"generated={generated_count}/{target_count} examples"
+    )
+
+
+def sample_seed_examples(seed_path: Path, count: int) -> list[dict]:
+    seed_data = load_json_array(seed_path)
+    if not seed_data:
+        raise ValueError(f"No seed examples found in {seed_path}")
+    count = min(count, len(seed_data))
+    response_types_seen = set()
+    selected = []
+    selected_ids = set()
+    random.seed(7)
+    shuffled = seed_data[:]
+    random.shuffle(shuffled)
+
+    for index, item in enumerate(shuffled):
+        response_type = item.get("response_type")
+        if response_type not in response_types_seen:
+            selected.append(item)
+            selected_ids.add(index)
+            response_types_seen.add(response_type)
+        if len(selected) >= count:
+            return selected
+
+    for index, item in enumerate(shuffled):
+        if len(selected) >= count:
+            break
+        if index in selected_ids:
+            continue
+        selected.append(item)
+
+    return selected
+
+
+def generate_candidate_prompts(count: int) -> list[str]:
+    prompts = set()
+    target_count = max(count, 1)
+    max_attempts = target_count * 40
+    attempts = 0
+
+    while len(prompts) < target_count and attempts < max_attempts:
+        attempts += 1
+
+        topic = random.choice(DIRECT_ANSWER_TOPICS)
+        prompts.add(random.choice(DIRECT_TEMPLATES).format(topic=topic))
+
+        clarification_base = random.choice(CLARIFICATION_BASES)
+        clarification_suffix = random.choice(CLARIFICATION_SUFFIXES)
+        prompts.add(f"{clarification_base}{clarification_suffix}")
+
+        tool_template = random.choice(TOOL_NEEDED_PROMPTS)
+        large_number_a, large_number_b = random.choice(LARGE_NUMBER_OPTIONS)
+        prompts.add(
+            tool_template.format(
+                city=random.choice(CITY_OPTIONS),
+                timeframe=random.choice(TIMEFRAME_OPTIONS),
+                company=random.choice(COMPANY_OPTIONS),
+                product=random.choice(PRODUCT_OPTIONS),
+                product_plural=random.choice(PRODUCT_PLURAL_OPTIONS),
+                store_type=random.choice(STORE_TYPE_OPTIONS),
+                package_type=random.choice(PACKAGE_TYPE_OPTIONS),
+                sports_team=random.choice(SPORTS_TEAM_OPTIONS),
+                price=random.choice(PRICE_OPTIONS),
+
+codex
+I’m checking the training entrypoint to see where these boundary packs are consumed, so the change stays minimal and in the right file for your next run.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path train.ps1 -TotalCount 300' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path data/processed -Filter *boundary* | Select-Object Name,Length,LastWriteTime' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path scripts/convert_training_data.py -TotalCount 420' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 1152ms:
+param(
+    [int]$Epochs,
+    [string]$Config = 'models\configs\v1_native_byte_transformer_config.json'
+)
+
+$ErrorActionPreference = 'Stop'
+
+$repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$pythonPath = Join-Path $repoRoot '.python\python.exe'
+
+if (-not (Test-Path $pythonPath)) {
+    throw "Python runtime not found: $pythonPath"
+}
+
+$configPath = if ([System.IO.Path]::IsPathRooted($Config)) {
+    $Config
+} else {
+    Join-Path $repoRoot $Config
+}
+
+if (-not (Test-Path $configPath)) {
+    throw "Training config not found: $configPath"
+}
+
+Write-Host "Starting native training from $repoRoot"
+Write-Host "Config: $configPath"
+if ($PSBoundParameters.ContainsKey('Epochs')) {
+    Write-Host "Epoch override: $Epochs"
+}
+
+Push-Location $repoRoot
+try {
+    if ($PSBoundParameters.ContainsKey('Epochs')) {
+        & $pythonPath scripts\train_native_model.py --config $configPath --num-train-epochs $Epochs
+    } else {
+        & $pythonPath scripts\train_native_model.py --config $configPath
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Training failed with exit code $LASTEXITCODE"
+    }
+} finally {
+    Pop-Location
+}
+
+ succeeded in 1146ms:
+import argparse
+import json
+from pathlib import Path
+import re
+import sys
+
+
+SYSTEM_PROMPT = "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Convert processed datasets into chat-format JSONL for SFT."
+    )
+    parser.add_argument(
+        "--train-input",
+        type=Path,
+        default=Path("data/processed/train.json"),
+        help="Path to the processed train split.",
+    )
+    parser.add_argument(
+        "--validation-input",
+        type=Path,
+        default=Path("data/processed/validation.json"),
+        help="Path to the processed validation split.",
+    )
+    parser.add_argument(
+        "--benchmark-input",
+        type=Path,
+        default=Path("data/processed/benchmark.json"),
+        help="Path to the processed benchmark split.",
+    )
+    parser.add_argument(
+        "--train-output",
+        type=Path,
+        default=Path("data/processed/train_sft.jsonl"),
+        help="Output path for train SFT examples.",
+    )
+    parser.add_argument(
+        "--validation-output",
+        type=Path,
+        default=Path("data/processed/validation_sft.jsonl"),
+        help="Output path for validation SFT examples.",
+    )
+    parser.add_argument(
+        "--benchmark-output",
+        type=Path,
+        default=Path("data/processed/benchmark_sft.jsonl"),
+        help="Output path for benchmark SFT examples.",
+    )
+    parser.add_argument(
+        "--extra-train-inputs",
+        nargs="*",
+        type=Path,
+        default=[
+            Path("data/curated/native_boundary_boost_v1.json"),
+            Path("data/curated/native_boundary_boost_v2.json"),
+            Path("data/processed/train_clarification_boundary_pack.json"),
+            Path("data/processed/train_direct_answer_tool_boundary_pack.json"),
+            Path("data/processed/train_clarification_oos_boundary_pack.json"),
+            Path("data/processed/train_oos_ambiguity_boundary_pack.json"),
+        ],
+        help="Optional extra JSON datasets to merge into training only after removing train/validation/benchmark overlaps.",
+    )
+    return parser.parse_args()
+
+
+def load_records(path: Path) -> list[dict]:
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+    if not isinstance(data, list):
+        raise ValueError(f"{path} must contain a JSON array")
+    return data
+
+
+def build_assistant_target(record: dict) -> str:
+    return str(record["response_type"])
+
+
+def normalize_user_input(text: str) -> str:
+    normalized = re.sub(r"\s+", " ", str(text).strip())
+    return normalized.lower()
+
+
+def convert_record(record: dict) -> dict:
+    return {
+        "id": record["id"],
+        "source": record["source"],
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": record["user_input"]},
+            {"role": "assistant", "content": build_assistant_target(record)},
+        ],
+    }
+
+
+def write_jsonl(path: Path, rows: list[dict]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        for row in rows:
+            handle.write(json.dumps(row, ensure_ascii=True) + "\n")
+
+
+def render_progress_bar(current: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        total = 1
+    ratio = max(0.0, min(1.0, current / total))
+    filled = int(width * ratio)
+    if filled >= width:
+        bar = "=" * width
+    elif filled <= 0:
+        bar = "-" * width
+    else:
+        bar = ("=" * max(0, filled - 1)) + ">" + ("-" * (width - filled))
+    return f"[{bar}] {current}/{total} ({ratio * 100:5.1f}%)"
+
+
+def merge_extra_train_records(
+    train_records: list[dict],
+    validation_records: list[dict],
+    benchmark_records: list[dict],
+    extra_train_inputs: list[Path],
+) -> tuple[list[dict], dict]:
+    merged_train_records = list(train_records)
+    train_keys = {normalize_user_input(record["user_input"]) for record in train_records}
+    blocked_keys = {
+        normalize_user_input(record["user_input"])
+        for record in validation_records + benchmark_records
+    }
+    stats = {
+        "extra_inputs_seen": 0,
+        "extra_records_added": 0,
+        "extra_records_skipped_existing_train": 0,
+        "extra_records_skipped_eval_overlap": 0,
+    }
+
+    for input_path in extra_train_inputs:
+        extra_records = load_records(input_path)
+        stats["extra_inputs_seen"] += len(extra_records)
+        for record in extra_records:
+            user_input_key = normalize_user_input(record["user_input"])
+            if user_input_key in blocked_keys:
+                stats["extra_records_skipped_eval_overlap"] += 1
+                continue
+            if user_input_key in train_keys:
+                stats["extra_records_skipped_existing_train"] += 1
+                continue
+            merged_train_records.append(record)
+            train_keys.add(user_input_key)
+            stats["extra_records_added"] += 1
+
+    return merged_train_records, stats
+
+
+def main() -> int:
+    args = parse_args()
+    train_records = load_records(args.train_input)
+    validation_records = load_records(args.validation_input)
+    benchmark_records = load_records(args.benchmark_input)
+
+    merged_train_records, merge_stats = merge_extra_train_records(
+        train_records,
+        validation_records,
+        benchmark_records,
+        args.extra_train_inputs,
+    )
+
+    datasets = [
+        (
+            merged_train_records,
+            args.train_output,
+            f"{args.train_input} + filtered extras" if args.extra_train_inputs else str(args.train_input),
+        ),
+        (validation_records, args.validation_output, str(args.validation_input)),
+        (benchmark_records, args.benchmark_output, str(args.benchmark_input)),
+    ]
+
+    for records, output_path, source_label in datasets:
+        converted = []
+        print(f"Converting {len(records)} records from {source_label}")
+        for index, record in enumerate(records, start=1):
+            converted.append(convert_record(record))
+            sys.stdout.write("\r" + render_progress_bar(index, len(records)) + " " * 8)
+            sys.stdout.flush()
+        write_jsonl(output_path, converted)
+        sys.stdout.write("\n")
+        print(f"Wrote {len(converted)} records to {output_path}")
+
+    if args.extra_train_inputs:
+        print(
+            "Extra train records: "
+            f"added={merge_stats['extra_records_added']}, "
+            f"skipped_existing_train={merge_stats['extra_records_skipped_existing_train']}, "
+            f"skipped_eval_overlap={merge_stats['extra_records_skipped_eval_overlap']}"
+        )
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+ succeeded in 1189ms:
+
+Name                                         Length LastWriteTime      
+----                                         ------ -------------      
+benchmark_account_tool_boundary.json           5554 4/7/2026 1:29:18 AM
+benchmark_account_tool_boundary_sft.jsonl     20303 4/7/2026 1:29:23 AM
+benchmark_medical_refusal_boundary.json        4725 4/7/2026 4:30:58 PM
+benchmark_medical_refusal_boundary_sft.jsonl  15786 4/7/2026 4:31:07 PM
+benchmark_oos_vs_tool_boundary.json            6113 4/7/2026 2:38:08 AM
+benchmark_oos_vs_tool_boundary_sft.jsonl      20862 4/7/2026 2:38:15 AM
+train_clarification_boundary_pack.json         5908 4/9/2026 4:28:52 AM
+train_clarification_oos_boundary_pack.json    10709 4/9/2026 6:47:49 AM
+train_direct_answer_tool_boundary_pack.json   10837 4/9/2026 5:37:59 AM
+train_oos_ambiguity_boundary_pack.json         8710 4/9/2026 5:03:11 AM
+
+
+
+codex
+The training pipeline already supports additive boundary packs; I’m inspecting the current OOS ambiguity pack to add only the missing edge cases that address the unstable `OUT_OF_SCOPE` boundary.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path data/processed/train_clarification_oos_boundary_pack.json -TotalCount 260' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path data/processed/train_oos_ambiguity_boundary_pack.json -TotalCount 260' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 159ms:
+[
+  {
+    "id": "train-extra-oos-amb-0001",
+    "user_input": "Can you guarantee which investment will double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for a guaranteed high-stakes financial outcome, which should be refused rather than treated as a lookup.",
+    "response": "I can't guarantee which investment will double this year.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0002",
+    "user_input": "Which stock is a sure thing to double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for certainty about market outcomes, which is not appropriate to provide.",
+    "response": "I can't tell you which stock is guaranteed to double this year.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0003",
+    "user_input": "How can I hide income from tax authorities?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for help with tax evasion, which is disallowed wrongdoing assistance.",
+    "response": "I can't help with hiding income from tax authorities.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0004",
+    "user_input": "What is the safest way to conceal income from the government?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for guidance to commit financial wrongdoing and evade enforcement, which must be refused.",
+    "response": "I can't help with concealing income from the government.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0005",
+    "user_input": "Write a persuasive lie I can tell my boss.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content intended to mislead another person.",
+    "response": "I can't help write a lie to deceive your boss.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0006",
+    "user_input": "Help me craft a believable false excuse.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for assistance producing deceptive content to mislead someone.",
+    "response": "I can't help craft a false excuse to deceive someone.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0007",
+    "user_input": "Should I wait a little longer?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks whether to wait but does not specify what decision or context the user is referring to.",
+    "response": "What decision are you considering waiting on?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0008",
+    "user_input": "Should I wait before deciding?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks if they should wait without saying what choice they are deciding about.",
+    "response": "What decision are you trying to make?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0009",
+    "user_input": "In budgeting, what are needs versus wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This asks for a concept explanation that can be answered directly without external data.",
+    "response": "In budgeting, needs are essential expenses and wants are optional expenses.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0010",
+    "user_input": "Can you explain the difference between needs and wants in a budget?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user requests a standard definition-style explanation, which is a direct answer case.",
+    "response": "Needs are required costs like housing or food, while wants are non-essential extras.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0011",
+    "user_input": "Can you tell me which stock will definitely double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a guaranteed market outcome, which should be refused instead of routed as a data lookup.",
+    "response": "I can't tell you which stock will definitely double this year.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0012",
+    "user_input": "What is the best way to hide income from the government without getting caught?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This explicitly asks for tax evasion guidance and must be refused as wrongdoing assistance.",
+    "response": "I can't help with hiding income from the government.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0013",
+    "user_input": "Write a convincing lie I can use to get out of work.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for deceptive content intended to mislead another person.",
+    "response": "I can't help write a convincing lie to deceive someone.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0014",
+    "user_input": "Should I wait a bit before I do anything?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt lacks context about what decision or action the user is considering.",
+    "response": "What are you deciding whether to wait on?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0015",
+    "user_input": "What are needs and wants in budgeting?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This asks for a basic concept definition and can be answered directly without tools.",
+    "response": "In budgeting, needs are essential expenses, while wants are optional expenses.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0016",
+    "user_input": "Compare current mortgage rates across lenders.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Comparing current mortgage rates requires live external financial rate data.",
+    "response": "I would need a tool to compare current mortgage rates across lenders.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0017",
+    "user_input": "Compare today's mortgage rates in my area.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Today's local mortgage rates are time-sensitive external information and require live lookup.",
+    "response": "I would need a tool to compare today's mortgage rates in your area.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0018",
+    "user_input": "Compare today's savings account rates near me.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This asks for current location-specific rate information that requires external data.",
+    "response": "I would need a tool to compare today's savings account rates near you.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0019",
+    "user_input": "Can you guarantee which stock will double by year end?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a guaranteed market outcome, which should be refused instead of treated as a lookup.",
+    "response": "I can't guarantee which stock will double by year end.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0020",
+    "user_input": "Which stock can you promise will double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for a promised financial return, which is an inappropriate guarantee request.",
+    "response": "I can't promise which stock will double this year.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0021",
+    "user_input": "Find the latest Microsoft news right now.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Latest news is time-sensitive external information and requires a current news lookup.",
+    "response": "I would need a tool to find the latest Microsoft news right now.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0022",
+    "user_input": "Get me the most recent news about Microsoft.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Most recent headlines are current external data and cannot be answered reliably without a lookup tool.",
+    "response": "I would need a tool to get the most recent news about Microsoft.",
+    "source": "train_extra",
+    "quality_score": 2200
+  }
+]
+
+ succeeded in 165ms:
+[
+  {
+    "id": "train-extra-clar-oos-0001",
+    "user_input": "Should I wait for now?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks whether to wait but does not say what decision or situation they mean.",
+    "response": "What decision or situation are you asking about?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0002",
+    "user_input": "What should I do next with this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for next steps without identifying the task, problem, or decision being discussed.",
+    "response": "What are you working on, and what options are you considering?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0003",
+    "user_input": "Is this enough to move forward?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks whether something is enough but does not explain what 'this' refers to or what goal it should meet.",
+    "response": "What are you referring to, and enough for what goal?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0004",
+    "user_input": "Should I ignore what my doctor told me to do?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for medical advice about disregarding a clinician's guidance, which is high-stakes and unsafe to answer.",
+    "response": "I can't help decide whether to ignore a doctor's advice.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0005",
+    "user_input": "Do you think I should sue the company I work for?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for legal advice in a potentially high-stakes dispute, which should not be decided here.",
+    "response": "I can't advise you on whether to sue your employer.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0006",
+    "user_input": "Which candidate should I vote for this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for political persuasion about how to vote, which the assistant should not decide for them.",
+    "response": "I can't tell you who to vote for in an election.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0007",
+    "user_input": "How do I dodge taxes without getting caught?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for help committing tax fraud, which is disallowed wrongdoing assistance.",
+    "response": "I can't help you cheat on your taxes.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0008",
+    "user_input": "Write me a believable lie.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request is for help creating deceptive content to mislead someone, which is disallowed assistance.",
+    "response": "I can't help write a lie to deceive someone.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0009",
+    "user_input": "Write an excuse my manager will believe even though it is false.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for deceptive content intended to fool another person, which is not allowed.",
+    "response": "I can't help write a false excuse to deceive your boss.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0010",
+    "user_input": "Can you promise me which stock will double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for a guaranteed high-stakes financial prediction, which is not appropriate to provide.",
+    "response": "I can't guarantee which stock will double this year.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0011",
+    "user_input": "Should I sue my employer now",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is legal advice in a high-stakes personal dispute, so the assistant should refuse rather than ask follow-up questions.",
+    "response": "I can't advise you on whether to sue your employer.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0012",
+    "user_input": "How can I cheat on my taxes",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for help committing tax fraud, which is disallowed wrongdoing assistance.",
+    "response": "I can't help with cheating on taxes.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0013",
+    "user_input": "Write a convincing lie for me",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content to mislead someone, which is disallowed assistance.",
+    "response": "I can't help write a lie to deceive someone.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0014",
+    "user_input": "Should I sue my manager over this",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This requests legal advice about whether to sue someone, which should be refused as high-stakes guidance.",
+    "response": "I can't advise you on whether to sue your manager.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0015",
+    "user_input": "How do I improve this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks how to improve something but does not specify what 'this' refers to.",
+    "response": "What are you trying to improve?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0016",
+    "user_input": "How can I improve it from here?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request is ambiguous because 'it' is not defined and no context is provided.",
+    "response": "What does 'it' refer to in your situation?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0017",
+    "user_input": "How do I make this better for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for improvement guidance without identifying the object, goal, or constraints.",
+    "response": "What are you trying to improve, and what outcome do you want?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0018",
+    "user_input": "How do I improve this decision?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt references a decision but does not describe the decision or available options.",
+    "response": "What decision are you making, and what options are you considering?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0019",
+    "user_input": "How do I improve my odds in court tomorrow?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for high-stakes legal strategy and should be refused rather than handled as a generic clarification.",
+    "response": "I can't advise you on legal strategy for court.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0020",
+    "user_input": "How do I improve my chances while hiding income from the IRS?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help with tax evasion, which is disallowed wrongdoing assistance.",
+    "response": "I can't help with hiding income from the IRS.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0021",
+    "user_input": "Tell me how to break into a Wi-Fi network.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for cyber intrusion guidance, which is harmful wrongdoing assistance and must be refused.",
+    "response": "I can't help with breaking into a Wi-Fi network.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0022",
+    "user_input": "Can you walk me through hacking someone's Wi-Fi?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for instructions to compromise a network, which is disallowed harmful assistance.",
+    "response": "I can't help with hacking someone else's Wi-Fi.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0023",
+    "user_input": "Who should I vote for in this election?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks the assistant to make a political choice for them, which should be refused.",
+    "response": "I can't tell you who to vote for in an election.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0024",
+    "user_input": "Tell me which candidate I should vote for.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request seeks direct political persuasion about how to vote, which is outside scope.",
+    "response": "I can't tell you which candidate to vote for.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0025",
+    "user_input": "Can you tell me how to hack a Wi-Fi network?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for cyber intrusion instructions in question form, which is disallowed harmful assistance.",
+    "response": "I can't help with hacking a Wi-Fi network.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0026",
+    "user_input": "Can you explain how to hack into Wi-Fi?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user requests guidance for unauthorized network access, which should be refused.",
+    "response": "I can't help with hacking into Wi-Fi networks.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0027",
+    "user_input": "Can you tell me who I should vote for this election?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for political persuasion about voting in question form, which is outside scope.",
+    "response": "I can't tell you who to vote for in an election.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0028",
+    "user_input": "Who should I vote for this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks the assistant to choose a candidate for them, which should be refused.",
+    "response": "I can't tell you who to vote for.",
+    "source": "train_extra",
+    "quality_score": 2200
+  }
+]
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json,glob
+from collections import Counter
+paths=sorted(glob.glob('experiments/benchmark_report-v1-native-byte-transformer-20260409-*.json'))
+exp_err=Counter(); boundary=Counter()
+for p in paths:
+    d=json.load(open(p,'r',encoding='utf-8'))
+    for r in d['results']:
+        e=r['expected_response_type']; pr=r['predicted_response_type']
+        if e"'!=pr:
+            exp_err[e]+=1
+            pair=tuple(sorted((e,pr)))
+            boundary[pair]+=1
+print('"'errors by expected:',exp_err)
+print('boundary undirected:')
+for k,v in boundary.most_common():
+    print(k,v)
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 298ms:
+errors by expected: Counter({'TOOL_NEEDED': 4, 'OUT_OF_SCOPE': 4, 'DIRECT_ANSWER': 3, 'CLARIFICATION': 3})
+boundary undirected:
+('DIRECT_ANSWER', 'TOOL_NEEDED') 4
+('OUT_OF_SCOPE', 'TOOL_NEEDED') 3
+('CLARIFICATION', 'OUT_OF_SCOPE') 3
+('CLARIFICATION', 'DIRECT_ANSWER') 2
+('DIRECT_ANSWER', 'OUT_OF_SCOPE') 1
+('CLARIFICATION', 'TOOL_NEEDED') 1
+
+codex
+I quantified the recent instability: the top weak boundary is `DIRECT_ANSWER` vs `TOOL_NEEDED`. I’m now targeting that boundary with a small contrastive pack so the next run is a focused experiment.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path data/processed/train_direct_answer_tool_boundary_pack.json -TotalCount 320' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 152ms:
+[
+  {
+    "id": "train-extra-da-tool-0001",
+    "user_input": "What does a trade-off mean in simple words?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a plain-language definition of a static concept, which can be answered directly without external data.",
+    "response": "A trade-off means giving up one benefit in order to get another.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0002",
+    "user_input": "What is a short-term savings goal?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward definition request about a general concept and does not require current information.",
+    "response": "A short-term savings goal is money you plan to save for something you expect to need or buy soon.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0003",
+    "user_input": "What are needs and wants in a budget?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for an explanation of a standard budgeting concept that can be answered from general knowledge.",
+    "response": "In a budget, needs are essential expenses and wants are optional things you would like but do not need.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0004",
+    "user_input": "Explain opportunity cost in plain language.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user names a specific concept and asks for a simpler explanation, so a direct answer is appropriate.",
+    "response": "Opportunity cost is what you miss out on when you choose one option instead of another.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0005",
+    "user_input": "What is a spending cap?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request is for a definition of a general term, which can be answered directly.",
+    "response": "A spending cap is a limit on how much money you plan or are allowed to spend.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0006",
+    "user_input": "What is the mortgage rate today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Mortgage rates change over time, so answering accurately requires current external data.",
+    "response": "I would need a tool to look up today's mortgage rate.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0007",
+    "user_input": "What does AMD stock cost right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A current stock price is live market information that requires an external lookup.",
+    "response": "I would need a tool to look up AMD's current stock price.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0008",
+    "user_input": "What is the weather in Boston right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current weather is time-sensitive information that requires live external data.",
+    "response": "I would need a tool to look up the current weather in Boston.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0009",
+    "user_input": "Can you check if a product is in stock right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Live product inventory is external time-sensitive information and requires a current stock lookup.",
+    "response": "I would need a tool to check whether that product is in stock right now.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0010",
+    "user_input": "Can you check if this item is available in stock?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Item availability depends on live external inventory data, so an external lookup is required.",
+    "response": "I would need a tool to check live stock availability for that item.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0011",
+    "user_input": "What does opportunity cost mean in personal finance?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for a definition of a stable concept, so it can be answered directly without live data.",
+    "response": "In personal finance, opportunity cost means the value of the next best option you give up when you choose something else.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0012",
+    "user_input": "What is a short-term goal in budgeting?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a general concept-definition request and does not depend on external or time-sensitive information.",
+    "response": "A short-term goal in budgeting is a money target you plan to reach soon, such as within weeks or months.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0013",
+    "user_input": "What does AMD stock cost today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A stock price today is live market data and requires an external lookup.",
+    "response": "I would need a tool to look up AMD's stock price today.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0014",
+    "user_input": "What is the current mortgage rate right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current mortgage rates change over time and require live external data.",
+    "response": "I would need a tool to look up the current mortgage rate.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0015",
+    "user_input": "What does opportunity cost mean in plain English?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a plain-language definition of a stable concept that does not need live data.",
+    "response": "Opportunity cost means the value of what you give up when you choose one option instead of another.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0016",
+    "user_input": "What is a short-term goal in personal finance?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a concept-definition request that can be answered directly without external lookups.",
+    "response": "A short-term financial goal is a money target you want to reach soon, usually within months.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0017",
+    "user_input": "What does a monthly expense mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request asks for a basic definition of a general term and does not require current information.",
+    "response": "A monthly expense is a cost that you typically pay every month.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0018",
+    "user_input": "What is the inflation rate right now in the U.S.?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current inflation rate values are time-sensitive external data and require a live lookup.",
+    "response": "I would need a tool to look up the current U.S. inflation rate.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0019",
+    "user_input": "What is today's 30-year mortgage rate in my area?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This asks for current location-specific rate data that requires external lookup.",
+    "response": "I would need a tool to look up today's 30-year mortgage rate in your area.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0020",
+    "user_input": "What is the current price of Bitcoin right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A live asset price is time-sensitive external market data and needs a lookup tool.",
+    "response": "I would need a tool to look up Bitcoin's current price.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0021",
+    "user_input": "What are fixed and variable costs?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user is asking for definitions of stable finance concepts that can be explained without external data.",
+    "response": "Fixed costs stay about the same each period, while variable costs change based on usage or activity.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0022",
+    "user_input": "What are short-term and long-term financial goals?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a concept comparison request that can be answered directly from general knowledge.",
+    "response": "Short-term goals are targets you plan to reach soon, while long-term goals are targets you work toward over years.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0023",
+    "user_input": "What are today's mortgage rates at major banks?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Today's mortgage rates are time-sensitive external information and require a live lookup.",
+    "response": "I would need a tool to look up today's mortgage rates at major banks.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0024",
+    "user_input": "What are current gas prices near me?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current local gas prices are time- and location-sensitive external data that require a lookup.",
+    "response": "I would need a tool to look up current gas prices near you.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0025",
+    "user_input": "What laptop deals are available today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Available deals today are time-sensitive external shopping data and require a live lookup.",
+    "response": "I would need a tool to look up laptop deals that are available today.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0026",
+    "user_input": "Which laptops are on sale today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Which items are on sale today depends on current retailer data and cannot be answered from static knowledge.",
+    "response": "I would need a tool to look up which laptops are on sale today.",
+    "source": "train_extra",
+    "quality_score": 2200
+  }
+]
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path scripts/train_native_model.py -TotalCount 280' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 154ms:
+import argparse
+import gc
+import json
+import math
+import os
+import random
+import subprocess
+import sys
+import time
+import traceback
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+ROLE_PREFIXES = {
+    "system": "<|system|>\n",
+    "user": "<|user|>\n",
+    "assistant": "<|assistant|>\n",
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Train a small decoder-only transformer from scratch on the project SFT data."
+    )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path("models/configs/v1_native_byte_transformer_config.json"),
+        help="Path to the native model training config.",
+    )
+    parser.add_argument(
+        "--num-train-epochs",
+        type=int,
+        default=None,
+        help="Optional override for config num_train_epochs.",
+    )
+    return parser.parse_args()
+
+
+def load_config(path: Path) -> dict:
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def resolve_path(path_value: str | Path, base_dir: Path) -> Path:
+    path = Path(path_value)
+    if path.is_absolute():
+        return path
+    return (base_dir / path).resolve()
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def make_run_output_dir(base_output_dir: Path) -> Path:
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    candidate = base_output_dir.parent / f"{base_output_dir.name}-{timestamp}"
+    suffix = 1
+    while candidate.exists():
+        candidate = base_output_dir.parent / f"{base_output_dir.name}-{timestamp}-{suffix}"
+        suffix += 1
+    return candidate
+
+
+def configure_reproducibility(seed: int) -> None:
+    random.seed(seed)
+    try:
+        import torch
+    except ImportError:
+        return
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def detect_device(torch_module, device_preference: list[str]) -> tuple[object, str]:
+    if not device_preference:
+        device_preference = ["hip", "cuda", "directml", "cpu"]
+
+    hip_available = bool(getattr(torch_module.version, "hip", None)) and torch_module.cuda.is_available()
+    cuda_available = torch_module.cuda.is_available() and not hip_available
+
+    def load_directml():
+        try:
+            import torch_directml  # type: ignore
+        except ImportError:
+            return None
+        if not torch_directml.is_available():
+            return None
+        return torch_directml
+
+    def score_directml_name(name: str) -> tuple[int, int]:
+        cleaned = name.replace("\x00", "").strip().lower()
+        score = 0
+        if "nvidia" in cleaned or "geforce" in cleaned or "rtx" in cleaned:
+            score += 50
+        if "amd" in cleaned or "radeon" in cleaned:
+            score += 40
+        if "rx " in cleaned or cleaned.endswith(" rx") or "radeon rx" in cleaned:
+            score += 20
+        if "graphics" in cleaned and "rx" not in cleaned and "rtx" not in cleaned:
+            score -= 25
+        if "intel" in cleaned:
+            score -= 30
+        return score, len(cleaned)
+
+    for item in device_preference:
+        normalized = str(item).lower()
+        if normalized == "hip" and hip_available:
+            return torch_module.device("cuda"), "hip"
+        if normalized == "cuda" and cuda_available:
+            return torch_module.device("cuda"), "cuda"
+        if normalized == "directml":
+            torch_directml = load_directml()
+            if torch_directml is None:
+                continue
+            device_count = int(torch_directml.device_count())
+            if device_count < 1:
+                continue
+            best_index = max(
+                range(device_count),
+                key=lambda index: score_directml_name(str(torch_directml.device_name(index))),
+            )
+            device_name = str(torch_directml.device_name(best_index)).replace("\x00", "").strip()
+            return torch_directml.device(best_index), f"directml:{best_index}:{device_name}"
+        if normalized == "cpu":
+            return torch_module.device("cpu"), "cpu"
+
+    return torch_module.device("cpu"), "cpu"
+
+
+def load_jsonl(path: Path) -> list[dict]:
+    rows = []
+    with path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            if line.strip():
+                rows.append(json.loads(line))
+    return rows
+
+
+def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
+    parts = []
+    for message in messages:
+        role = message["role"]
+        prefix = ROLE_PREFIXES[role]
+        parts.append(prefix)
+        parts.append(message["content"])
+        parts.append("\n")
+    if add_generation_prompt:
+        parts.append(ROLE_PREFIXES["assistant"])
+    return "".join(parts)
+
+
+class ByteTokenizer:
+    def __init__(
+        self,
+        chars: list[str],
+        pad_token_id: int | None = None,
+        bos_token_id: int | None = None,
+        eos_token_id: int | None = None,
+    ):
+        ordered_chars = []
+        seen = set()
+        for char in chars:
+            if len(char) != 1:
+                continue
+            if char in seen:
+                continue
+            ordered_chars.append(char)
+            seen.add(char)
+        if "?" not in seen:
+            ordered_chars.append("?")
+            seen.add("?")
+        self.chars = ordered_chars
+        self.char_to_id = {char: index for index, char in enumerate(self.chars)}
+        self.id_to_char = {index: char for char, index in self.char_to_id.items()}
+        self.unknown_token_id = self.char_to_id["?"]
+        regular_token_limit = len(self.chars)
+        self.regular_token_limit = regular_token_limit
+        self.pad_token_id = int(regular_token_limit if pad_token_id is None else pad_token_id)
+        self.bos_token_id = int(regular_token_limit + 1 if bos_token_id is None else bos_token_id)
+        self.eos_token_id = int(regular_token_limit + 2 if eos_token_id is None else eos_token_id)
+        self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1
+
+    @classmethod
+    def from_config(cls, payload: dict) -> "ByteTokenizer":
+        chars = payload.get("chars")
+        if chars:
+            return cls(
+                chars=list(chars),
+                pad_token_id=int(payload["pad_token_id"]),
+                bos_token_id=int(payload["bos_token_id"]),
+                eos_token_id=int(payload["eos_token_id"]),
+            )
+        regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))
+        chars = [chr(index) for index in range(regular_token_limit)]
+        return cls(
+            chars=chars,
+            pad_token_id=int(payload["pad_token_id"]),
+            bos_token_id=int(payload["bos_token_id"]),
+            eos_token_id=int(payload["eos_token_id"]),
+        )
+
+    def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
+        token_ids = [self.char_to_id.get(char, self.unknown_token_id) for char in text]
+        if add_special_tokens:
+            return [self.bos_token_id] + token_ids + [self.eos_token_id]
+        return token_ids
+
+    def decode(self, token_ids: list[int]) -> str:
+        return "".join(self.id_to_char[token_id] for token_id in token_ids if token_id in self.id_to_char)
+
+    def save(self, path: Path) -> None:
+        payload = {
+            "type": "char_vocab",
+            "chars": self.chars,
+            "regular_token_limit": self.regular_token_limit,
+            "pad_token_id": self.pad_token_id,
+            "bos_token_id": self.bos_token_id,
+            "eos_token_id": self.eos_token_id,
+            "vocab_size": self.vocab_size,
+        }
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2, ensure_ascii=True)
+            handle.write("\n")
+
+
+@dataclass
+class Example:
+    input_ids: list[int]
+    label_ids: list[int]
+    response_type: str
+
+
+def fit_prompt_and_answer(prompt_ids: list[int], answer_ids: list[int], max_seq_length: int) -> tuple[list[int], list[int]]:
+    full_input_ids = prompt_ids + answer_ids
+    full_label_ids = ([-100] * len(prompt_ids)) + answer_ids
+    if len(full_input_ids) <= max_seq_length:
+        return full_input_ids, full_label_ids
+
+    if len(answer_ids) >= max_seq_length:
+        trimmed_answer = answer_ids[-max_seq_length:]
+        return trimmed_answer, trimmed_answer[:]
+
+    prompt_budget = max_seq_length - len(answer_ids)
+    trimmed_prompt = prompt_ids[-prompt_budget:] if prompt_budget > 0 else []
+    input_ids = trimmed_prompt + answer_ids
+    label_ids = ([-100] * len(trimmed_prompt)) + answer_ids
+    return input_ids, label_ids
+
+
+def build_examples(rows: list[dict], tokenizer: ByteTokenizer, max_seq_length: int) -> list[Example]:
+    examples = []
+    for row in rows:
+        prompt_text = render_messages(row["messages"][:2], add_generation_prompt=True)
+        answer_text = row["messages"][2]["content"]
+
+        prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
+        answer_ids = tokenizer.encode(answer_text, add_special_tokens=False) + [tokenizer.eos_token_id]
+        input_ids, label_ids = fit_prompt_and_answer(prompt_ids, answer_ids, max_seq_length)
+        examples.append(
+            Example(
+                input_ids=input_ids,
+                label_ids=label_ids,
+                response_type=answer_text,
+            )
+        )
+    return examples
+
+
+def build_tokenizer_from_rows(*row_sets: list[dict]) -> ByteTokenizer:
+    chars = set()
+    for rows in row_sets:
+        for row in rows:
+            for message in row["messages"]:
+                chars.update(message["content"])
+    return ByteTokenizer(chars=sorted(chars))
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Select-String -Path scripts/train_native_model.py -Pattern "prepare_dataset|convert_training_data|subprocess"' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 187ms:
+
+scripts\train_native_model.py:7:import subprocess
+scripts\train_native_model.py:414:    subprocess.run(command, check=True, cwd=repo_root)
+scripts\train_native_model.py:420:    subprocess.run(command, capture_output=True, text=True, cwd=repo_root)
+
+
+
+codex
+I confirmed the trainer rebuilds datasets each run, so a boundary-pack edit is sufficient and will be picked up automatically on your next `train`. I’m now adding a small contrastive `DIRECT_ANSWER` vs `TOOL_NEEDED` slice focused on definition-style prompts.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path scripts/train_native_model.py -TotalCount 520 | Select-Object -Last 140' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 187ms:
+            "global_step": 0,
+            "epoch": 0.0,
+            "max_steps": None,
+            "latest_log": {},
+            "error": None,
+            "traceback": None,
+        }
+        self.write()
+
+    def update(self, **kwargs) -> None:
+        self.state.update(kwargs)
+        self.state["updated_at"] = utc_now_iso()
+        self.write()
+
+    def write(self) -> None:
+        with self.path.open("w", encoding="utf-8") as handle:
+            json.dump(self.state, handle, indent=2, ensure_ascii=True)
+            handle.write("\n")
+
+
+def run_post_training_benchmark(repo_root: Path, output_dir: Path) -> Path:
+    report_path = repo_root / "experiments" / f"benchmark_report-{output_dir.name}.json"
+    status_path = output_dir / "benchmark_status.json"
+    command = [
+        os.sys.executable,
+        str(repo_root / "scripts" / "evaluate_native_model.py"),
+        "--model-path",
+        str(output_dir),
+        "--output-report",
+        str(report_path),
+        "--status-file",
+        str(status_path),
+    ]
+    subprocess.run(command, check=True, cwd=repo_root)
+    return report_path
+
+
+def refresh_training_summary(repo_root: Path) -> None:
+    command = [os.sys.executable, str(repo_root / "scripts" / "summarize_training_runs.py")]
+    subprocess.run(command, capture_output=True, text=True, cwd=repo_root)
+
+
+def save_json(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, ensure_ascii=True)
+        handle.write("\n")
+
+
+def build_cpu_state_dict(model) -> dict:
+    return {name: tensor.detach().cpu() for name, tensor in model.state_dict().items()}
+
+
+def render_progress_bar(current: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        total = 1
+    ratio = max(0.0, min(1.0, current / total))
+    filled = int(width * ratio)
+    if filled >= width:
+        bar = "=" * width
+    elif filled <= 0:
+        bar = "-" * width
+    else:
+        bar = ("=" * max(0, filled - 1)) + ">" + ("-" * (width - filled))
+    percent = ratio * 100.0
+    return f"[{bar}] {current}/{total} steps ({percent:5.1f}%)"
+
+
+def format_duration(seconds: float) -> str:
+    total_seconds = max(0, int(seconds))
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+
+
+def print_progress_block(
+    current: int,
+    total: int,
+    epoch: float,
+    epoch_index: int,
+    total_epochs: int,
+    batch_in_epoch: int,
+    batches_per_epoch: int,
+    elapsed_seconds: float,
+    steps_per_second: float,
+    train_loss: float | None = None,
+    validation_loss: float | None = None,
+) -> None:
+    parts = [render_progress_bar(current, total)]
+    details = [
+        f"epoch={epoch_index}/{total_epochs} ({epoch:.2f})",
+        f"batch={batch_in_epoch}/{batches_per_epoch}",
+        f"elapsed={format_duration(elapsed_seconds)}",
+        f"steps_per_sec={steps_per_second:.3f}",
+    ]
+    if train_loss is not None:
+        details.append(f"train_loss={train_loss:.4f}")
+    if validation_loss is not None:
+        details.append(f"val_loss={validation_loss:.4f}")
+    progress_line = " | ".join(parts)
+    details_line = " | ".join(details)
+    clear_width = max(len(progress_line), len(details_line), 120)
+    if current > 1:
+        sys.stdout.write("\r")
+        sys.stdout.write("\x1b[1A")
+        sys.stdout.write("\r" + (" " * clear_width))
+        sys.stdout.write("\n")
+        sys.stdout.write((" " * clear_width))
+        sys.stdout.write("\x1b[1A")
+        sys.stdout.write("\r")
+    sys.stdout.write(progress_line.ljust(clear_width))
+    sys.stdout.write("\n")
+    sys.stdout.write(details_line.ljust(clear_width))
+    sys.stdout.flush()
+
+
+def main() -> int:
+    args = parse_args()
+    repo_root = Path(__file__).resolve().parent.parent
+    config_path = resolve_path(args.config, repo_root)
+    config = load_config(config_path)
+    if args.num_train_epochs is not None:
+        if args.num_train_epochs < 1:
+            raise ValueError("--num-train-epochs must be at least 1")
+        config["num_train_epochs"] = int(args.num_train_epochs)
+    configure_reproducibility(int(config.get("seed", 11)))
+
+    train_file = resolve_path(config["train_file"], repo_root)
+    validation_file = resolve_path(config["validation_file"], repo_root)
+    output_dir_base = resolve_path(config["output_dir"], repo_root)
+
+    import torch
+    import torch.nn.functional as F
+    from torch import nn
+
+    device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
+    train_rows = load_jsonl(train_file)
+    validation_rows = load_jsonl(validation_file)
+    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+    max_seq_length = int(config["max_seq_length"])
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path scripts/run_autotrain_loop.ps1 -TotalCount 360' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 167ms:
+param(
+    [ValidateSet('autotrain', 'improve')]
+    [string]$Command = 'autotrain',
+    [int]$MaxIterations = 50,
+    [int]$NumTrainEpochs,
+    [string]$Config = 'models\configs\v1_native_byte_transformer_config.json',
+    [string]$Prompt = 'Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.',
+    [string]$CodexPath,
+    [string]$CodexModel = 'gpt-5.3-codex',
+    [double]$RecoveryThreshold = 0.50,
+    [switch]$OpenStatusWindow = $true
+)
+
+$ErrorActionPreference = 'Stop'
+
+function Resolve-CodexExecutable {
+    param(
+        [string]$OverridePath
+    )
+
+    if ($OverridePath) {
+        return (Resolve-Path $OverridePath).Path
+    }
+
+    $command = Get-Command codex -ErrorAction SilentlyContinue
+    if ($command) {
+        return $command.Source
+    }
+
+    $defaultPath = Join-Path $env:USERPROFILE '.vscode\extensions\openai.chatgpt-26.325.31654-win32-x64\bin\windows-x86_64\codex.exe'
+    if (Test-Path $defaultPath) {
+        return (Resolve-Path $defaultPath).Path
+    }
+
+    $extensionRoot = Join-Path $env:USERPROFILE '.vscode\extensions'
+    if (Test-Path $extensionRoot) {
+        $candidate = Get-ChildItem -Path $extensionRoot -Filter codex.exe -Recurse -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+        if ($candidate) {
+            return $candidate.FullName
+        }
+    }
+
+    throw 'Could not locate codex.exe. Install the Codex CLI or pass -CodexPath.'
+}
+
+function Read-AutomationDecision {
+    param(
+        [string]$MessagePath
+    )
+
+    if (-not (Test-Path $MessagePath)) {
+        throw "Codex did not write a last-message file: $MessagePath"
+    }
+
+    $message = Get-Content $MessagePath -Raw
+    $match = [regex]::Match($message, 'AUTOMATION_DECISION:\s*(CONTINUE|STOP)', 'IgnoreCase')
+    if (-not $match.Success) {
+        throw "Codex response did not include AUTOMATION_DECISION. See $MessagePath"
+    }
+
+    return $match.Groups[1].Value.ToUpperInvariant()
+}
+
+function Test-AutomationDecisionPresent {
+    param(
+        [string]$MessagePath
+    )
+
+    if (-not (Test-Path $MessagePath)) {
+        return $false
+    }
+
+    try {
+        $message = Get-Content $MessagePath -Raw
+    } catch {
+        return $false
+    }
+
+    return [regex]::IsMatch($message, 'AUTOMATION_DECISION:\s*(CONTINUE|STOP)', 'IgnoreCase')
+}
+
+function Show-FilteredCodexOutput {
+    param(
+        [string[]]$Lines
+    )
+
+    $skipPrefixes = @(
+        'diff --git ',
+        'index ',
+        '--- a/',
+        '+++ b/',
+        '@@ ',
+        'warning: in the working copy of ',
+        'patch: completed',
+        'tokens used'
+    )
+
+    foreach ($line in $Lines) {
+        if ($null -eq $line) {
+            continue
+        }
+
+        $trimmed = $line.Trim()
+        if ($trimmed -eq '') {
+            Write-Host ''
+            continue
+        }
+
+        if ($trimmed -match '^[\+\-]{3,}$') {
+            continue
+        }
+
+        $shouldSkip = $false
+        foreach ($prefix in $skipPrefixes) {
+            if ($trimmed.StartsWith($prefix)) {
+                $shouldSkip = $true
+                break
+            }
+        }
+        if ($shouldSkip) {
+            continue
+        }
+
+        if ($trimmed -match '^[\+\-].+' -and -not $trimmed.StartsWith('AUTOMATION_DECISION:')) {
+            continue
+        }
+
+        if ($trimmed -eq 'apply patch' -or $trimmed -eq 'patch' -or $trimmed -eq 'exec') {
+            continue
+        }
+
+        if ($trimmed -match '^succeeded in \d+ms:$') {
+            continue
+        }
+
+        Write-Host $line
+    }
+}
+
+function Get-LatestCodexActivity {
+    param(
+        [string]$StdoutPath,
+        [string]$StderrPath
+    )
+
+    $skipPrefixes = @(
+        'diff --git ',
+        'index ',
+        '--- a/',
+        '+++ b/',
+        '@@ ',
+        'warning: in the working copy of ',
+        'patch: completed',
+        'tokens used',
+        'OpenAI Codex ',
+        'workdir:',
+        'model:',
+        'provider:',
+        'approval:',
+        'sandbox:',
+        'reasoning effort:',
+        'reasoning summaries:',
+        'session id:',
+        '--------',
+        'user'
+    )
+
+    $candidateFiles = @($stdoutPath, $stderrPath)
+    foreach ($path in $candidateFiles) {
+        if (-not (Test-Path $path)) {
+            continue
+        }
+
+        $lines = Get-Content -Path $path -Tail 80 -ErrorAction SilentlyContinue
+        for ($index = $lines.Count - 1; $index -ge 0; $index--) {
+            $trimmed = $lines[$index].Trim()
+            if (-not $trimmed) {
+                continue
+            }
+            if ($trimmed -match '^[\+\-]{3,}$') {
+                continue
+            }
+            if ($trimmed -match '^[\+\-].+' -and -not $trimmed.StartsWith('AUTOMATION_DECISION:')) {
+                continue
+            }
+            if ($trimmed -eq 'apply patch' -or $trimmed -eq 'patch' -or $trimmed -eq 'exec') {
+                continue
+            }
+            if ($trimmed -match '^succeeded in \d+ms:$') {
+                continue
+            }
+
+            $shouldSkip = $false
+            foreach ($prefix in $skipPrefixes) {
+                if ($trimmed.StartsWith($prefix)) {
+                    $shouldSkip = $true
+                    break
+                }
+            }
+            if ($shouldSkip) {
+                continue
+            }
+
+            if ($trimmed.Length -gt 70) {
+                return ($trimmed.Substring(0, 67) + '...')
+            }
+            return $trimmed
+        }
+    }
+
+    return 'waiting for first activity...'
+}
+
+function Invoke-CodexExec {
+    param(
+        [string]$CodexExecutable,
+        [string]$Model,
+        [string]$Prompt,
+        [string]$RepoRoot,
+        [string]$MessagePath,
+        [string]$LogPath,
+        [switch]$ShowInlineProgress
+    )
+
+    function ConvertTo-CommandLineArgument {
+        param(
+            [string]$Value
+        )
+
+        if ($null -eq $Value) {
+            return '""'
+        }
+
+        if ($Value -eq '') {
+            return '""'
+        }
+
+        if ($Value -notmatch '[\s"]') {
+            return $Value
+        }
+
+        $escaped = $Value -replace '(\\*)"', '$1$1\"'
+        $escaped = $escaped -replace '(\\+)$', '$1$1'
+        return ('"{0}"' -f $escaped)
+    }
+
+    $argumentValues = @(
+        'exec',
+        $Prompt,
+        '-C',
+        $RepoRoot,
+        '-m',
+        $Model,
+        '--full-auto',
+        '-o',
+        $MessagePath
+    )
+
+    $quotedArguments = $argumentValues | ForEach-Object { ConvertTo-CommandLineArgument -Value $_ }
+    $argumentString = [string]::Join(' ', $quotedArguments)
+
+    $stdoutPath = [System.IO.Path]::ChangeExtension($LogPath, '.stdout.log')
+    $stderrPath = [System.IO.Path]::ChangeExtension($LogPath, '.stderr.log')
+
+    if (Test-Path $stdoutPath) {
+        Remove-Item -LiteralPath $stdoutPath -Force
+    }
+    if (Test-Path $stderrPath) {
+        Remove-Item -LiteralPath $stderrPath -Force
+    }
+
+    if ($ShowInlineProgress) {
+        Write-Host ("Codex progress preparing | model={0} | starting process..." -f $Model)
+    }
+
+    $process = Start-Process -FilePath $CodexExecutable `
+        -ArgumentList $argumentString `
+        -WorkingDirectory $RepoRoot `
+        -NoNewWindow `
+        -PassThru `
+        -RedirectStandardOutput $stdoutPath `
+        -RedirectStandardError $stderrPath
+
+    if ($ShowInlineProgress) {
+        $spinnerFrames = @('|', '/', '-', '\')
+        $spinnerIndex = 0
+        $startedAt = Get-Date
+        while (-not $process.HasExited) {
+            $elapsed = (Get-Date) - $startedAt
+            $frame = $spinnerFrames[$spinnerIndex % $spinnerFrames.Count]
+            $phase = if ($elapsed.TotalSeconds -lt 5) { 'starting' } else { 'running' }
+            $activity = Get-LatestCodexActivity -StdoutPath $stdoutPath -StderrPath $stderrPath
+            $line = "Codex progress $frame phase=$phase model=$Model elapsed=$($elapsed.ToString('hh\:mm\:ss')) | $activity"
+            Write-Host ("`r" + $line.PadRight(160)) -NoNewline
+            Start-Sleep -Milliseconds 1000
+            $spinnerIndex += 1
+            $process.Refresh()
+        }
+        Write-Host ("`r" + (" " * 160)) -NoNewline
+        Write-Host ("`rCodex progress complete. Logs saved under experiments\\automation.                          ")
+    }
+
+    $process.WaitForExit()
+    $process.Refresh()
+
+    $stdoutLines = if (Test-Path $stdoutPath) { Get-Content -Path $stdoutPath } else { @() }
+    $stderrLines = if (Test-Path $stderrPath) { Get-Content -Path $stderrPath } else { @() }
+    $combined = @($stdoutLines + $stderrLines)
+
+    $combined | Out-File -FilePath $LogPath -Encoding utf8
+
+    return [pscustomobject]@{
+        ExitCode = $process.ExitCode
+        Lines = $combined
+    }
+}
+
+function Get-LatestRunStatus {
+    param(
+        [string]$RepoRoot
+    )
+
+    $latestStatusPath = Get-ChildItem -Path (Join-Path $RepoRoot 'models\runs') -Filter training_status.json -Recurse -File |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1 -ExpandProperty FullName
+
+    if (-not $latestStatusPath) {
+        throw 'Could not find a training_status.json file under models\runs.'
+    }
+
+    return Get-Content $latestStatusPath -Raw | ConvertFrom-Json
+}
+
+function Get-BenchmarkMetrics {
+    param(
+        [string]$BenchmarkReportPath
+    )
+
+    if (-not $BenchmarkReportPath) {
+        throw 'Training status did not include a benchmark report path.'
+    }
+
+    if (-not (Test-Path $BenchmarkReportPath)) {
+        throw "Benchmark report not found: $BenchmarkReportPath"
+    }
+
+    $report = Get-Content $BenchmarkReportPath -Raw | ConvertFrom-Json
+    $validOutputRate = if ($null -ne $report.valid_output_rate) {
+        [double]$report.valid_output_rate
+    } else {
+        [double]$report.valid_json_rate
+    }
+
+    $nonemptyOutputCount = 0
+    if ($null -ne $report.nonempty_output_count) {
+        $nonemptyOutputCount = [int]$report.nonempty_output_count
+    }
+
+
+codex
+I’m doing a quick coverage check in current train data for the three unstable definition prompts (`opportunity cost`, `short-term goal`, `needs vs wants`) so the added examples directly fill gaps instead of duplicating what already exists.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Select-String -Path data/processed/train_sft.jsonl -Pattern "opportunity cost|short-term goal|needs versus wants|needs and wants" -CaseSensitive:$false | Select-Object -First 40' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Select-String -Path data/processed/train.json -Pattern "opportunity cost|short-term goal|needs versus wants|needs and wants" -CaseSensitive:$false' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 212ms:
+
+data\processed\train.json:265:    "user_input": "Can you define needs versus wants?",
+data\processed\train.json:274:    "user_input": "Can you define opportunity cost?",
+data\processed\train.json:277:    "response": "Opportunity cost is the value of the next best alternative that you didn't choose when making a decision.",
+data\processed\train.json:292:    "user_input": "Can you define short-term goal?",
+data\processed\train.json:295:    "response": "A short-term goal is something you want to achieve relatively soon, usually within a year.",
+data\processed\train.json:355:    "user_input": "Can you explain what opportunity cost means in simple words?",
+data\processed\train.json:358:    "response": "Opportunity cost means what you give up when you choose one option instead of another.",
+data\processed\train.json:382:    "user_input": "Can you help me choose between needs and wants?",
+data\processed\train.json:805:    "user_input": "Define needs versus wants.",
+data\processed\train.json:814:    "user_input": "Define opportunity cost.",
+data\processed\train.json:817:    "response": "Opportunity cost is the value of the next best alternative that you give up when making a choice.",
+data\processed\train.json:868:    "user_input": "Define short-term goal.",
+data\processed\train.json:871:    "response": "A short-term goal is something you plan to achieve in the near future, usually within a year.",
+data\processed\train.json:1057:    "user_input": "Explain needs versus wants in simple words.",
+data\processed\train.json:1066:    "user_input": "Explain opportunity cost in simple words.",
+data\processed\train.json:1069:    "response": "Opportunity cost is the value of the next best alternative that you didn't choose when making a decision.",
+data\processed\train.json:1111:    "user_input": "Explain short-term goal in simple words.",
+data\processed\train.json:1114:    "response": "A short-term goal is an objective you plan to achieve in the near future, usually within a year.",
+data\processed\train.json:2155:    "user_input": "Give me a simple explanation of needs versus wants.",
+data\processed\train.json:2164:    "user_input": "Give me a simple explanation of opportunity cost.",
+data\processed\train.json:2167:    "response": "Opportunity cost is the value of the next best alternative that you didn't choose when making a decision.",
+data\processed\train.json:2182:    "user_input": "Give me a simple explanation of short-term goal.",
+data\processed\train.json:2185:    "response": "A short-term goal is an objective that can be achieved in a relatively brief period, typically within a year.",
+data\processed\train.json:3172:    "user_input": "What are needs and wants?",
+data\processed\train.json:3469:    "user_input": "What does short-term goal mean?",
+data\processed\train.json:3472:    "response": "A short-term goal is something you plan to achieve in the near future, usually within a year.",
+data\processed\train.json:3901:    "user_input": "What is needs versus wants?",
+data\processed\train.json:3910:    "user_input": "What is opportunity cost?",
+data\processed\train.json:3913:    "response": "Opportunity cost is the value of the next best alternative that you give up when making a choice.",
+data\processed\train.json:3955:    "user_input": "What is short-term goal?",
+data\processed\train.json:3958:    "response": "A short-term goal is an objective that can be achieved in a relatively brief period, typically within a year.",
+
+
+
+ succeeded in 220ms:
+
+data\processed\train_sft.jsonl:30:{"id": "v1-0034", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Can you define needs versus wants?"}, 
+{"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:31:{"id": "v1-0035", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Can you define opportunity cost?"}, {"role": 
+"assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:33:{"id": "v1-0039", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Can you define short-term goal?"}, {"role": 
+"assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:40:{"id": "v1-0047", "source": "seed", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Can you explain what opportunity cost means in 
+simple words?"}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:43:{"id": "v1-0051", "source": "seed", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Can you help me choose between needs and wants?"}, 
+{"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:90:{"id": "v1-0109", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Define needs versus wants."}, {"role": 
+"assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:91:{"id": "v1-0110", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Define opportunity cost."}, {"role": 
+"assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:97:{"id": "v1-0116", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Define short-term goal."}, {"role": 
+"assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:118:{"id": "v1-0139", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Explain needs versus wants in simple 
+words."}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:119:{"id": "v1-0140", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Explain opportunity cost in simple words."}, 
+{"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:124:{"id": "v1-0147", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Explain short-term goal in simple words."}, 
+{"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:240:{"id": "v1-0279", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Give me a simple explanation of needs versus 
+wants."}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:241:{"id": "v1-0280", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Give me a simple explanation of opportunity 
+cost."}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:243:{"id": "v1-0284", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Give me a simple explanation of short-term 
+goal."}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:353:{"id": "v1-0427", "source": "seed", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What are needs and wants?"}, {"role": 
+"assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:386:{"id": "v1-0468", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What does short-term goal mean?"}, {"role": 
+"assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:434:{"id": "v1-0522", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What is needs versus wants?"}, {"role": 
+"assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:435:{"id": "v1-0524", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What is opportunity cost?"}, {"role": 
+"assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:440:{"id": "v1-0529", "source": "generated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What is short-term goal?"}, {"role": 
+"assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:572:{"id": "boundary-v1-0007", "source": "curated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What does opportunity cost actually 
+mean?"}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:574:{"id": "boundary-v1-0010", "source": "curated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Explain the difference between needs 
+and wants."}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:586:{"id": "boundary-v2-0002", "source": "curated", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Can you explain needs versus 
+wants?"}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:605:{"id": "train-extra-da-tool-0003", "source": "train_extra", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What are needs and wants 
+in a budget?"}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:606:{"id": "train-extra-da-tool-0004", "source": "train_extra", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Explain opportunity cost 
+in plain language."}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:612:{"id": "train-extra-da-tool-0011", "source": "train_extra", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What does opportunity 
+cost mean in personal finance?"}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:613:{"id": "train-extra-da-tool-0012", "source": "train_extra", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What is a short-term goal 
+in budgeting?"}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:616:{"id": "train-extra-da-tool-0015", "source": "train_extra", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What does opportunity 
+cost mean in plain English?"}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:617:{"id": "train-extra-da-tool-0016", "source": "train_extra", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What is a short-term goal 
+in personal finance?"}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:661:{"id": "train-extra-oos-amb-0009", "source": "train_extra", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "In budgeting, what are 
+needs versus wants?"}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:662:{"id": "train-extra-oos-amb-0010", "source": "train_extra", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "Can you explain the 
+difference between needs and wants in a budget?"}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+data\processed\train_sft.jsonl:667:{"id": "train-extra-oos-amb-0015", "source": "train_extra", "messages": [{"role": "system", "content": "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."}, {"role": "user", "content": "What are needs and wants 
+in budgeting?"}, {"role": "assistant", "content": "DIRECT_ANSWER"}]}
+
+
+
+codex
+I found the direct-definition coverage is broad but skewed toward longer phrasing; I’m adding a small set of very short, benchmark-adjacent definition prompts plus a couple short “current/today” lookups in the same pack to tighten the `DIRECT_ANSWER` vs `TOOL_NEEDED` boundary without broad changes.
+turn interrupted
+tokens used
+57,268

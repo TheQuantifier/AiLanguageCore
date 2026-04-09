@@ -3,6 +3,9 @@
 Run these commands from the repo root:
 `C:\Users\jhand\Documents\Github\AiLanguageCore`
 
+Spreadsheet-style command catalog:
+- `docs/commands_reference.csv`
+
 Set a reusable Python helper once per PowerShell session:
 
 ```powershell
@@ -35,18 +38,27 @@ function create_data {
 }
 function train {
     param(
-        [int]$epochs
+        [Parameter(Position = 0)][object]$type_or_epochs = 'stress',
+        [Parameter(Position = 1)][int]$epochs
     )
 
-    $config = 'models\configs\v1_native_byte_transformer_config.json'
-    Write-Host "Starting native training from $AiLanguageCoreRoot"
-    Write-Host "Config: $config"
     Push-Location $AiLanguageCoreRoot
     try {
+        if ($type_or_epochs -is [int] -or $type_or_epochs -is [long]) {
+            .\train.ps1 $type_or_epochs
+            return
+        }
+
+        $parsedEpoch = 0
+        if ([int]::TryParse([string]$type_or_epochs, [ref]$parsedEpoch)) {
+            .\train.ps1 $parsedEpoch
+            return
+        }
+
         if ($PSBoundParameters.ContainsKey('epochs')) {
-            & $py scripts\train_native_model.py --config $config --num-train-epochs $epochs
+            .\train.ps1 $type_or_epochs $epochs
         } else {
-            & $py scripts\train_native_model.py --config $config
+            .\train.ps1 $type_or_epochs
         }
     } finally {
         Pop-Location
@@ -69,6 +81,23 @@ function eval_native {
     Push-Location $AiLanguageCoreRoot
     try {
         & $py scripts\evaluate_native_model.py --model-path $model_path
+    } finally {
+        Pop-Location
+    }
+}
+function benchmark {
+    param(
+        [Parameter(Position = 0)][string]$type = 'stress',
+        [Parameter(Position = 1)][string]$model_path
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        if ($PSBoundParameters.ContainsKey('model_path')) {
+            .\benchmark.ps1 $type $model_path
+        } else {
+            .\benchmark.ps1 $type
+        }
     } finally {
         Pop-Location
     }
@@ -124,6 +153,10 @@ Outputs:
 - `data/processed/train_sft.jsonl`
 - `data/processed/validation_sft.jsonl`
 - `data/processed/benchmark_sft.jsonl`
+- `data/processed/benchmark_stress_native_sft.jsonl`
+- `data/processed/benchmark_account_tool_boundary_native_sft.jsonl`
+- `data/processed/benchmark_medical_refusal_boundary_native_sft.jsonl`
+- `data/processed/benchmark_oos_vs_tool_boundary_native_sft.jsonl`
 
 ## 3a. Data Pipeline In One Command
 
@@ -152,27 +185,37 @@ This updates:
 ## 4. Train Your Native Model
 
 Train the native decoder-only transformer from scratch. It now runs the default
-benchmark automatically after training completes successfully:
+benchmark for the selected type automatically after training completes successfully:
 
 ```powershell
-& $py scripts\train_native_model.py --config models\configs\v1_native_byte_transformer_config.json
+.\train.ps1
+.\train.ps1 stress
+.\train.ps1 default
+.\train.ps1 stress 8
 ```
 
 With the helper above, you can just run:
 
 ```powershell
 train
+train stress
+train default
 train 8
+train stress 8
 ```
 
 The helper now:
 - changes into the repo root automatically
-- prints which config it is about to use
+- supports named training types
+- supports epoch-only shorthand for the default type
 - starts the native trainer from the correct working directory
 
 Default training baseline:
-- the config now defaults to `50` epochs
-- use `train <N>` or `.\train.ps1 -Epochs <N>` only when you want to override that baseline
+- `train` defaults to the `stress` type
+- `stress` uses `models\configs\v1_native_byte_transformer_stress_config.json`
+- `default`, `core`, and `base` use `models\configs\v1_native_byte_transformer_config.json`
+- all configs default to `50` epochs
+- use `train <N>` or `.\train.ps1 <N>` only when you want to override epochs for the default type
 
 Run just the Codex improvement pass against the latest completed training run:
 
@@ -223,7 +266,22 @@ With the helper above, you can just run:
 
 ```powershell
 eval_native <printed_native_run_output_dir>
+benchmark
+benchmark stress
+benchmark default
+benchmark stress <printed_native_run_output_dir>
 ```
+
+Named benchmark types:
+- `default`, `core`, `base` -> `data/processed/benchmark_sft.jsonl`
+- `stress` -> `data/processed/benchmark_stress_native_sft.jsonl`
+- `account` -> `data/processed/benchmark_account_tool_boundary_native_sft.jsonl`
+- `medical` -> `data/processed/benchmark_medical_refusal_boundary_native_sft.jsonl`
+- `oos_tool` -> `data/processed/benchmark_oos_vs_tool_boundary_native_sft.jsonl`
+
+Default benchmark baseline:
+- `benchmark` defaults to the `stress` type
+- use `benchmark default` when you want the original default benchmark
 
 Show a table of all training runs and the currently saved benchmark report for each run:
 
@@ -250,7 +308,7 @@ Outputs:
 & $py scripts\generate_data.py --count 50
 & $py scripts\prepare_dataset.py
 & $py scripts\convert_training_data.py
-& $py scripts\train_native_model.py --config models\configs\v1_native_byte_transformer_config.json
+.\train.ps1 stress
 ```
 
 ## Shortcut Functions
@@ -285,18 +343,27 @@ function create_data {
 
 function train {
     param(
-        [int]$epochs
+        [Parameter(Position = 0)][object]$type_or_epochs = 'stress',
+        [Parameter(Position = 1)][int]$epochs
     )
 
-    $config = 'models\configs\v1_native_byte_transformer_config.json'
-    Write-Host "Starting native training from $AiLanguageCoreRoot"
-    Write-Host "Config: $config"
     Push-Location $AiLanguageCoreRoot
     try {
+        if ($type_or_epochs -is [int] -or $type_or_epochs -is [long]) {
+            .\train.ps1 $type_or_epochs
+            return
+        }
+
+        $parsedEpoch = 0
+        if ([int]::TryParse([string]$type_or_epochs, [ref]$parsedEpoch)) {
+            .\train.ps1 $parsedEpoch
+            return
+        }
+
         if ($PSBoundParameters.ContainsKey('epochs')) {
-            & $py scripts\train_native_model.py --config $config --num-train-epochs $epochs
+            .\train.ps1 $type_or_epochs $epochs
         } else {
-            & $py scripts\train_native_model.py --config $config
+            .\train.ps1 $type_or_epochs
         }
     } finally {
         Pop-Location
@@ -321,6 +388,24 @@ function eval_native {
     Push-Location $AiLanguageCoreRoot
     try {
         & $py scripts\evaluate_native_model.py --model-path $model_path
+    } finally {
+        Pop-Location
+    }
+}
+
+function benchmark {
+    param(
+        [Parameter(Position = 0)][string]$type = 'stress',
+        [Parameter(Position = 1)][string]$model_path
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        if ($PSBoundParameters.ContainsKey('model_path')) {
+            .\benchmark.ps1 $type $model_path
+        } else {
+            .\benchmark.ps1 $type
+        }
     } finally {
         Pop-Location
     }

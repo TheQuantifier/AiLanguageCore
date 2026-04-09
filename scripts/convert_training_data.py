@@ -6,6 +6,24 @@ import sys
 
 
 SYSTEM_PROMPT = "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."
+NATIVE_FOCUSED_BENCHMARKS = [
+    (
+        Path("data/processed/benchmark_stress.json"),
+        Path("data/processed/benchmark_stress_native_sft.jsonl"),
+    ),
+    (
+        Path("data/processed/benchmark_account_tool_boundary.json"),
+        Path("data/processed/benchmark_account_tool_boundary_native_sft.jsonl"),
+    ),
+    (
+        Path("data/processed/benchmark_medical_refusal_boundary.json"),
+        Path("data/processed/benchmark_medical_refusal_boundary_native_sft.jsonl"),
+    ),
+    (
+        Path("data/processed/benchmark_oos_vs_tool_boundary.json"),
+        Path("data/processed/benchmark_oos_vs_tool_boundary_native_sft.jsonl"),
+    ),
+]
 
 
 def parse_args() -> argparse.Namespace:
@@ -152,6 +170,16 @@ def merge_extra_train_records(
     return merged_train_records, stats
 
 
+def write_native_benchmark_variants() -> None:
+    for input_path, output_path in NATIVE_FOCUSED_BENCHMARKS:
+        if not input_path.exists():
+            continue
+        records = load_records(input_path)
+        converted = [convert_record(record) for record in records]
+        write_jsonl(output_path, converted)
+        print(f"Wrote {len(converted)} records to {output_path}")
+
+
 def main() -> int:
     args = parse_args()
     train_records = load_records(args.train_input)
@@ -193,6 +221,8 @@ def main() -> int:
             f"skipped_existing_train={merge_stats['extra_records_skipped_existing_train']}, "
             f"skipped_eval_overlap={merge_stats['extra_records_skipped_eval_overlap']}"
         )
+
+    write_native_benchmark_variants()
 
     return 0
 

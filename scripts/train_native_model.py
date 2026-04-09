@@ -141,6 +141,11 @@ def load_jsonl(path: Path) -> list[dict]:
     return rows
 
 
+def load_json(path: Path) -> dict:
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
 def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
     parts = []
     for message in messages:
@@ -378,6 +383,7 @@ class TrainingStatusWriter:
             "output_dir": str(output_dir),
             "train_file": config["train_file"],
             "validation_file": config["validation_file"],
+            "benchmark_file": config.get("benchmark_file", "data/processed/benchmark_sft.jsonl"),
             "global_step": 0,
             "epoch": 0.0,
             "max_steps": None,
@@ -401,11 +407,18 @@ class TrainingStatusWriter:
 def run_post_training_benchmark(repo_root: Path, output_dir: Path) -> Path:
     report_path = repo_root / "experiments" / f"benchmark_report-{output_dir.name}.json"
     status_path = output_dir / "benchmark_status.json"
+    training_config = load_json(output_dir / "training_config.json")
+    benchmark_file = resolve_path(
+        training_config.get("benchmark_file", "data/processed/benchmark_sft.jsonl"),
+        repo_root,
+    )
     command = [
         os.sys.executable,
         str(repo_root / "scripts" / "evaluate_native_model.py"),
         "--model-path",
         str(output_dir),
+        "--benchmark-file",
+        str(benchmark_file),
         "--output-report",
         str(report_path),
         "--status-file",
@@ -508,6 +521,7 @@ def main() -> int:
     train_file = resolve_path(config["train_file"], repo_root)
     validation_file = resolve_path(config["validation_file"], repo_root)
     output_dir_base = resolve_path(config["output_dir"], repo_root)
+    benchmark_file = resolve_path(config.get("benchmark_file", "data/processed/benchmark_sft.jsonl"), repo_root)
 
     import torch
     import torch.nn.functional as F
@@ -609,6 +623,7 @@ def main() -> int:
     print(f"Device: {device_label}")
     print(f"Train file: {train_file}")
     print(f"Validation file: {validation_file}")
+    print(f"Benchmark file: {benchmark_file}")
     print(f"Output dir: {output_dir}")
     print(
         "Run settings: "

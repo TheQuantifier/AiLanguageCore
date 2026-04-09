@@ -423,6 +423,7 @@ def main() -> int:
 
     elapsed_seconds = time.perf_counter() - started_at
     report = {
+        "benchmark_file": str(args.benchmark_file.resolve()),
         "benchmark_size": len(benchmark_rows),
         "nonempty_output_count": nonempty_output,
         "nonempty_output_rate": nonempty_output / len(benchmark_rows) if benchmark_rows else 0.0,
