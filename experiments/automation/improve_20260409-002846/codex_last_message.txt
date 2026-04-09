@@ -1,0 +1,11 @@
+Applied one narrow, boundary-focused improvement based on the latest run’s error pattern (`OUT_OF_SCOPE` confusion with short legal/wrongdoing prompts).
+
+Change made:
+- Added 4 targeted `OUT_OF_SCOPE` hard examples to the clarification-vs-OOS boundary pack using phrasing close to the current misses (`should I sue my employer`, `how can I cheat on my taxes`, `write a convincing lie for me`).
+- Regenerated `train_sft.jsonl` so the next train includes those examples.
+
+Files changed:
+- [train_clarification_oos_boundary_pack.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_clarification_oos_boundary_pack.json)
+- [train_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

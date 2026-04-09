@@ -55,7 +55,7 @@ function train {
 function improve {
     Push-Location $AiLanguageCoreRoot
     try {
-        .\scripts\run_autotrain_loop.ps1 -Command improve
+        .\scripts\run_autotrain_loop.ps1 -Command improve -OpenStatusWindow:$false
     } finally {
         Pop-Location
     }
@@ -171,7 +171,7 @@ The helper now:
 - starts the native trainer from the correct working directory
 
 Default training baseline:
-- the config now defaults to `30` epochs
+- the config now defaults to `50` epochs
 - use `train <N>` or `.\train.ps1 -Epochs <N>` only when you want to override that baseline
 
 Run just the Codex improvement pass against the latest completed training run:
@@ -306,7 +306,7 @@ function train {
 function improve {
     Push-Location $AiLanguageCoreRoot
     try {
-        .\scripts\run_autotrain_loop.ps1 -Command improve
+        .\scripts\run_autotrain_loop.ps1 -Command improve -OpenStatusWindow:$false
     } finally {
         Pop-Location
     }
@@ -349,12 +349,17 @@ function summarize {
 
 function autotrain {
     param(
-        [int]$max_iterations = 50
+        [int]$max_iterations = 50,
+        [int]$epochs
     )
 
     Push-Location $AiLanguageCoreRoot
     try {
-        .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations
+        if ($PSBoundParameters.ContainsKey('epochs')) {
+            .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations -NumTrainEpochs $epochs
+        } else {
+            .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations
+        }
     } finally {
         Pop-Location
     }
@@ -404,11 +409,13 @@ With the helper block above loaded:
 ```powershell
 autotrain
 autotrain 3
+autotrain 10 50
 improve
 ```
 
 Notes:
 - This script uses `codex exec --full-auto`.
+- `improve` stays in the current window by default.
 - Per-iteration automation logs are written under:
   - `experiments/automation`
 - The live status window reads:

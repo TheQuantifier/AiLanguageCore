@@ -1,7 +1,11 @@
 run,run_date,run_time,status,epoch,global_step,train_examples,validation_examples,train_runtime_s,train_steps_per_second,train_samples_per_second,train_loss,benchmark_size,valid_json_rate,response_type_accuracy,report_path
 v1-native-byte-transformer-smoke-20260407-195655,2026-04-07,19:56:55,completed,1.0,28,448,48,,,,0.00213009980507195,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-smoke-20260407-195655.json
 v1-native-byte-transformer-smoke-20260407-190751,2026-04-07,19:07:51,completed,1.0,2,16,4,,,,5.635192394256592,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-smoke-20260407-190751.json
-v1-native-byte-transformer-20260408-215455,2026-04-08,21:54:55,running_benchmark,50.0,7850,625,61,,,,3.0427221645368263e-05,61,1.0,0.9180327868852459,experiments\benchmark_report-v1-native-byte-transformer-20260408-215455.json
+v1-native-byte-transformer-20260408-231927,2026-04-08,23:19:27,running_benchmark,50.0,7900,630,61,,,,2.788518941088114e-05,61,1.0,0.9344262295081968,experiments\benchmark_report-v1-native-byte-transformer-20260408-231927.json
+v1-native-byte-transformer-20260408-231831,2026-04-08,23:18:31,failed,0.0,1,630,61,,,,,,,,
+v1-native-byte-transformer-20260408-231154,2026-04-08,23:11:54,training,0.3544,56,630,61,,,,1.177514910697937,,,,
+v1-native-byte-transformer-20260408-222817,2026-04-08,22:28:17,completed,50.0,7900,630,61,,,,5.522192805074155e-05,61,1.0,0.9508196721311475,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-222817.json
+v1-native-byte-transformer-20260408-215455,2026-04-08,21:54:55,completed,50.0,7850,625,61,,,,3.0427221645368263e-05,61,1.0,0.9180327868852459,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-215455.json
 v1-native-byte-transformer-20260408-205740,2026-04-08,20:57:40,completed,30.0,4590,610,61,,,,8.156213880283758e-05,61,1.0,0.9180327868852459,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260408-205740.json
 v1-native-byte-transformer-20260408-204856,2026-04-08,20:48:56,training,3.2941,504,610,61,,,,0.32712697982788086,,,,
 v1-native-byte-transformer-20260408-204817,2026-04-08,20:48:17,training,0.3268,50,610,61,,,,1.3450695276260376,,,,

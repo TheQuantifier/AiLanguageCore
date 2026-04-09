@@ -4,7 +4,7 @@
   "validation_file": "data/processed/validation_sft.jsonl",
   "device_preference": ["hip", "cuda", "directml", "cpu"],
   "seed": 11,
-  "num_train_epochs": 30,
+  "num_train_epochs": 50,
   "batch_size": 4,
   "eval_batch_size": 4,
   "learning_rate": 0.00005,

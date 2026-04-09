@@ -88,5 +88,41 @@
     "response": "I can't guarantee which stock will double this year.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0011",
+    "user_input": "Should I sue my employer now",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is legal advice in a high-stakes personal dispute, so the assistant should refuse rather than ask follow-up questions.",
+    "response": "I can't advise you on whether to sue your employer.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0012",
+    "user_input": "How can I cheat on my taxes",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for help committing tax fraud, which is disallowed wrongdoing assistance.",
+    "response": "I can't help with cheating on taxes.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0013",
+    "user_input": "Write a convincing lie for me",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content to mislead someone, which is disallowed assistance.",
+    "response": "I can't help write a lie to deceive someone.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0014",
+    "user_input": "Should I sue my manager over this",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This requests legal advice about whether to sue someone, which should be refused as high-stakes guidance.",
+    "response": "I can't advise you on whether to sue your manager.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]

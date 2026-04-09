@@ -2,6 +2,7 @@ param(
     [ValidateSet('autotrain', 'improve')]
     [string]$Command = 'autotrain',
     [int]$MaxIterations = 50,
+    [int]$NumTrainEpochs,
     [string]$Config = 'models\configs\v1_native_byte_transformer_config.json',
     [string]$Prompt = 'Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.',
     [string]$CodexPath,
@@ -479,6 +480,30 @@ function Write-AutotrainStatus {
     $payload | ConvertTo-Json -Depth 4 | Set-Content -Path $StatusPath
 }
 
+function Invoke-TrainingRun {
+    param(
+        [string]$RepoRoot,
+        [string]$PythonPath,
+        [string]$ConfigPath,
+        [int]$NumTrainEpochs,
+        [bool]$HasEpochOverride
+    )
+
+    Push-Location $RepoRoot
+    try {
+        if ($HasEpochOverride) {
+            & $PythonPath scripts\train_native_model.py --config $ConfigPath --num-train-epochs $NumTrainEpochs
+        } else {
+            & $PythonPath scripts\train_native_model.py --config $ConfigPath
+        }
+        if ($LASTEXITCODE -ne 0) {
+            throw "Training failed with exit code $LASTEXITCODE"
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
 function Invoke-CodexImprovementPass {
     param(
         [string]$IterationLabel,
@@ -599,9 +624,15 @@ Write-Host "Codex model: $CodexModel"
 Write-Host "Automation logs: $logRoot"
 Write-Host "Command: $Command"
 Write-Host "Max iterations: $MaxIterations"
+if ($PSBoundParameters.ContainsKey('NumTrainEpochs')) {
+    Write-Host "Epoch override: $NumTrainEpochs"
+}
 Write-Host "Recovery threshold (valid output rate): $RecoveryThreshold"
 
-Write-AutotrainStatus -StatusPath $statusPath -IterationLabel '---' -Phase 'starting' -Note 'Autotrain initialized.'
+$workflowName = if ($Command -eq 'improve') { 'codex -> decision' } else { 'train -> benchmark -> codex -> decision' }
+$startupNote = if ($Command -eq 'improve') { 'Standalone improve initialized.' } else { 'Autotrain initialized.' }
+
+Write-AutotrainStatus -StatusPath $statusPath -IterationLabel '---' -Phase 'starting' -Note $startupNote -Workflow $workflowName
 
 if ($OpenStatusWindow -and (Test-Path $statusWatcherScript)) {
     Start-Process powershell.exe -ArgumentList @(
@@ -615,89 +646,88 @@ if ($OpenStatusWindow -and (Test-Path $statusWatcherScript)) {
 $iteration = 0
 $lastSummaryLine = $null
 
-if ($Command -eq 'improve') {
-    $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $iterationLabel = 'improve'
-    $iterationDir = Join-Path $logRoot "improve_$timestamp"
-    New-Item -ItemType Directory -Force -Path $iterationDir | Out-Null
+try {
+    if ($Command -eq 'improve') {
+        $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+        $iterationLabel = 'improve'
+        $iterationDir = Join-Path $logRoot "improve_$timestamp"
+        New-Item -ItemType Directory -Force -Path $iterationDir | Out-Null
 
-    $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot
-    $latestTrainingStatusPath = ''
-    $latestBenchmarkStatusPath = ''
-    if ($latestRunStatus.output_dir) {
-        $latestTrainingStatusPath = Join-Path $latestRunStatus.output_dir 'training_status.json'
-        $latestBenchmarkStatusPath = Join-Path $latestRunStatus.output_dir 'benchmark_status.json'
+        $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot
+        $latestTrainingStatusPath = ''
+        $latestBenchmarkStatusPath = ''
+        if ($latestRunStatus.output_dir) {
+            $latestTrainingStatusPath = Join-Path $latestRunStatus.output_dir 'training_status.json'
+            $latestBenchmarkStatusPath = Join-Path $latestRunStatus.output_dir 'benchmark_status.json'
+        }
+        $benchmarkMetrics = Get-BenchmarkMetrics -BenchmarkReportPath $latestRunStatus.benchmark_report
+
+        Write-Host ("Latest benchmark: valid_output_rate={0:P2} | response_type_accuracy={1:P2} | size={2}" -f $benchmarkMetrics.ValidOutputRate, $benchmarkMetrics.ResponseTypeAccuracy, $benchmarkMetrics.BenchmarkSize)
+        Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'benchmark_complete' -Note 'Latest completed run loaded for standalone improvement.' -Workflow 'codex -> decision' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
+
+        $improveResult = Invoke-CodexImprovementPass -IterationLabel $iterationLabel -IterationDir $iterationDir -RepoRoot $repoRoot -StatusPath $statusPath -CodexExecutable $codexExecutable -CodexModel $CodexModel -Prompt $Prompt -RecoveryThreshold $RecoveryThreshold -BenchmarkMetrics $benchmarkMetrics -LatestTrainingStatusPath $latestTrainingStatusPath -LatestBenchmarkStatusPath $latestBenchmarkStatusPath -Workflow 'codex -> decision' -ShowInlineProgress:(-not $OpenStatusWindow)
+        $commitMessage = "improve: standalone codex pass $timestamp"
+        Invoke-GitPublish -RepoRoot $repoRoot -CommitMessage $commitMessage | Out-Null
+
+        Write-Host $improveResult.SummaryLine
+        if ($improveResult.Decision -eq 'STOP') {
+            Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'stopped' -Note 'Standalone improve completed and requested stop.' -Workflow 'codex -> decision' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
+        }
+        return
     }
-    $benchmarkMetrics = Get-BenchmarkMetrics -BenchmarkReportPath $latestRunStatus.benchmark_report
 
-    Write-Host ("Latest benchmark: valid_output_rate={0:P2} | response_type_accuracy={1:P2} | size={2}" -f $benchmarkMetrics.ValidOutputRate, $benchmarkMetrics.ResponseTypeAccuracy, $benchmarkMetrics.BenchmarkSize)
-    Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'benchmark_complete' -Note 'Latest completed run loaded for standalone improvement.' -Workflow 'codex -> decision' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
+    while ($true) {
+        $iteration += 1
+        if ($MaxIterations -gt 0 -and $iteration -gt $MaxIterations) {
+            Write-Host "Reached MaxIterations=$MaxIterations. Stopping."
+            Write-AutotrainStatus -StatusPath $statusPath -IterationLabel ('{0:D3}' -f ($iteration - 1)) -Phase 'stopped' -Note "Reached MaxIterations=$MaxIterations." -Workflow $workflowName
+            if ($lastSummaryLine) {
+                Write-Host $lastSummaryLine
+            }
+            break
+        }
 
-    $improveResult = Invoke-CodexImprovementPass -IterationLabel $iterationLabel -IterationDir $iterationDir -RepoRoot $repoRoot -StatusPath $statusPath -CodexExecutable $codexExecutable -CodexModel $CodexModel -Prompt $Prompt -RecoveryThreshold $RecoveryThreshold -BenchmarkMetrics $benchmarkMetrics -LatestTrainingStatusPath $latestTrainingStatusPath -LatestBenchmarkStatusPath $latestBenchmarkStatusPath -Workflow 'codex -> decision' -ShowInlineProgress:(-not $OpenStatusWindow)
-    $commitMessage = "improve: standalone codex pass $timestamp"
-    Invoke-GitPublish -RepoRoot $repoRoot -CommitMessage $commitMessage | Out-Null
+        $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+        $iterationLabel = '{0:D3}' -f $iteration
+        $iterationDir = Join-Path $logRoot "iteration_${iterationLabel}_$timestamp"
+        $latestTrainingStatusPath = ''
+        $latestBenchmarkStatusPath = ''
 
-    Write-Host $improveResult.SummaryLine
-    if ($improveResult.Decision -eq 'STOP') {
-        Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'stopped' -Note 'Standalone improve completed and requested stop.' -Workflow 'codex -> decision' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
-    }
-    return
-}
+        New-Item -ItemType Directory -Force -Path $iterationDir | Out-Null
 
-while ($true) {
-    $iteration += 1
-    if ($MaxIterations -gt 0 -and $iteration -gt $MaxIterations) {
-        Write-Host "Reached MaxIterations=$MaxIterations. Stopping."
-        if ($lastSummaryLine) {
+        Write-Host ''
+        Write-Host "=== Iteration ${iterationLabel}: training ==="
+        Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'training' -Note 'Training in progress.' -Workflow $workflowName
+
+        Invoke-TrainingRun -RepoRoot $repoRoot -PythonPath $pythonPath -ConfigPath $configPath -NumTrainEpochs $NumTrainEpochs -HasEpochOverride $PSBoundParameters.ContainsKey('NumTrainEpochs')
+
+        $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot
+        if ($latestRunStatus.output_dir) {
+            $latestTrainingStatusPath = Join-Path $latestRunStatus.output_dir 'training_status.json'
+            $latestBenchmarkStatusPath = Join-Path $latestRunStatus.output_dir 'benchmark_status.json'
+        }
+        $benchmarkMetrics = Get-BenchmarkMetrics -BenchmarkReportPath $latestRunStatus.benchmark_report
+
+        Write-Host ("Latest benchmark: valid_output_rate={0:P2} | response_type_accuracy={1:P2} | size={2}" -f $benchmarkMetrics.ValidOutputRate, $benchmarkMetrics.ResponseTypeAccuracy, $benchmarkMetrics.BenchmarkSize)
+        Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'benchmark_complete' -Note 'Training and benchmark completed.' -Workflow $workflowName -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
+
+        $codexPass = Invoke-CodexImprovementPass -IterationLabel $iterationLabel -IterationDir $iterationDir -RepoRoot $repoRoot -StatusPath $statusPath -CodexExecutable $codexExecutable -CodexModel $CodexModel -Prompt $Prompt -RecoveryThreshold $RecoveryThreshold -BenchmarkMetrics $benchmarkMetrics -LatestTrainingStatusPath $latestTrainingStatusPath -LatestBenchmarkStatusPath $latestBenchmarkStatusPath -Workflow $workflowName -ShowInlineProgress:(-not $OpenStatusWindow)
+        $commitMessage = "autotrain: iteration $iterationLabel codex update"
+        Invoke-GitPublish -RepoRoot $repoRoot -CommitMessage $commitMessage | Out-Null
+        $decision = $codexPass.Decision
+        $lastSummaryLine = $codexPass.SummaryLine
+
+        if ($decision -eq 'STOP') {
+            Write-Host "Codex requested stop. Ending automation loop."
             Write-Host $lastSummaryLine
+            Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'stopped' -Note 'Codex requested stop.' -Workflow $workflowName -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
+            break
         }
-        break
-    }
 
-    $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $iterationLabel = '{0:D3}' -f $iteration
-    $iterationDir = Join-Path $logRoot "iteration_${iterationLabel}_$timestamp"
-    $latestTrainingStatusPath = ''
-    $latestBenchmarkStatusPath = ''
-
-    New-Item -ItemType Directory -Force -Path $iterationDir | Out-Null
-
-    Write-Host ''
-    Write-Host "=== Iteration ${iterationLabel}: training ==="
-    Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'training' -Note 'Training in progress.'
-
-    Push-Location $repoRoot
-    try {
-        & $pythonPath scripts\train_native_model.py --config $configPath
-        if ($LASTEXITCODE -ne 0) {
-            throw "Training failed with exit code $LASTEXITCODE"
-        }
-    } finally {
-        Pop-Location
-    }
-
-    $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot
-    if ($latestRunStatus.output_dir) {
-        $latestTrainingStatusPath = Join-Path $latestRunStatus.output_dir 'training_status.json'
-        $latestBenchmarkStatusPath = Join-Path $latestRunStatus.output_dir 'benchmark_status.json'
-    }
-    $benchmarkMetrics = Get-BenchmarkMetrics -BenchmarkReportPath $latestRunStatus.benchmark_report
-
-    Write-Host ("Latest benchmark: valid_output_rate={0:P2} | response_type_accuracy={1:P2} | size={2}" -f $benchmarkMetrics.ValidOutputRate, $benchmarkMetrics.ResponseTypeAccuracy, $benchmarkMetrics.BenchmarkSize)
-    Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'benchmark_complete' -Note 'Training and benchmark completed.' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
-
-    $codexPass = Invoke-CodexImprovementPass -IterationLabel $iterationLabel -IterationDir $iterationDir -RepoRoot $repoRoot -StatusPath $statusPath -CodexExecutable $codexExecutable -CodexModel $CodexModel -Prompt $Prompt -RecoveryThreshold $RecoveryThreshold -BenchmarkMetrics $benchmarkMetrics -LatestTrainingStatusPath $latestTrainingStatusPath -LatestBenchmarkStatusPath $latestBenchmarkStatusPath -ShowInlineProgress:(-not $OpenStatusWindow)
-    $commitMessage = "autotrain: iteration $iterationLabel codex update"
-    Invoke-GitPublish -RepoRoot $repoRoot -CommitMessage $commitMessage | Out-Null
-    $decision = $codexPass.Decision
-    $lastSummaryLine = $codexPass.SummaryLine
-
-    if ($decision -eq 'STOP') {
-        Write-Host "Codex requested stop. Ending automation loop."
         Write-Host $lastSummaryLine
-        Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'stopped' -Note 'Codex requested stop.' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
-        break
     }
-
-    Write-Host $lastSummaryLine
+} catch {
+    $failedLabel = if ($iteration -gt 0) { '{0:D3}' -f $iteration } else { '---' }
+    Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $failedLabel -Phase 'failed' -Note $_.Exception.Message -Workflow $workflowName
+    throw
 }

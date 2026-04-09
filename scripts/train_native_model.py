@@ -1,4 +1,5 @@
 import argparse
+import gc
 import json
 import math
 import os
@@ -679,7 +680,12 @@ def main() -> int:
                 if not torch.isfinite(loss):
                     raise RuntimeError("Non-finite validation loss encountered.")
                 losses.append(float(loss.item()))
+                del logits
+                del loss
+                del input_ids
+                del labels
         model.train()
+        gc.collect()
         return sum(losses) / len(losses) if losses else 0.0
 
     global_step = 0
@@ -713,6 +719,7 @@ def main() -> int:
                     raise RuntimeError(
                         f"Non-finite training loss encountered at step {global_step}."
                     )
+                loss_value = float(loss.item())
                 loss.backward()
                 grad_clip = float(config.get("grad_clip", 1.0))
                 if grad_clip > 0:
@@ -726,7 +733,7 @@ def main() -> int:
                         global_step=global_step,
                         epoch=round(current_epoch, 4),
                         latest_log={
-                            "train_loss": float(loss.item()),
+                            "train_loss": loss_value,
                             "epoch": round(current_epoch, 4),
                         },
                     )
@@ -742,7 +749,7 @@ def main() -> int:
                         batches_per_epoch=total_batches_per_epoch,
                         elapsed_seconds=elapsed_seconds,
                         steps_per_second=steps_per_second,
-                        train_loss=float(loss.item()),
+                        train_loss=loss_value,
                     )
 
                 if global_step % int(config["eval_steps"]) == 0 or global_step == total_steps:
@@ -768,11 +775,16 @@ def main() -> int:
                         batches_per_epoch=total_batches_per_epoch,
                         elapsed_seconds=elapsed_seconds,
                         steps_per_second=steps_per_second,
-                        train_loss=float(loss.item()),
+                        train_loss=loss_value,
                         validation_loss=validation_loss,
                     )
                     if validation_loss < best_validation_loss:
                         best_validation_loss = validation_loss
+
+                del logits
+                del loss
+                del input_ids
+                del labels
 
         total_train_loss = float(status_writer.state.get("latest_log", {}).get("train_loss", 0.0))
         sys.stdout.write("\n")
