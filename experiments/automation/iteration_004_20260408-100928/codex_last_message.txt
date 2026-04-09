@@ -1,0 +1,14 @@
+I targeted the largest current classification failure cluster from the latest native run: `CLARIFICATION -> DIRECT_ANSWER` on vague, underspecified prompts like “Can you organize this?” and “Would this work?”. The narrow change was to stop collapsing all clarification near-duplicates during dataset prep. In [prepare_dataset.py](/C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/prepare_dataset.py#L260), `keep_clarification_variant(...)` now retains one generated clarification variant when it adds a distinct surface form inside the same vague-request family. That keeps more boundary coverage without changing model architecture, loss, or benchmark formatting.
+
+I rebuilt the processed datasets and SFT files. The train split moved from 542 to 556 records, and `CLARIFICATION` examples in train increased from 81 to 95. This is the right next experiment because it directly addresses the dominant weak boundary while staying comparable to the last run.
+
+Files changed:
+- [prepare_dataset.py](/C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/prepare_dataset.py)
+- [full_dataset.json](/C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/full_dataset.json)
+- [train.json](/C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train.json)
+- [validation.json](/C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/validation.json)
+- [preparation_report.json](/C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/preparation_report.json)
+- [train_sft.jsonl](/C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+- [validation_sft.jsonl](/C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/validation_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

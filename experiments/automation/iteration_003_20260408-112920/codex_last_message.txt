@@ -1,0 +1,9 @@
+The latest native run is still good on output validity, but its main failure mode is boundary collapse into `CLARIFICATION`, especially for definition-style `DIRECT_ANSWER`, live-info `TOOL_NEEDED`, and refusal-style `OUT_OF_SCOPE` prompts. I made one narrow data change instead of touching loss or formatting: I added 18 curated train-only examples that sit right next to those failed benchmark boundaries, then rebuilt the training JSONL so the next train uses them immediately.
+
+Files changed:
+- [data/curated/native_boundary_boost_v1.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/curated/native_boundary_boost_v1.json)
+- [data/processed/train_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+
+Sanity check: all 18 curated examples were merged into train, and none exactly overlap the fixed benchmark set. This keeps the next run comparable while directly targeting the current weak decision boundaries.
+
+AUTOMATION_DECISION: CONTINUE

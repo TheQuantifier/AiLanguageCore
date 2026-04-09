@@ -1,0 +1,14 @@
+I applied one narrow improvement aimed at the main failure mode from the latest native run: vague decision/reference prompts that should classify as `CLARIFICATION` were collapsing into `DIRECT_ANSWER`.
+
+I added a small seed-side set of clarification exemplars around ambiguous prompts like affordability, choosing, “walk me through this,” “would that work,” and “what should I do next here?”, then regenerated the processed train/validation datasets and SFT JSONL so the next training run will consume the updated supervision. I did not change model architecture, loss shaping, or output formatting.
+
+Files changed:
+- `data/raw/v1_seed_dataset.json`
+- `data/processed/full_dataset.json`
+- `data/processed/preparation_report.json`
+- `data/processed/train.json`
+- `data/processed/train_sft.jsonl`
+- `data/processed/validation.json`
+- `data/processed/validation_sft.jsonl`
+
+AUTOMATION_DECISION: CONTINUE

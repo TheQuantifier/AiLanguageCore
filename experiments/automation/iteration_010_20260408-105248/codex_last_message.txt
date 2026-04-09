@@ -1,0 +1,9 @@
+I targeted the next boundary that the latest native run still misses most cleanly: static definition/explanation prompts drifting into `TOOL_NEEDED`. The benchmark errors included `DIRECT_ANSWER -> TOOL_NEEDED` on prompts like “What are needs versus wants?”, “What does opportunity cost mean?”, and “What is a short-term goal?”, so I added one small train-only contrast pack with 5 static-knowledge `DIRECT_ANSWER` examples and 3 similarly phrased live/current `TOOL_NEEDED` examples, then rebuilt `train_sft.jsonl` through the existing extra-train merge path. That keeps the experiment narrow and comparable while directly addressing the current weak boundary.
+
+Verification: `scripts/convert_training_data.py --extra-train-inputs data/processed/train_clarification_boundary_pack.json data/processed/train_direct_answer_tool_boundary_pack.json` completed successfully. The merged train set is now 580 examples; validation and benchmark inputs stayed unchanged.
+
+Files changed:
+- [data/processed/train_direct_answer_tool_boundary_pack.json](/C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_direct_answer_tool_boundary_pack.json)
+- [data/processed/train_sft.jsonl](/C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

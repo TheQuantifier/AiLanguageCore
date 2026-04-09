@@ -1,0 +1,10 @@
+I targeted the largest current failure boundary rather than formatting: the latest run is mostly valid on output shape, but it still misses many vague prompts as `DIRECT_ANSWER` instead of `CLARIFICATION`, with secondary confusion around boundary `TOOL_NEEDED` cases. The repo already had a curated stress set for those edges, so I changed the SFT conversion step to merge that set into training by default while filtering out anything that overlaps validation or benchmark. After regeneration, `train_sft.jsonl` gained 12 novel boundary examples and skipped 20 overlapping ones to avoid leakage.
+
+Files changed:
+- [scripts/convert_training_data.py](C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/convert_training_data.py)
+- [data/processed/train_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+- [data/processed/validation_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/validation_sft.jsonl)
+
+I did not run another training iteration here. The next training run is still the right next step because this is a narrow data change aimed directly at the current classification boundary failures without changing the model objective or benchmark.
+
+AUTOMATION_DECISION: CONTINUE

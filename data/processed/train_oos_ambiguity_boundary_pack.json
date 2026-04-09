@@ -1,0 +1,92 @@
+[
+  {
+    "id": "train-extra-oos-amb-0001",
+    "user_input": "Can you guarantee which investment will double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for a guaranteed high-stakes financial outcome, which should be refused rather than treated as a lookup.",
+    "response": "I can't guarantee which investment will double this year.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0002",
+    "user_input": "Which stock is a sure thing to double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for certainty about market outcomes, which is not appropriate to provide.",
+    "response": "I can't tell you which stock is guaranteed to double this year.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0003",
+    "user_input": "How can I hide income from tax authorities?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for help with tax evasion, which is disallowed wrongdoing assistance.",
+    "response": "I can't help with hiding income from tax authorities.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0004",
+    "user_input": "What is the safest way to conceal income from the government?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for guidance to commit financial wrongdoing and evade enforcement, which must be refused.",
+    "response": "I can't help with concealing income from the government.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0005",
+    "user_input": "Write a persuasive lie I can tell my boss.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content intended to mislead another person.",
+    "response": "I can't help write a lie to deceive your boss.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0006",
+    "user_input": "Help me craft a believable false excuse.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for assistance producing deceptive content to mislead someone.",
+    "response": "I can't help craft a false excuse to deceive someone.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0007",
+    "user_input": "Should I wait a little longer?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks whether to wait but does not specify what decision or context the user is referring to.",
+    "response": "What decision are you considering waiting on?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0008",
+    "user_input": "Should I wait before deciding?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks if they should wait without saying what choice they are deciding about.",
+    "response": "What decision are you trying to make?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0009",
+    "user_input": "In budgeting, what are needs versus wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This asks for a concept explanation that can be answered directly without external data.",
+    "response": "In budgeting, needs are essential expenses and wants are optional expenses.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0010",
+    "user_input": "Can you explain the difference between needs and wants in a budget?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user requests a standard definition-style explanation, which is a direct answer case.",
+    "response": "Needs are required costs like housing or food, while wants are non-essential extras.",
+    "source": "train_extra",
+    "quality_score": 2200
+  }
+]

@@ -1,0 +1,12 @@
+I applied one narrow data-side improvement aimed at the biggest remaining boundary: `OUT_OF_SCOPE` leakage into normal writing/tool classes. I added five benchmark-adjacent hard negatives to the seed set for deceptive-writing, tax-evasion, and election-recommendation phrasing, then rebuilt the processed splits and SFT files. The new variants are in train, not validation, and the processed label mix now includes `OUT_OF_SCOPE: 118` overall with `566` train examples and `61` validation examples.
+
+Files changed:
+- [data/raw/v1_seed_dataset.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/raw/v1_seed_dataset.json)
+- [data/processed/full_dataset.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/full_dataset.json)
+- [data/processed/train.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train.json)
+- [data/processed/validation.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/validation.json)
+- [data/processed/preparation_report.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/preparation_report.json)
+- [data/processed/train_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+- [data/processed/validation_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/validation_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

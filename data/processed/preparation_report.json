@@ -1,10 +1,10 @@
 {
-  "seed_records": 327,
+  "seed_records": 359,
   "generated_records": 507,
   "fixed_benchmark_records": 61,
   "invalid_records_removed": 21,
-  "duplicates_found": 106,
-  "near_duplicates_found": 66,
+  "duplicates_found": 111,
+  "near_duplicates_found": 69,
   "duplicate_resolution_events": [
     {
       "user_input": "Can you compare them?",
@@ -327,6 +327,46 @@
       "kept_source": "seed"
     },
     {
+      "user_input": "Can you make this easier to understand?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Can you help me choose?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is this the right option?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Which choice fits me better?",
+      "resolution": "kept_existing_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Is this a good option for me?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "How should I improve this?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "What should I do next with this?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
+      "user_input": "Would this work for me?",
+      "resolution": "replaced_with_higher_quality_record",
+      "kept_source": "seed"
+    },
+    {
       "user_input": "Explain budget in simple words.",
       "resolution": "kept_existing_higher_quality_record",
       "kept_source": "seed"
@@ -358,23 +398,23 @@
     },
     {
       "user_input": "Can you organize this in my situation?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "What is the best option for me for me?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Can you break this down? I am not sure.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Is this a good amount? I am not sure.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Is this a good amount right now?",
@@ -383,8 +423,8 @@
     },
     {
       "user_input": "Should I wait? I am not sure.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Can you simplify this?",
@@ -393,8 +433,8 @@
     },
     {
       "user_input": "How much should I spend right now?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "What deals are available for laptops today?",
@@ -418,13 +458,13 @@
     },
     {
       "user_input": "Help me choose? I am not sure.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Can you simplify this right now?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Can you organize this for me?",
@@ -508,8 +548,8 @@
     },
     {
       "user_input": "Is this enough? I am not sure.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Should I wait?",
@@ -523,18 +563,18 @@
     },
     {
       "user_input": "Can I afford it right now?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Is it too much? I am not sure.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Can you explain that in my situation?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "What does savings mean?",
@@ -563,8 +603,8 @@
     },
     {
       "user_input": "Which one is better? I am not sure.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Can you explain that right now?",
@@ -608,8 +648,8 @@
     },
     {
       "user_input": "What should I cut for me?",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Can you simplify this? I am not sure.",
@@ -628,8 +668,8 @@
     },
     {
       "user_input": "What should I do next? I am not sure.",
-      "resolution": "kept_existing_higher_quality_record",
-      "kept_source": "seed"
+      "resolution": "retained_clarification_variant",
+      "kept_source": "generated"
     },
     {
       "user_input": "Can you explain that? I am not sure.",
@@ -867,14 +907,14 @@
       "kept_source": "seed"
     }
   ],
-  "full_dataset_records": 651,
-  "train_records": 529,
-  "validation_records": 57,
+  "full_dataset_records": 692,
+  "train_records": 566,
+  "validation_records": 61,
   "benchmark_records": 61,
   "response_type_counts": {
-    "CLARIFICATION": 93,
+    "CLARIFICATION": 123,
     "DIRECT_ANSWER": 189,
-    "OUT_OF_SCOPE": 107,
+    "OUT_OF_SCOPE": 118,
     "TOOL_NEEDED": 262
   }
 }

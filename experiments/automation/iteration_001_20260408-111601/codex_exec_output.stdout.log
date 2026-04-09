@@ -1,0 +1,9 @@
+I applied one narrow training-data improvement aimed at the biggest weak boundary in the latest native run: underspecified `should I / what should I` prompts leaking into `OUT_OF_SCOPE` instead of staying `CLARIFICATION`. I added a small train-only contrast pack with 6 harmless ambiguous clarification examples and 4 clearly high-stakes `OUT_OF_SCOPE` counterexamples, then rebuilt the merged SFT training file so the next train picks it up without changing validation or benchmark composition.
+
+Verification: `scripts/convert_training_data.py --extra-train-inputs data/processed/train_clarification_boundary_pack.json data/processed/train_direct_answer_tool_boundary_pack.json data/processed/train_clarification_oos_boundary_pack.json` completed successfully. Train SFT is now 589 examples.
+
+Files changed:
+- [train_clarification_oos_boundary_pack.json](/C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_clarification_oos_boundary_pack.json)
+- [train_sft.jsonl](/C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

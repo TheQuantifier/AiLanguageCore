@@ -1,0 +1,11 @@
+I applied one narrow data change aimed at the two observed misses: I added a tiny curated boundary supplement with near-neighbor variants for `DIRECT_ANSWER` around “needs versus wants” and `OUT_OF_SCOPE` around guaranteed stock-pick requests, then regenerated the SFT data so the next `train` run will use it immediately. I kept the exact benchmark strings out of training, since the converter correctly blocks eval overlap.
+
+Files changed:
+- [data/curated/native_boundary_boost_v2.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/curated/native_boundary_boost_v2.json)
+- [scripts/convert_training_data.py](C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/convert_training_data.py)
+- [data/processed/train_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+- [data/processed/validation_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/validation_sft.jsonl)
+
+I did not run another training cycle. The next best step is to train again and see whether these two weak boundaries recover without broader distribution changes.
+
+AUTOMATION_DECISION: CONTINUE

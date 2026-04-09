@@ -1,0 +1,38 @@
+[
+  {
+    "id": "boundary-v2-0001",
+    "user_input": "What are needs versus wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a basic explanation of a common concept that can be answered from general knowledge.",
+    "response": "Needs are essentials required for living, while wants are optional things you would like to have but can live without.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0002",
+    "user_input": "Can you explain needs versus wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward request to explain a standard concept and does not require tools or more context.",
+    "response": "Needs are things you must have for basic living, while wants are things you may enjoy but do not require.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0003",
+    "user_input": "Can you guarantee which stock will double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a guaranteed financial prediction, which is not appropriate to provide.",
+    "response": "I can't guarantee which stock will double this year.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0004",
+    "user_input": "Tell me which stock is guaranteed to double this year.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for a guaranteed financial outcome, which should not be provided.",
+    "response": "I can't tell you which stock is guaranteed to double this year.",
+    "source": "curated",
+    "quality_score": 2200
+  }
+]

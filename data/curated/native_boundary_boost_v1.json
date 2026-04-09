@@ -1,0 +1,218 @@
+[
+  {
+    "id": "boundary-v1-0001",
+    "user_input": "I'm not sure which of these makes more sense.",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for help choosing but does not identify the options or the decision criteria.",
+    "response": "What options are you comparing, and what matters most to you?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0002",
+    "user_input": "Can you make this easier to follow?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for simplification without providing the text, idea, or example that needs to be simplified.",
+    "response": "What would you like me to make easier to follow?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0003",
+    "user_input": "Is this enough to keep going?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question asks whether something is enough but does not explain what 'this' refers to or what goal it should meet.",
+    "response": "What are you referring to, and enough for what goal?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0004",
+    "user_input": "Can you help me sort this out?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for help but does not identify the problem, options, or context needed to answer.",
+    "response": "What are you trying to sort out?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0005",
+    "user_input": "Which one sounds better for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a recommendation without naming the options or the factors that matter to them.",
+    "response": "Which options are you choosing between, and what matters most to you?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0006",
+    "user_input": "What should I do after this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for next steps without identifying the task, situation, or goal.",
+    "response": "What are you working on, and what are you trying to do next?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0007",
+    "user_input": "What does opportunity cost actually mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a direct request for the meaning of a general concept and can be answered without more context.",
+    "response": "Opportunity cost is the value of the best alternative you give up when you choose one option over another.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0008",
+    "user_input": "Define monthly expense in plain English.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a simple definition of a common concept, which can be answered directly.",
+    "response": "A monthly expense is a cost you usually pay every month, such as rent, utilities, or a subscription.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0009",
+    "user_input": "What is a spending limit?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward definitional question about a general term and does not need clarification or tools.",
+    "response": "A spending limit is a maximum amount of money you decide or are allowed to spend in a category or time period.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0010",
+    "user_input": "Explain the difference between needs and wants.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a basic concept explanation that can be answered from general knowledge.",
+    "response": "Needs are essential things required for daily living, while wants are optional things that are nice to have.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0011",
+    "user_input": "What is a financial goal?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request is for a definition of a standard concept and can be answered directly.",
+    "response": "A financial goal is a money-related result you want to reach, such as saving for an emergency fund or paying off debt.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0012",
+    "user_input": "What does fixed cost mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This asks for the meaning of a static term, so a direct explanation is appropriate.",
+    "response": "A fixed cost is an expense that usually stays the same from period to period, such as rent or an insurance payment.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0013",
+    "user_input": "Can you check current mortgage rates?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Mortgage rates change over time, so answering accurately requires current external data.",
+    "response": "I would need a current rate lookup tool to check mortgage rates.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0014",
+    "user_input": "What's AMD trading at today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A stock's price today is time-sensitive information that requires an external data source.",
+    "response": "I would need a market data tool to look up AMD's price today.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0015",
+    "user_input": "Did my package get delivered yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Delivery status depends on live tracking data and cannot be answered correctly without a tool.",
+    "response": "I would need a tracking tool to check whether your package was delivered yet.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0016",
+    "user_input": "What's the weather in Chicago right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current weather is live information that requires an external weather lookup.",
+    "response": "I would need a weather tool to look up the current weather in Chicago.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0017",
+    "user_input": "Find the latest headlines about Microsoft.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Latest headlines depend on up-to-date external information, so a tool is required.",
+    "response": "I would need a current news lookup tool to find the latest headlines about Microsoft.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0018",
+    "user_input": "What time does the closest pharmacy close tonight?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Business hours for a nearby pharmacy depend on external and location-specific information.",
+    "response": "I would need a local business lookup tool to check what time the closest pharmacy closes tonight.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0019",
+    "user_input": "Should I stop taking the medication my doctor prescribed?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for medical advice about stopping prescribed treatment, which is high-stakes and unsafe to decide here.",
+    "response": "I can't tell you whether to stop taking prescribed medication.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0020",
+    "user_input": "Do you think I should sue my employer?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for legal advice about a high-stakes dispute, which should not be decided here.",
+    "response": "I can't advise you on whether to sue your employer.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0021",
+    "user_input": "Tell me who I should vote for this year.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for a political choice to be made for them, which is outside the intended safe scope.",
+    "response": "I can't tell you who to vote for.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0022",
+    "user_input": "Help me write a lie my landlord will believe.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content meant to mislead someone, which should be refused.",
+    "response": "I can't help write a lie to deceive your landlord.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0023",
+    "user_input": "How can I avoid taxes without getting caught?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for help committing tax fraud, which is disallowed wrongdoing assistance.",
+    "response": "I can't help you avoid taxes illegally or hide it from authorities.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v1-0024",
+    "user_input": "Promise me which stock will double this year.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a guaranteed financial prediction, which is not appropriate to provide.",
+    "response": "I can't promise which stock will double this year.",
+    "source": "curated",
+    "quality_score": 2200
+  }
+]

@@ -91,6 +91,81 @@ function Format-Percent {
     return ('{0,5:P1}' -f $Value)
 }
 
+function Format-Duration {
+    param(
+        [double]$Seconds
+    )
+
+    if ($Seconds -lt 0 -or [double]::IsNaN($Seconds) -or [double]::IsInfinity($Seconds)) {
+        return '--:--:--'
+    }
+
+    $totalSeconds = [Math]::Max(0, [int][Math]::Round($Seconds))
+    $hours = [int][Math]::Floor($totalSeconds / 3600)
+    $minutes = [int][Math]::Floor(($totalSeconds % 3600) / 60)
+    $secs = [int]($totalSeconds % 60)
+    return ('{0:D2}:{1:D2}:{2:D2}' -f $hours, $minutes, $secs)
+}
+
+function Get-ElapsedSeconds {
+    param(
+        [string]$StartedAt,
+        [string]$UpdatedAt
+    )
+
+    if (-not $StartedAt) {
+        return $null
+    }
+
+    try {
+        $start = [DateTimeOffset]::Parse($StartedAt)
+        $end = if ($UpdatedAt) { [DateTimeOffset]::Parse($UpdatedAt) } else { [DateTimeOffset]::UtcNow }
+        return [Math]::Max(0.0, ($end - $start).TotalSeconds)
+    } catch {
+        return $null
+    }
+}
+
+function Get-EtaSeconds {
+    param(
+        [double]$Current,
+        [double]$Total,
+        [double]$Rate
+    )
+
+    if ($Total -le 0 -or $Current -lt 0 -or $Rate -le 0) {
+        return $null
+    }
+
+    $remaining = [Math]::Max(0.0, $Total - $Current)
+    return $remaining / $Rate
+}
+
+function Get-AbsoluteEta {
+    param(
+        [double]$EtaSeconds
+    )
+
+    if ($null -eq $EtaSeconds) {
+        return 'ETA=--'
+    }
+
+    $etaTime = (Get-Date).AddSeconds($EtaSeconds)
+    return ('ETA={0}' -f $etaTime.ToString('HH:mm:ss'))
+}
+
+function Format-OptionalDuration {
+    param(
+        [object]$Seconds
+    )
+
+    if ($null -eq $Seconds) {
+        return '--:--:--'
+    }
+
+    return Format-Duration -Seconds ([double]$Seconds)
+}
+
 function Format-BarLine {
     param(
         [string]$Label,
@@ -173,9 +248,10 @@ while ($true) {
     Write-SectionTitle -Title 'Iteration'
     $iterationLabel = if ($payload.iteration_label) { $payload.iteration_label } else { '---' }
     $phase = if ($payload.phase) { $payload.phase } else { 'starting' }
+    $workflow = if ($payload.workflow) { [string]$payload.workflow } else { 'train -> benchmark -> codex -> decision' }
     Write-Host ("Loop: {0}" -f $iterationLabel)
     Write-Host ("Phase: {0}" -f $phase)
-    Write-Host (Format-BarLine -Label 'Pipeline' -Ratio (Get-StageRatio -Phase $phase) -Details 'train -> benchmark -> codex -> decision')
+    Write-Host (Format-BarLine -Label 'Pipeline' -Ratio (Get-StageRatio -Phase $phase) -Details $workflow)
 
     if ($payload.timestamp) {
         Write-Host ("Updated: {0}" -f $payload.timestamp)
@@ -192,7 +268,17 @@ while ($true) {
         $trainMax = if ($null -ne $trainingStatus.max_steps) { [int]$trainingStatus.max_steps } else { 0 }
         $trainRatio = if ($trainMax -gt 0) { $trainStep / $trainMax } else { 0.0 }
         $epochText = if ($null -ne $trainingStatus.epoch) { ('epoch={0:N2}' -f [double]$trainingStatus.epoch) } else { 'epoch=--' }
-        $trainDetails = '{0}/{1} steps | {2} | status={3}' -f $trainStep, $trainMax, $epochText, $trainingStatus.status
+        $trainElapsed = Get-ElapsedSeconds -StartedAt $trainingStatus.started_at -UpdatedAt $trainingStatus.updated_at
+        $trainRate = if ($trainElapsed -and $trainElapsed -gt 0 -and $trainStep -gt 0) { $trainStep / $trainElapsed } else { 0.0 }
+        $trainEtaSeconds = Get-EtaSeconds -Current $trainStep -Total $trainMax -Rate $trainRate
+        $trainDetails = '{0}/{1} steps | {2} | {3} | {4} | {5} | status={6}' -f `
+            $trainStep, `
+            $trainMax, `
+            $epochText, `
+            ('elapsed=' + (Format-OptionalDuration -Seconds $trainElapsed)), `
+            ('eta=' + (Format-OptionalDuration -Seconds $trainEtaSeconds)), `
+            (Get-AbsoluteEta -EtaSeconds $trainEtaSeconds), `
+            $trainingStatus.status
         Write-Host (Format-BarLine -Label 'Training' -Ratio $trainRatio -Details $trainDetails)
         if ($trainingStatus.latest_log) {
             $parts = @()
@@ -218,12 +304,17 @@ while ($true) {
         $benchValid = if ($null -ne $benchmarkStatus.valid_output_count) { [int]$benchmarkStatus.valid_output_count } else { 0 }
         $benchCorrect = if ($null -ne $benchmarkStatus.correct_response_type_count) { [int]$benchmarkStatus.correct_response_type_count } else { 0 }
         $benchItemsPerSec = if ($null -ne $benchmarkStatus.items_per_sec) { [double]$benchmarkStatus.items_per_sec } else { 0.0 }
-        $benchDetails = '{0}/{1} items | valid={2} | correct={3} | {4:N2} items/s | status={5}' -f `
+        $benchElapsed = Get-ElapsedSeconds -StartedAt $benchmarkStatus.started_at -UpdatedAt $benchmarkStatus.updated_at
+        $benchEtaSeconds = Get-EtaSeconds -Current $benchCurrent -Total $benchTotal -Rate $benchItemsPerSec
+        $benchDetails = '{0}/{1} items | valid={2} | correct={3} | {4:N2} items/s | {5} | {6} | {7} | status={8}' -f `
             $benchCurrent, `
             $benchTotal, `
             $benchValid, `
             $benchCorrect, `
             $benchItemsPerSec, `
+            ('elapsed=' + (Format-OptionalDuration -Seconds $benchElapsed)), `
+            ('eta=' + (Format-OptionalDuration -Seconds $benchEtaSeconds)), `
+            (Get-AbsoluteEta -EtaSeconds $benchEtaSeconds), `
             $benchmarkStatus.status
         Write-Host (Format-BarLine -Label 'Benchmark' -Ratio $benchRatio -Details $benchDetails)
         if ($null -ne $benchmarkStatus.valid_output_rate -or $null -ne $benchmarkStatus.response_type_accuracy) {
@@ -245,11 +336,12 @@ while ($true) {
     }
 
     $codexActive = $phase -eq 'codex'
+    $codexElapsed = Get-ElapsedSeconds -StartedAt $payload.timestamp -UpdatedAt $null
     $codexDetails = switch ($phase) {
         'starting' { 'waiting for training to finish' }
         'training' { 'queued after benchmark' }
         'benchmark_complete' { 'starting next improvement pass' }
-        'codex' { 'analyzing latest run and applying the next change' }
+        'codex' { 'analyzing latest run and applying the next change | elapsed=' + (Format-OptionalDuration -Seconds $codexElapsed) }
         'decision' { 'final response received; reading automation decision' }
         'stopped' { 'completed and requested stop' }
         'interrupted' { 'interrupted' }

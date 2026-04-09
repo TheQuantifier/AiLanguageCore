@@ -1,0 +1,14 @@
+I added a narrow clarification-boundary seed pack aimed at the main failure mode in the latest native run: vague advisory prompts being classified as `DIRECT_ANSWER` instead of `CLARIFICATION`. The change adds 10 close paraphrases around prompts like “help me decide,” “simplify this,” “how much should I spend,” “should I wait,” and “would this work,” then rebuilds the processed train/validation/SFT files so the next run uses them.
+
+Verification: `scripts/prepare_dataset.py` and `scripts/convert_training_data.py` both ran successfully afterward. The rebuilt dataset now carries 8 more total `CLARIFICATION` records overall, with the new targeted examples present in `train.json`.
+
+Files changed:
+- [data/raw/v1_seed_dataset.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/raw/v1_seed_dataset.json)
+- [data/processed/full_dataset.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/full_dataset.json)
+- [data/processed/preparation_report.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/preparation_report.json)
+- [data/processed/train.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train.json)
+- [data/processed/train_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+- [data/processed/validation.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/validation.json)
+- [data/processed/validation_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/validation_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

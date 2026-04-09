@@ -29,6 +29,12 @@ def parse_args() -> argparse.Namespace:
         default=Path("models/configs/v1_native_byte_transformer_config.json"),
         help="Path to the native model training config.",
     )
+    parser.add_argument(
+        "--num-train-epochs",
+        type=int,
+        default=None,
+        help="Optional override for config num_train_epochs.",
+    )
     return parser.parse_args()
 
 
@@ -492,6 +498,10 @@ def main() -> int:
     repo_root = Path(__file__).resolve().parent.parent
     config_path = resolve_path(args.config, repo_root)
     config = load_config(config_path)
+    if args.num_train_epochs is not None:
+        if args.num_train_epochs < 1:
+            raise ValueError("--num-train-epochs must be at least 1")
+        config["num_train_epochs"] = int(args.num_train_epochs)
     configure_reproducibility(int(config.get("seed", 11)))
 
     train_file = resolve_path(config["train_file"], repo_root)

@@ -1,0 +1,65 @@
+[
+  {
+    "id": "train-extra-clar-0001",
+    "user_input": "Can you help me decide here?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for help deciding but does not identify the options or the criteria for the decision.",
+    "response": "What options are you deciding between, and what matters most to you?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0002",
+    "user_input": "Could you organize this a bit?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for organization help without identifying what needs to be organized.",
+    "response": "What would you like me to organize?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0003",
+    "user_input": "Can you simplify this a little?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks for simplification but does not provide the text, idea, or example to simplify.",
+    "response": "What would you like me to simplify?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0004",
+    "user_input": "Is this a good choice for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a recommendation without identifying the option or the decision criteria.",
+    "response": "What choice are you considering, and what matters most to you?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0005",
+    "user_input": "Is this enough to start?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks whether something is enough but does not say what it is or what goal it should meet.",
+    "response": "What are you referring to, and enough for what goal?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0007",
+    "user_input": "What is the best option here for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for the best option but does not identify the options or the criteria for choosing among them.",
+    "response": "What options are you considering, and what matters most to you?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-0008",
+    "user_input": "Which option fits me better here?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a comparison without naming the options or the user's priorities.",
+    "response": "Which options are you comparing, and what matters most to you?",
+    "source": "train_extra",
+    "quality_score": 2200
+  }
+]

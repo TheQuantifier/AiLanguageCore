@@ -34,12 +34,28 @@ function create_data {
     }
 }
 function train {
+    param(
+        [int]$epochs
+    )
+
     $config = 'models\configs\v1_native_byte_transformer_config.json'
     Write-Host "Starting native training from $AiLanguageCoreRoot"
     Write-Host "Config: $config"
     Push-Location $AiLanguageCoreRoot
     try {
-        & $py scripts\train_native_model.py --config $config
+        if ($PSBoundParameters.ContainsKey('epochs')) {
+            & $py scripts\train_native_model.py --config $config --num-train-epochs $epochs
+        } else {
+            & $py scripts\train_native_model.py --config $config
+        }
+    } finally {
+        Pop-Location
+    }
+}
+function improve {
+    Push-Location $AiLanguageCoreRoot
+    try {
+        .\scripts\run_autotrain_loop.ps1 -Command improve
     } finally {
         Pop-Location
     }
@@ -146,12 +162,35 @@ With the helper above, you can just run:
 
 ```powershell
 train
+train 8
 ```
 
 The helper now:
 - changes into the repo root automatically
 - prints which config it is about to use
 - starts the native trainer from the correct working directory
+
+Default training baseline:
+- the config now defaults to `30` epochs
+- use `train <N>` or `.\train.ps1 -Epochs <N>` only when you want to override that baseline
+
+Run just the Codex improvement pass against the latest completed training run:
+
+```powershell
+.\scripts\run_autotrain_loop.ps1 -Command improve
+```
+
+With the helper above, you can just run:
+
+```powershell
+improve
+```
+
+This command:
+- loads the latest completed native run under `models/runs/`
+- reads its benchmark report
+- runs the same Codex improvement step used by autotrain
+- writes logs under `experiments/automation/improve_<timestamp>/`
 
 Output:
 - a new timestamped run directory under `models/runs/`
@@ -245,12 +284,29 @@ function create_data {
 }
 
 function train {
+    param(
+        [int]$epochs
+    )
+
     $config = 'models\configs\v1_native_byte_transformer_config.json'
     Write-Host "Starting native training from $AiLanguageCoreRoot"
     Write-Host "Config: $config"
     Push-Location $AiLanguageCoreRoot
     try {
-        & $py scripts\train_native_model.py --config $config
+        if ($PSBoundParameters.ContainsKey('epochs')) {
+            & $py scripts\train_native_model.py --config $config --num-train-epochs $epochs
+        } else {
+            & $py scripts\train_native_model.py --config $config
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
+function improve {
+    Push-Location $AiLanguageCoreRoot
+    try {
+        .\scripts\run_autotrain_loop.ps1 -Command improve
     } finally {
         Pop-Location
     }
@@ -325,6 +381,12 @@ Direct command:
 .\scripts\run_autotrain_loop.ps1
 ```
 
+Standalone Codex improvement command:
+
+```powershell
+.\scripts\run_autotrain_loop.ps1 -Command improve
+```
+
 Stop after a fixed number of iterations:
 
 ```powershell
@@ -342,6 +404,7 @@ With the helper block above loaded:
 ```powershell
 autotrain
 autotrain 3
+improve
 ```
 
 Notes:

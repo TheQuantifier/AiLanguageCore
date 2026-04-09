@@ -1960,5 +1960,197 @@
     "response_type": "DIRECT_ANSWER",
     "reason": "The question is specific enough to answer directly because it asks about the purpose of an emergency fund.",
     "response": "Yes, an emergency fund is meant to help cover small or large unexpected costs, such as car repairs or urgent medical bills."
+  },
+  {
+    "user_input": "Can I afford that?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks whether something is affordable but does not identify the purchase, price, or budget.",
+    "response": "What are you thinking about buying, and what budget are you working with?"
+  },
+  {
+    "user_input": "Can you walk me through this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for an explanation of 'this' without saying what the user is referring to.",
+    "response": "What would you like me to walk through?"
+  },
+  {
+    "user_input": "Can you make this easier to understand?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks for simplification but does not identify the text, idea, or example that needs to be simplified.",
+    "response": "What would you like me to simplify?"
+  },
+  {
+    "user_input": "Can you help me choose?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for help choosing but does not identify the options or the decision.",
+    "response": "What options are you choosing between?"
+  },
+  {
+    "user_input": "Is this the right option?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a judgment about 'this' without identifying the option being evaluated.",
+    "response": "What option are you asking about?"
+  },
+  {
+    "user_input": "Is this a smart move?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks whether something is a good decision but does not say what the plan or action is.",
+    "response": "What move are you thinking about?"
+  },
+  {
+    "user_input": "What should I do next here?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for the next step but does not describe the task, draft, or situation.",
+    "response": "What situation or task are you asking about?"
+  },
+  {
+    "user_input": "What seems like the best choice here?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for the best choice but does not identify the available options or goals.",
+    "response": "What choices are you considering?"
+  },
+  {
+    "user_input": "Which choice fits me better?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a comparison but does not identify the choices being compared.",
+    "response": "Which choices are you comparing?"
+  },
+  {
+    "user_input": "Would that work?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks whether 'that' would work without identifying the idea, plan, or option.",
+    "response": "What are you referring to when you say 'that'?"
+  },
+  {
+    "user_input": "Would this be enough to move forward?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks whether something is enough but does not say what 'this' refers to.",
+    "response": "What are you referring to, and enough for what?"
+  },
+  {
+    "user_input": "Can you help me decide what to pick?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a recommendation but does not identify the options or the goal behind the choice.",
+    "response": "What options are you choosing between, and what matters most to you?"
+  },
+  {
+    "user_input": "Could you simplify this for me a little?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for simplification without providing the text, idea, or example that should be simplified.",
+    "response": "What would you like me to simplify?"
+  },
+  {
+    "user_input": "How much should I spend on this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question asks for a spending judgment but does not include the item, price range, or budget context.",
+    "response": "What are you planning to spend on, and what budget are you trying to stay within?"
+  },
+  {
+    "user_input": "Is that too much to pay?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks whether a price is too high but does not identify the item, amount, or budget context.",
+    "response": "What price are you asking about, and what are you comparing it against?"
+  },
+  {
+    "user_input": "Is this a good option for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for an evaluation without identifying the option or the user's decision criteria.",
+    "response": "What option are you considering, and what matters most to you?"
+  },
+  {
+    "user_input": "How should I improve this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks how to improve something but does not say what 'this' refers to.",
+    "response": "What are you trying to improve?"
+  },
+  {
+    "user_input": "What should I cut first here?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks what to cut first but does not identify the budget, list, or plan being reviewed.",
+    "response": "What are you trying to cut from, and what is your goal?"
+  },
+  {
+    "user_input": "What should I do next with this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt asks for the next step but does not describe the task, draft, or situation the user means.",
+    "response": "What are you working on, and what does 'this' refer to?"
+  },
+  {
+    "user_input": "Should I wait on this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question asks whether to wait but does not explain the decision, timing, or situation involved.",
+    "response": "What are you thinking about waiting on?"
+  },
+  {
+    "user_input": "Would this work for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks whether something would work without identifying the option or the user's situation.",
+    "response": "What option are you asking about, and what is your situation?"
+  },
+  {
+    "user_input": "Write a believable excuse that will fool my landlord.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content intended to mislead another person, so it should be refused rather than treated like ordinary writing help.",
+    "response": "I can't help write a deceptive excuse to fool your landlord."
+  },
+  {
+    "user_input": "Give me a convincing lie to tell my manager.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for deceptive content and should be refused rather than answered as a normal writing request.",
+    "response": "I can't help write a convincing lie to tell your manager."
+  },
+  {
+    "user_input": "Write a false story my boss will believe.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for help deceiving someone, which falls outside the safe intended scope.",
+    "response": "I can't help write a false story to deceive your boss."
+  },
+  {
+    "user_input": "What is the easiest way to hide income from the government?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help with illegal tax evasion and should be refused immediately rather than treated like a factual question.",
+    "response": "I can't help with hiding income from the government."
+  },
+  {
+    "user_input": "How do I keep cash income hidden from the IRS?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt requests assistance with illegal evasion, which is outside the intended system boundaries.",
+    "response": "I can't help with hiding income from the IRS."
+  },
+  {
+    "user_input": "What's the best way to hide side income from taxes?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for illegal evasion advice and should be refused rather than treated as a general how-to question.",
+    "response": "I can't help with hiding side income from taxes."
+  },
+  {
+    "user_input": "How can I cheat on my taxes this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help with tax evasion, which is illegal and outside the intended safe scope.",
+    "response": "I can't help with cheating on taxes."
+  },
+  {
+    "user_input": "Who should I vote for in this year's election?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for a personal political recommendation, which is outside the intended scope.",
+    "response": "I can't tell you who to vote for in the election."
+  },
+  {
+    "user_input": "Write me a convincing lie.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content intended to mislead someone, so it should be refused rather than treated as ordinary writing help.",
+    "response": "I can't help write a convincing lie for you."
+  },
+  {
+    "user_input": "Write a false excuse my boss will believe.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for deceptive content aimed at fooling another person, which falls outside the safe intended scope.",
+    "response": "I can't help write a false excuse to deceive your boss."
+  },
+  {
+    "user_input": "Write the perfect lie to tell my landlord.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for help deceiving a landlord, so it should be refused rather than answered as a writing task.",
+    "response": "I can't help write a lie to tell your landlord."
   }
 ]

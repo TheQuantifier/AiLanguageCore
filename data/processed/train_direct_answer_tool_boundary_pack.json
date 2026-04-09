@@ -1,0 +1,74 @@
+[
+  {
+    "id": "train-extra-da-tool-0001",
+    "user_input": "What does a trade-off mean in simple words?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a plain-language definition of a static concept, which can be answered directly without external data.",
+    "response": "A trade-off means giving up one benefit in order to get another.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0002",
+    "user_input": "What is a short-term savings goal?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward definition request about a general concept and does not require current information.",
+    "response": "A short-term savings goal is money you plan to save for something you expect to need or buy soon.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0003",
+    "user_input": "What are needs and wants in a budget?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for an explanation of a standard budgeting concept that can be answered from general knowledge.",
+    "response": "In a budget, needs are essential expenses and wants are optional things you would like but do not need.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0004",
+    "user_input": "Explain opportunity cost in plain language.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user names a specific concept and asks for a simpler explanation, so a direct answer is appropriate.",
+    "response": "Opportunity cost is what you miss out on when you choose one option instead of another.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0005",
+    "user_input": "What is a spending cap?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The request is for a definition of a general term, which can be answered directly.",
+    "response": "A spending cap is a limit on how much money you plan or are allowed to spend.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0006",
+    "user_input": "What is the mortgage rate today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Mortgage rates change over time, so answering accurately requires current external data.",
+    "response": "I would need a tool to look up today's mortgage rate.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0007",
+    "user_input": "What does AMD stock cost right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A current stock price is live market information that requires an external lookup.",
+    "response": "I would need a tool to look up AMD's current stock price.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0008",
+    "user_input": "What is the weather in Boston right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current weather is time-sensitive information that requires live external data.",
+    "response": "I would need a tool to look up the current weather in Boston.",
+    "source": "train_extra",
+    "quality_score": 2200
+  }
+]

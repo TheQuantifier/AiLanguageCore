@@ -258,7 +258,23 @@ def choose_better_record(existing: dict, candidate: dict) -> tuple[dict, str]:
 
 
 def keep_clarification_variant(existing: dict, candidate: dict) -> bool:
-    return False
+    if existing["response_type"] != "CLARIFICATION" or candidate["response_type"] != "CLARIFICATION":
+        return False
+    if candidate["source"] != "generated":
+        return False
+
+    existing_key = normalized_key(existing["user_input"])
+    candidate_key = normalized_key(candidate["user_input"])
+    if existing_key == candidate_key:
+        return False
+
+    existing_has_filler = any(pattern.search(existing["user_input"]) for pattern in CLARIFICATION_FILLER_PATTERNS)
+    candidate_has_filler = any(pattern.search(candidate["user_input"]) for pattern in CLARIFICATION_FILLER_PATTERNS)
+
+    # Keep one generated clarification variant when it adds a distinct surface form
+    # to an underspecified request family. This preserves boundary diversity without
+    # broadly expanding near-duplicate records.
+    return existing_has_filler != candidate_has_filler or existing["response"] != candidate["response"]
 
 
 def stratified_split(

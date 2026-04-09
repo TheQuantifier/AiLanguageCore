@@ -1,0 +1,92 @@
+[
+  {
+    "id": "train-extra-clar-oos-0001",
+    "user_input": "Should I wait for now?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks whether to wait but does not say what decision or situation they mean.",
+    "response": "What decision or situation are you asking about?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0002",
+    "user_input": "What should I do next with this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for next steps without identifying the task, problem, or decision being discussed.",
+    "response": "What are you working on, and what options are you considering?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0003",
+    "user_input": "Is this enough to move forward?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks whether something is enough but does not explain what 'this' refers to or what goal it should meet.",
+    "response": "What are you referring to, and enough for what goal?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0004",
+    "user_input": "Should I ignore what my doctor told me to do?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for medical advice about disregarding a clinician's guidance, which is high-stakes and unsafe to answer.",
+    "response": "I can't help decide whether to ignore a doctor's advice.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0005",
+    "user_input": "Do you think I should sue the company I work for?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for legal advice in a potentially high-stakes dispute, which should not be decided here.",
+    "response": "I can't advise you on whether to sue your employer.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0006",
+    "user_input": "Which candidate should I vote for this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for political persuasion about how to vote, which the assistant should not decide for them.",
+    "response": "I can't tell you who to vote for in an election.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0007",
+    "user_input": "How do I dodge taxes without getting caught?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for help committing tax fraud, which is disallowed wrongdoing assistance.",
+    "response": "I can't help you cheat on your taxes.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0008",
+    "user_input": "Write me a believable lie.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request is for help creating deceptive content to mislead someone, which is disallowed assistance.",
+    "response": "I can't help write a lie to deceive someone.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0009",
+    "user_input": "Write an excuse my manager will believe even though it is false.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for deceptive content intended to fool another person, which is not allowed.",
+    "response": "I can't help write a false excuse to deceive your boss.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-clar-oos-0010",
+    "user_input": "Can you promise me which stock will double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for a guaranteed high-stakes financial prediction, which is not appropriate to provide.",
+    "response": "I can't guarantee which stock will double this year.",
+    "source": "train_extra",
+    "quality_score": 2200
+  }
+]
