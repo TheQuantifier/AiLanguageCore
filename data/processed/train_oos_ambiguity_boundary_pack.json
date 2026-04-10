@@ -196,5 +196,59 @@
     "response": "I would need a tool to get the most recent news about Microsoft.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0023",
+    "user_input": "Should I move ahead with this plan now?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a go-ahead decision but does not provide what plan they mean or any criteria.",
+    "response": "What plan are you referring to, and what outcome are you aiming for?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0024",
+    "user_input": "Can I go forward with this as it is?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for approval to proceed but does not specify what 'this' refers to.",
+    "response": "What are you referring to, and what are you trying to move forward with?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0025",
+    "user_input": "Does this still seem right to you?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a check on 'this' without supplying the underlying content or decision context.",
+    "response": "What are you referring to, so I can check whether it still looks right?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0026",
+    "user_input": "Pull the latest U.S. CPI number.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The latest CPI value is time-sensitive economic data and requires an external lookup.",
+    "response": "I would need a tool to look up the latest U.S. CPI number.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0027",
+    "user_input": "Get me the most recent U.S. CPI reading right now.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Most recent CPI readings are current external statistics that require a live data source.",
+    "response": "I would need a tool to get the most recent U.S. CPI reading.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0028",
+    "user_input": "What is the current U.S. CPI value today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current CPI values are time-dependent macroeconomic data and cannot be answered reliably without lookup.",
+    "response": "I would need a tool to look up the current U.S. CPI value.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]

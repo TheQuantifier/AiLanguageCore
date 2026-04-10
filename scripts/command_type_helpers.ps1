@@ -278,6 +278,9 @@ function Get-AiLanguageCoreRunType {
     if (Test-Path $trainingConfigPath) {
         try {
             $trainingConfig = Get-Content $trainingConfigPath -Raw | ConvertFrom-Json
+            if ($trainingConfig.benchmark_file -and [string]$trainingConfig.benchmark_file -match 'benchmark_stress_v2') {
+                return 'stress_v2'
+            }
             if ($trainingConfig.benchmark_file -and [string]$trainingConfig.benchmark_file -match 'benchmark_stress') {
                 return 'stress'
             }
@@ -293,7 +296,7 @@ function Get-AiLanguageCoreRunType {
         return 'stress'
     }
 
-    return 'default'
+    return 'core'
 }
 
 function Get-AiLanguageCoreLatestCompletedRunPath {
