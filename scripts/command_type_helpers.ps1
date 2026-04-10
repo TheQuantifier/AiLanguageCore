@@ -1,7 +1,7 @@
 function Get-AiLanguageCoreCommandTypeCatalog {
     return @{
-        default = @{
-            aliases = @('default', 'core', 'base')
+        core = @{
+            aliases = @('core')
             trainable = $true
             config = 'models\configs\v1_native_byte_transformer_config.json'
             benchmark = 'data\processed\benchmark_sft.jsonl'
@@ -58,11 +58,32 @@ function Get-AiLanguageCoreCanonicalType {
 }
 
 function Get-AiLanguageCoreSupportedTypeList {
-    return @('default', 'core', 'base', 'stress', 'account', 'medical', 'oos_tool')
+    return @('default', 'core', 'stress', 'account', 'medical', 'oos_tool')
 }
 
 function Get-AiLanguageCoreTrainableTypeList {
-    return @('default', 'core', 'base', 'stress')
+    return @('default', 'core', 'stress')
+}
+
+function Get-AiLanguageCoreDefaultCommandList {
+    return @('train', 'benchmark', 'autotrain', 'improve')
+}
+
+function Resolve-AiLanguageCoreDefaultCommandName {
+    param(
+        [string]$CommandName
+    )
+
+    if (-not $CommandName) {
+        return $null
+    }
+
+    $normalized = $CommandName.Trim().ToLowerInvariant()
+    if ((Get-AiLanguageCoreDefaultCommandList) -contains $normalized) {
+        return $normalized
+    }
+
+    throw "Unknown command '$CommandName'. Valid commands: $((Get-AiLanguageCoreDefaultCommandList) -join ', ')."
 }
 
 function Resolve-AiLanguageCoreType {
@@ -90,18 +111,61 @@ function Resolve-AiLanguageCoreType {
     return $canonical
 }
 
-function Get-AiLanguageCoreDefaultType {
+function Resolve-AiLanguageCoreRequestedType {
     param(
-        [string]$RepoRoot
+        [string]$RepoRoot,
+        [string]$CommandName,
+        [string]$TypeName,
+        [switch]$RequireTrainable
     )
 
+    if (-not $TypeName) {
+        return $null
+    }
+
+    $normalized = $TypeName.Trim().ToLowerInvariant()
+    if ($normalized -eq 'default') {
+        return Get-AiLanguageCoreDefaultType -RepoRoot $RepoRoot -CommandName $CommandName
+    }
+
+    return Resolve-AiLanguageCoreType -TypeName $TypeName -RequireTrainable:$RequireTrainable
+}
+
+function Get-AiLanguageCoreDefaultType {
+    param(
+        [string]$RepoRoot,
+        [string]$CommandName
+    )
+
+    $resolvedCommand = Resolve-AiLanguageCoreDefaultCommandName -CommandName $CommandName
     $settingsPath = Get-AiLanguageCoreDefaultSettingsPath -RepoRoot $RepoRoot
     if (Test-Path $settingsPath) {
         try {
             $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
-            $canonical = Resolve-AiLanguageCoreType -TypeName $settings.default_type -RequireTrainable
-            if ($canonical) {
-                return $canonical
+            if ($resolvedCommand -and $settings.command_defaults) {
+                $savedCommandType = $settings.command_defaults.$resolvedCommand
+                if ($savedCommandType) {
+                    if ([string]$savedCommandType -eq 'base') {
+                        $savedCommandType = 'core'
+                    }
+                    $requireTrainable = $resolvedCommand -ne 'benchmark'
+                    $canonicalForCommand = Resolve-AiLanguageCoreType -TypeName $savedCommandType -RequireTrainable:$requireTrainable
+                    if ($canonicalForCommand) {
+                        return $canonicalForCommand
+                    }
+                }
+            }
+
+            if ($settings.default_type) {
+                $globalType = [string]$settings.default_type
+                if ($globalType -eq 'base') {
+                    $globalType = 'core'
+                }
+                $requireTrainableForGlobal = -not ($resolvedCommand -eq 'benchmark')
+                $canonical = Resolve-AiLanguageCoreType -TypeName $globalType -RequireTrainable:$requireTrainableForGlobal
+                if ($canonical) {
+                    return $canonical
+                }
             }
         } catch {
         }
@@ -113,18 +177,66 @@ function Get-AiLanguageCoreDefaultType {
 function Set-AiLanguageCoreDefaultType {
     param(
         [string]$RepoRoot,
-        [string]$TypeName
+        [string]$TypeName,
+        [string]$CommandName
     )
 
-    $canonical = Resolve-AiLanguageCoreType -TypeName $TypeName -RequireTrainable
+    $normalizedType = if ($TypeName) { $TypeName.Trim().ToLowerInvariant() } else { '' }
+    if ($normalizedType -eq 'default') {
+        throw "Cannot set a command default to the symbolic type 'default'. Use a concrete type: core/stress (or account/medical/oos_tool for benchmark)."
+    }
+
+    $resolvedCommand = Resolve-AiLanguageCoreDefaultCommandName -CommandName $CommandName
+    $requireTrainable = -not ($resolvedCommand -eq 'benchmark')
+    $canonical = Resolve-AiLanguageCoreType -TypeName $TypeName -RequireTrainable:$requireTrainable
     $settingsPath = Get-AiLanguageCoreDefaultSettingsPath -RepoRoot $RepoRoot
     $settingsDir = Split-Path -Parent $settingsPath
     if (-not (Test-Path $settingsDir)) {
         New-Item -ItemType Directory -Force -Path $settingsDir | Out-Null
     }
 
+    $globalDefaultToPersist = 'stress'
+    $existingDefaults = [ordered]@{}
+    if (Test-Path $settingsPath) {
+        try {
+            $existing = Get-Content $settingsPath -Raw | ConvertFrom-Json
+            if ($existing.default_type) {
+                $existingGlobalType = [string]$existing.default_type
+                if ($existingGlobalType -eq 'base') {
+                    $existingGlobalType = 'core'
+                }
+                $existingGlobal = Resolve-AiLanguageCoreType -TypeName $existingGlobalType -RequireTrainable
+                if ($existingGlobal) {
+                    $globalDefaultToPersist = $existingGlobal
+                }
+            }
+            if ($existing.command_defaults) {
+                foreach ($name in (Get-AiLanguageCoreDefaultCommandList)) {
+                    if ($existing.command_defaults.$name) {
+                        $saved = [string]$existing.command_defaults.$name
+                        if ($saved -eq 'base') {
+                            $saved = 'core'
+                        }
+                        $existingDefaults[$name] = $saved
+                    }
+                }
+            }
+        } catch {
+        }
+    }
+
+    if ($resolvedCommand) {
+        $existingDefaults[$resolvedCommand] = $canonical
+    } else {
+        $globalDefaultToPersist = $canonical
+        foreach ($name in (Get-AiLanguageCoreDefaultCommandList)) {
+            $existingDefaults[$name] = $canonical
+        }
+    }
+
     $payload = [ordered]@{
-        default_type = $canonical
+        default_type = $globalDefaultToPersist
+        command_defaults = $existingDefaults
         updated_at = (Get-Date).ToString('o')
     }
     $payload | ConvertTo-Json | Set-Content -Path $settingsPath

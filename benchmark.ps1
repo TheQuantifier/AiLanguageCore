@@ -13,9 +13,9 @@ $pythonPath = Join-Path $repoRoot '.python\python.exe'
 . (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
 
 $resolvedType = if ($Type) {
-    Resolve-AiLanguageCoreType -TypeName $Type
+    Resolve-AiLanguageCoreRequestedType -RepoRoot $repoRoot -CommandName 'benchmark' -TypeName $Type
 } else {
-    Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot
+    Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'benchmark'
 }
 
 if (-not (Test-Path $pythonPath)) {

@@ -1,4 +1,10 @@
 {
     "default_type":  "stress",
-    "updated_at":  "2026-04-09T19:00:02.1757235-04:00"
+    "command_defaults":  {
+                             "train":  "stress",
+                             "benchmark":  "stress",
+                             "autotrain":  "stress",
+                             "improve":  "stress"
+                         },
+    "updated_at":  "2026-04-10T00:13:53.6165704-04:00"
 }

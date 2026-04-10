@@ -604,9 +604,14 @@ $recoveryInstructions
 
 $pythonPath = Join-Path $repoRoot '.python\python.exe'
 $selectedType = if ($Type) {
-    Resolve-AiLanguageCoreType -TypeName $Type -RequireTrainable
+    $commandDefaultName = if ($Command -eq 'improve') { 'improve' } else { 'autotrain' }
+    Resolve-AiLanguageCoreRequestedType -RepoRoot $repoRoot -CommandName $commandDefaultName -TypeName $Type -RequireTrainable
 } else {
-    Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot
+    if ($Command -eq 'improve') {
+        Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'improve'
+    } else {
+        Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'autotrain'
+    }
 }
 $configPath = if ($Config) {
     if ([System.IO.Path]::IsPathRooted($Config)) {

@@ -12,7 +12,7 @@ $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $pythonPath = Join-Path $repoRoot '.python\python.exe'
 . (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
 
-$Type = Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot
+$Type = Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'train'
 if ($null -ne $TypeOrEpoch) {
     $parsedEpoch = 0
     if ($TypeOrEpoch -is [int] -or $TypeOrEpoch -is [long]) {
@@ -20,7 +20,7 @@ if ($null -ne $TypeOrEpoch) {
     } elseif ([int]::TryParse([string]$TypeOrEpoch, [ref]$parsedEpoch)) {
         $Epochs = $parsedEpoch
     } else {
-        $Type = Resolve-AiLanguageCoreType -TypeName ([string]$TypeOrEpoch) -RequireTrainable
+        $Type = Resolve-AiLanguageCoreRequestedType -RepoRoot $repoRoot -CommandName 'train' -TypeName ([string]$TypeOrEpoch) -RequireTrainable
     }
 }
 

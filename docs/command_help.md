@@ -39,15 +39,34 @@ function create_data {
 }
 function set {
     param(
-        [Parameter(Position = 0)][string]$type
+        [Parameter(Position = 0)][string]$type,
+        [Parameter(Position = 1)][string]$command_name
     )
 
     Push-Location $AiLanguageCoreRoot
     try {
-        if ($PSBoundParameters.ContainsKey('type')) {
+        if ($PSBoundParameters.ContainsKey('command_name')) {
+            .\set.ps1 $type $command_name
+        } elseif ($PSBoundParameters.ContainsKey('type')) {
             .\set.ps1 $type
         } else {
             .\set.ps1
+        }
+    } finally {
+        Pop-Location
+    }
+}
+function get_type {
+    param(
+        [Parameter(Position = 0)][string]$command_name
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        if ($PSBoundParameters.ContainsKey('command_name')) {
+            .\get_type.ps1 $command_name
+        } else {
+            .\get_type.ps1
         }
     } finally {
         Pop-Location
@@ -265,14 +284,21 @@ With the helper above, you can just run:
 
 ```powershell
 set
+get_type
+get_type train
 set stress
-set default
+set core
+set stress train
 train
 train stress
 train default
 train 8
 train stress 8
 ```
+
+`set <type>` sets all type-aware command defaults (`train`, `benchmark`, `autotrain`, `improve`).
+`set <type> <command>` sets only that command's default type. It does not run the command.
+`core` is the fixed non-stress type. `default` is a dynamic pointer to each command's saved default.
 
 The helper now:
 - changes into the repo root automatically
@@ -284,7 +310,7 @@ Default training baseline:
 - `train` defaults to the type saved in `config/command_defaults.json`
 - `set` changes the saved default trainable type used by `train`, `benchmark`, `autotrain`, and `improve`
 - `stress` uses `models\configs\v1_native_byte_transformer_stress_config.json`
-- `default`, `core`, and `base` use `models\configs\v1_native_byte_transformer_config.json`
+- `default` and `core` use `models\configs\v1_native_byte_transformer_config.json`
 - all configs default to `50` epochs
 - `train <N>` or `.\train.ps1 <N>` uses the currently set default type with an epoch override
 
@@ -346,7 +372,7 @@ benchmark stress <printed_native_run_output_dir>
 ```
 
 Named benchmark types:
-- `default`, `core`, `base` -> `data/processed/benchmark_sft.jsonl`
+- `default`, `core` -> `data/processed/benchmark_sft.jsonl`
 - `stress` -> `data/processed/benchmark_stress_native_sft.jsonl`
 - `account` -> `data/processed/benchmark_account_tool_boundary_native_sft.jsonl`
 - `medical` -> `data/processed/benchmark_medical_refusal_boundary_native_sft.jsonl`
@@ -418,15 +444,35 @@ function create_data {
 
 function set {
     param(
-        [Parameter(Position = 0)][string]$type
+        [Parameter(Position = 0)][string]$type,
+        [Parameter(Position = 1)][string]$command_name
     )
 
     Push-Location $AiLanguageCoreRoot
     try {
-        if ($PSBoundParameters.ContainsKey('type')) {
+        if ($PSBoundParameters.ContainsKey('command_name')) {
+            .\set.ps1 $type $command_name
+        } elseif ($PSBoundParameters.ContainsKey('type')) {
             .\set.ps1 $type
         } else {
             .\set.ps1
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
+function get_type {
+    param(
+        [Parameter(Position = 0)][string]$command_name
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        if ($PSBoundParameters.ContainsKey('command_name')) {
+            .\get_type.ps1 $command_name
+        } else {
+            .\get_type.ps1
         }
     } finally {
         Pop-Location
