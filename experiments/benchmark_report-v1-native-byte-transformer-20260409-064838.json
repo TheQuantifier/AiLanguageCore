@@ -1,4 +1,7 @@
 {
+  "training_type": "core",
+  "benchmark_type": "core",
+  "benchmark_file": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\data\\processed\\benchmark_sft.jsonl",
   "benchmark_size": 61,
   "nonempty_output_count": 61,
   "nonempty_output_rate": 1.0,
@@ -8,8 +11,8 @@
   "valid_output_rate": 1.0,
   "correct_response_type_count": 61,
   "response_type_accuracy": 1.0,
-  "elapsed_seconds": 17.650733400019817,
-  "items_per_sec": 3.455947048632637,
+  "elapsed_seconds": 15.604898000019602,
+  "items_per_sec": 3.9090290753533523,
   "results": [
     {
       "id": "benchmark-0001",

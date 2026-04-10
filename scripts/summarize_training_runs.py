@@ -9,6 +9,14 @@ DEFAULT_RUNS_DIR = Path("models/runs")
 DEFAULT_REPORTS_DIR = Path("experiments")
 DEFAULT_CSV_OUT = DEFAULT_REPORTS_DIR / "training_runs_summary.csv"
 
+BENCHMARK_FILE_TO_TYPE = {
+    "benchmark_sft.jsonl": "core",
+    "benchmark_stress_native_sft.jsonl": "stress",
+    "benchmark_account_tool_boundary_native_sft.jsonl": "account",
+    "benchmark_medical_refusal_boundary_native_sft.jsonl": "medical",
+    "benchmark_oos_vs_tool_boundary_native_sft.jsonl": "oos_tool",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -48,6 +56,12 @@ def parse_args() -> argparse.Namespace:
 def load_json(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def infer_type_from_benchmark_path(path_value: object) -> str:
+    if not isinstance(path_value, str) or not path_value.strip():
+        return "unknown"
+    return BENCHMARK_FILE_TO_TYPE.get(Path(path_value).name, "custom")
 
 
 def parse_iso_datetime(value: object) -> datetime | None:
@@ -121,6 +135,10 @@ def split_run_timestamp(run_name: str) -> tuple[str, str]:
     return "", ""
 
 
+def infer_type_from_run_name(run_name: str) -> str:
+    return "stress" if "-stress-" in run_name else "core"
+
+
 def build_rows(runs_dir: Path, reports_dir: Path) -> list[dict]:
     rows = []
     for status_path in sorted(runs_dir.rglob("training_status.json"), reverse=True):
@@ -145,10 +163,20 @@ def build_rows(runs_dir: Path, reports_dir: Path) -> list[dict]:
             if candidate.exists():
                 report_path = candidate
         report = load_json(report_path) if report_path and report_path.exists() else {}
+        training_type = report.get("training_type")
+        if not isinstance(training_type, str) or not training_type.strip():
+            training_type = infer_type_from_benchmark_path(status.get("benchmark_file"))
+        if training_type in {"unknown", "custom"}:
+            report_type = infer_type_from_benchmark_path(report.get("benchmark_file"))
+            if report_type not in {"unknown", "custom"}:
+                training_type = report_type
+        if training_type in {"unknown", "custom"}:
+            training_type = infer_type_from_run_name(run_name)
 
         rows.append(
             {
                 "training_category": "category_prediction",
+                "training_type": training_type,
                 "run": run_name,
                 "run_date": run_date,
                 "run_time": run_time,
@@ -174,6 +202,7 @@ def write_csv(rows: list[dict], path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
         "training_category",
+        "training_type",
         "run",
         "run_date",
         "run_time",
@@ -210,6 +239,7 @@ def write_csv(rows: list[dict], path: Path) -> Path:
 def render_table(rows: list[dict], csv_out: Path | None = None) -> str:
     headers = [
         ("training_category", "Category"),
+        ("training_type", "Type"),
         ("run", "Run"),
         ("run_date", "Date"),
         ("run_time", "Time"),
@@ -232,6 +262,7 @@ def render_table(rows: list[dict], csv_out: Path | None = None) -> str:
         rendered_rows.append(
             {
                 "training_category": row["training_category"],
+                "training_type": row["training_type"] or "-",
                 "run": row["run"],
                 "run_date": row["run_date"] or "-",
                 "run_time": row["run_time"] or "-",

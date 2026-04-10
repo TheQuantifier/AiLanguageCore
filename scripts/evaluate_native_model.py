@@ -18,6 +18,14 @@ RESPONSE_TYPES = [
     "OUT_OF_SCOPE",
 ]
 
+BENCHMARK_FILE_TO_TYPE = {
+    "benchmark_sft.jsonl": "core",
+    "benchmark_stress_native_sft.jsonl": "stress",
+    "benchmark_account_tool_boundary_native_sft.jsonl": "account",
+    "benchmark_medical_refusal_boundary_native_sft.jsonl": "medical",
+    "benchmark_oos_vs_tool_boundary_native_sft.jsonl": "oos_tool",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -61,6 +69,25 @@ def resolve_output_report_path(model_path: Path, output_report: Path) -> Path:
 def load_json(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def infer_type_from_benchmark_file(path: Path) -> str:
+    return BENCHMARK_FILE_TO_TYPE.get(path.name, "custom")
+
+
+def infer_training_type_from_model_path(model_path: Path) -> str:
+    training_config_path = model_path / "training_config.json"
+    if training_config_path.exists():
+        try:
+            training_config = load_json(training_config_path)
+            benchmark_file = training_config.get("benchmark_file")
+            if isinstance(benchmark_file, str) and benchmark_file.strip():
+                return infer_type_from_benchmark_file(Path(benchmark_file))
+        except Exception:
+            pass
+    if "-stress-" in model_path.name:
+        return "stress"
+    return "core"
 
 
 def load_jsonl(path: Path) -> list[dict]:
@@ -234,6 +261,8 @@ def print_progress(
 def main() -> int:
     args = parse_args()
     output_report = resolve_output_report_path(args.model_path, args.output_report)
+    benchmark_type = infer_type_from_benchmark_file(args.benchmark_file)
+    training_type = infer_training_type_from_model_path(args.model_path)
 
     import torch
     import torch.nn.functional as F  # noqa: F401
@@ -423,6 +452,8 @@ def main() -> int:
 
     elapsed_seconds = time.perf_counter() - started_at
     report = {
+        "training_type": training_type,
+        "benchmark_type": benchmark_type,
         "benchmark_file": str(args.benchmark_file.resolve()),
         "benchmark_size": len(benchmark_rows),
         "nonempty_output_count": nonempty_output,
