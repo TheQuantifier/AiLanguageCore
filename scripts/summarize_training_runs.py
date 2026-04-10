@@ -12,6 +12,7 @@ DEFAULT_CSV_OUT = DEFAULT_REPORTS_DIR / "training_runs_summary.csv"
 BENCHMARK_FILE_TO_TYPE = {
     "benchmark_sft.jsonl": "core",
     "benchmark_stress_native_sft.jsonl": "stress",
+    "benchmark_stress_v2_native_sft.jsonl": "stress_v2",
     "benchmark_account_tool_boundary_native_sft.jsonl": "account",
     "benchmark_medical_refusal_boundary_native_sft.jsonl": "medical",
     "benchmark_oos_vs_tool_boundary_native_sft.jsonl": "oos_tool",

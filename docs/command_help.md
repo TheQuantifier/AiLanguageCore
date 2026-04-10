@@ -240,6 +240,7 @@ Outputs:
 - `data/processed/validation_sft.jsonl`
 - `data/processed/benchmark_sft.jsonl`
 - `data/processed/benchmark_stress_native_sft.jsonl`
+- `data/processed/benchmark_stress_v2_native_sft.jsonl`
 - `data/processed/benchmark_account_tool_boundary_native_sft.jsonl`
 - `data/processed/benchmark_medical_refusal_boundary_native_sft.jsonl`
 - `data/processed/benchmark_oos_vs_tool_boundary_native_sft.jsonl`
@@ -276,6 +277,7 @@ benchmark for the selected type automatically after training completes successfu
 ```powershell
 .\train.ps1
 .\train.ps1 stress
+.\train.ps1 stress_v2
 .\train.ps1 default
 .\train.ps1 stress 8
 ```
@@ -287,10 +289,12 @@ set
 get_type
 get_type train
 set stress
+set stress_v2
 set core
 set stress train
 train
 train stress
+train stress_v2
 train default
 train 8
 train stress 8
@@ -299,6 +303,7 @@ train stress 8
 `set <type>` sets all type-aware command defaults (`train`, `benchmark`, `autotrain`, `improve`).
 `set <type> <command>` sets only that command's default type. It does not run the command.
 `core` is the fixed non-stress type. `default` is a dynamic pointer to each command's saved default.
+`stress_v2` is a harder stress track with its own benchmark file and training config.
 
 The helper now:
 - changes into the repo root automatically
@@ -310,6 +315,7 @@ Default training baseline:
 - `train` defaults to the type saved in `config/command_defaults.json`
 - `set` changes the saved default trainable type used by `train`, `benchmark`, `autotrain`, and `improve`
 - `stress` uses `models\configs\v1_native_byte_transformer_stress_config.json`
+- `stress_v2` uses `models\configs\v1_native_byte_transformer_stress_v2_config.json`
 - `default` and `core` use `models\configs\v1_native_byte_transformer_config.json`
 - all configs default to `50` epochs
 - `train <N>` or `.\train.ps1 <N>` uses the currently set default type with an epoch override
@@ -366,6 +372,7 @@ With the helper above, you can just run:
 eval_native <printed_native_run_output_dir>
 benchmark
 benchmark stress
+benchmark stress_v2
 benchmark default
 benchmark account
 benchmark stress <printed_native_run_output_dir>
@@ -374,6 +381,7 @@ benchmark stress <printed_native_run_output_dir>
 Named benchmark types:
 - `default`, `core` -> `data/processed/benchmark_sft.jsonl`
 - `stress` -> `data/processed/benchmark_stress_native_sft.jsonl`
+- `stress_v2` -> `data/processed/benchmark_stress_v2_native_sft.jsonl`
 - `account` -> `data/processed/benchmark_account_tool_boundary_native_sft.jsonl`
 - `medical` -> `data/processed/benchmark_medical_refusal_boundary_native_sft.jsonl`
 - `oos_tool` -> `data/processed/benchmark_oos_vs_tool_boundary_native_sft.jsonl`
@@ -409,6 +417,7 @@ Outputs:
 & $py scripts\prepare_dataset.py
 & $py scripts\convert_training_data.py
 .\train.ps1 stress
+.\train.ps1 stress_v2
 ```
 
 ## Shortcut Functions
@@ -641,6 +650,7 @@ Direct command:
 ```powershell
 .\scripts\run_autotrain_loop.ps1
 .\scripts\run_autotrain_loop.ps1 -Type stress
+.\scripts\run_autotrain_loop.ps1 -Type stress_v2
 ```
 
 Standalone Codex improvement command:
@@ -648,6 +658,7 @@ Standalone Codex improvement command:
 ```powershell
 .\scripts\run_autotrain_loop.ps1 -Command improve
 .\scripts\run_autotrain_loop.ps1 -Command improve -Type stress
+.\scripts\run_autotrain_loop.ps1 -Command improve -Type stress_v2
 ```
 
 Stop after a fixed number of iterations:
@@ -668,10 +679,12 @@ With the helper block above loaded:
 autotrain
 autotrain 3
 autotrain stress
+autotrain stress_v2
 autotrain stress 3
 autotrain 10 50
 improve
 improve stress
+improve stress_v2
 ```
 
 Notes:

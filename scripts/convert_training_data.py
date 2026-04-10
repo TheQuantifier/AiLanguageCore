@@ -12,6 +12,10 @@ NATIVE_FOCUSED_BENCHMARKS = [
         Path("data/processed/benchmark_stress_native_sft.jsonl"),
     ),
     (
+        Path("data/processed/benchmark_stress_v2.json"),
+        Path("data/processed/benchmark_stress_v2_native_sft.jsonl"),
+    ),
+    (
         Path("data/processed/benchmark_account_tool_boundary.json"),
         Path("data/processed/benchmark_account_tool_boundary_native_sft.jsonl"),
     ),

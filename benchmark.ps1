@@ -34,7 +34,7 @@ $resolvedModelPath = if ($ModelPath) {
         Join-Path $repoRoot $ModelPath
     }
 } else {
-    $modelType = if ($resolvedType -in @('default', 'stress')) { $resolvedType } else { $null }
+    $modelType = if ($resolvedType -in @('default', 'stress', 'stress_v2')) { $resolvedType } else { $null }
     Get-AiLanguageCoreLatestCompletedRunPath -RepoRoot $repoRoot -TypeName $modelType
 }
 

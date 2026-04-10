@@ -1,10 +1,10 @@
 {
-    "default_type":  "stress",
+    "default_type":  "stress_v2",
     "command_defaults":  {
-                             "train":  "stress",
-                             "benchmark":  "stress",
-                             "autotrain":  "stress",
-                             "improve":  "stress"
+                             "train":  "stress_v2",
+                             "benchmark":  "stress_v2",
+                             "autotrain":  "stress_v2",
+                             "improve":  "stress_v2"
                          },
-    "updated_at":  "2026-04-10T00:13:53.6165704-04:00"
+    "updated_at":  "2026-04-10T01:09:25.5981778-04:00"
 }

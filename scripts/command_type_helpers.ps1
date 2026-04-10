@@ -12,6 +12,12 @@ function Get-AiLanguageCoreCommandTypeCatalog {
             config = 'models\configs\v1_native_byte_transformer_stress_config.json'
             benchmark = 'data\processed\benchmark_stress_native_sft.jsonl'
         }
+        stress_v2 = @{
+            aliases = @('stress_v2', 'stress-v2', 'stress2')
+            trainable = $true
+            config = 'models\configs\v1_native_byte_transformer_stress_v2_config.json'
+            benchmark = 'data\processed\benchmark_stress_v2_native_sft.jsonl'
+        }
         account = @{
             aliases = @('account')
             trainable = $false
@@ -58,11 +64,11 @@ function Get-AiLanguageCoreCanonicalType {
 }
 
 function Get-AiLanguageCoreSupportedTypeList {
-    return @('default', 'core', 'stress', 'account', 'medical', 'oos_tool')
+    return @('default', 'core', 'stress', 'stress_v2', 'account', 'medical', 'oos_tool')
 }
 
 function Get-AiLanguageCoreTrainableTypeList {
-    return @('default', 'core', 'stress')
+    return @('default', 'core', 'stress', 'stress_v2')
 }
 
 function Get-AiLanguageCoreDefaultCommandList {
@@ -183,7 +189,7 @@ function Set-AiLanguageCoreDefaultType {
 
     $normalizedType = if ($TypeName) { $TypeName.Trim().ToLowerInvariant() } else { '' }
     if ($normalizedType -eq 'default') {
-        throw "Cannot set a command default to the symbolic type 'default'. Use a concrete type: core/stress (or account/medical/oos_tool for benchmark)."
+        throw "Cannot set a command default to the symbolic type 'default'. Use a concrete type: core/stress/stress_v2 (or account/medical/oos_tool for benchmark)."
     }
 
     $resolvedCommand = Resolve-AiLanguageCoreDefaultCommandName -CommandName $CommandName
@@ -280,6 +286,9 @@ function Get-AiLanguageCoreRunType {
     }
 
     $runName = Split-Path -Leaf $RunDir
+    if ($runName -match '-stress-v2-') {
+        return 'stress_v2'
+    }
     if ($runName -match '-stress-') {
         return 'stress'
     }

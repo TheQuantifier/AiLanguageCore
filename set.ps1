@@ -18,8 +18,8 @@ if (-not $Type) {
     Write-Host "  benchmark: $(Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'benchmark')"
     Write-Host "  autotrain: $(Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'autotrain')"
     Write-Host "  improve: $(Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'improve')"
-    Write-Host "Trainable types: default (dynamic), core, stress"
-    Write-Host "Concrete types for set: core, stress"
+    Write-Host "Trainable types: default (dynamic), core, stress, stress_v2"
+    Write-Host "Concrete types for set: core, stress, stress_v2"
     Write-Host "Benchmark-only explicit types: account, medical, oos_tool"
     Write-Host "Usage: set <type> [train|benchmark|autotrain|improve]"
     exit 0
