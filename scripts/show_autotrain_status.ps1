@@ -273,6 +273,17 @@ function ConvertTo-Lines {
     return @([string]$Text -split "`r?`n")
 }
 
+function Add-Lines {
+    param(
+        [System.Collections.Generic.List[string]]$Target,
+        [string[]]$Lines
+    )
+
+    foreach ($line in $Lines) {
+        $Target.Add([string]$line)
+    }
+}
+
 function Render-Frame {
     param(
         [string[]]$Lines,
@@ -344,8 +355,8 @@ while ($true) {
     $benchmarkStatus = Read-JsonFile -Path $benchmarkStatusPath
 
     $consoleWidth = Get-ConsoleWidth
-    $frameLines.AddRange((ConvertTo-Lines -Text 'Iteration'))
-    $frameLines.AddRange((ConvertTo-Lines -Text ('-' * 'Iteration'.Length)))
+    Add-Lines -Target $frameLines -Lines (ConvertTo-Lines -Text 'Iteration')
+    Add-Lines -Target $frameLines -Lines (ConvertTo-Lines -Text ('-' * 'Iteration'.Length))
     $iterationLabel = if ($payload.iteration_label) { $payload.iteration_label } else { '---' }
     $phase = if ($payload.phase) { $payload.phase } else { 'starting' }
     $workflow = if ($payload.workflow) { [string]$payload.workflow } else { 'train -> benchmark -> codex -> decision' }
@@ -361,8 +372,8 @@ while ($true) {
     }
 
     $frameLines.Add('')
-    $frameLines.AddRange((ConvertTo-Lines -Text 'Processes'))
-    $frameLines.AddRange((ConvertTo-Lines -Text ('-' * 'Processes'.Length)))
+    Add-Lines -Target $frameLines -Lines (ConvertTo-Lines -Text 'Processes')
+    Add-Lines -Target $frameLines -Lines (ConvertTo-Lines -Text ('-' * 'Processes'.Length))
 
     if ($trainingStatus) {
         $trainStep = if ($null -ne $trainingStatus.global_step) { [int]$trainingStatus.global_step } else { 0 }
@@ -397,7 +408,7 @@ while ($true) {
             }
             if ($parts.Count -gt 0) {
                 $metricPrefix = '             '
-                $frameLines.AddRange((Wrap-Sections -Prefix $metricPrefix -Sections $parts -Width $consoleWidth -ContinuationPrefix $metricPrefix))
+                Add-Lines -Target $frameLines -Lines (Wrap-Sections -Prefix $metricPrefix -Sections $parts -Width $consoleWidth -ContinuationPrefix $metricPrefix)
             }
         }
     } else {
@@ -435,7 +446,7 @@ while ($true) {
             }
             if ($benchMeta.Count -gt 0) {
                 $metricPrefix = '             '
-                $frameLines.AddRange((Wrap-Sections -Prefix $metricPrefix -Sections $benchMeta -Width $consoleWidth -ContinuationPrefix $metricPrefix))
+                Add-Lines -Target $frameLines -Lines (Wrap-Sections -Prefix $metricPrefix -Sections $benchMeta -Width $consoleWidth -ContinuationPrefix $metricPrefix)
             }
         }
     } else {
@@ -466,8 +477,8 @@ while ($true) {
 
     if ($null -ne $payload.benchmark_size) {
         $frameLines.Add('')
-        $frameLines.AddRange((ConvertTo-Lines -Text 'Latest Metrics'))
-        $frameLines.AddRange((ConvertTo-Lines -Text ('-' * 'Latest Metrics'.Length)))
+        Add-Lines -Target $frameLines -Lines (ConvertTo-Lines -Text 'Latest Metrics')
+        Add-Lines -Target $frameLines -Lines (ConvertTo-Lines -Text ('-' * 'Latest Metrics'.Length))
         $frameLines.Add('Benchmark size: {0}' -f [int]$payload.benchmark_size)
         $frameLines.Add('Nonempty output: {0}' -f [int]$payload.nonempty_output_count)
         $frameLines.Add('Valid output: {0} ({1})' -f [int]$payload.valid_output_count, (Format-Percent -Value ([double]$payload.valid_output_rate)))
