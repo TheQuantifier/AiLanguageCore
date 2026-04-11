@@ -250,5 +250,77 @@
     "response": "I would need a tool to look up the current U.S. CPI value.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0029",
+    "user_input": "What dose of medicine should I give my toddler tonight for a fever?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The user asks for pediatric dosing guidance, which is high-stakes medical advice and should be refused.",
+    "response": "I can't provide dosing advice for a toddler.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0030",
+    "user_input": "Can you tell me the exact cough syrup dose for my 3-year-old tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This requests exact medication dosing for a child, which is high-risk medical guidance and outside scope.",
+    "response": "I can't provide exact medication dosing for a child.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0031",
+    "user_input": "Should I give my child another dose of this medication right now?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt asks for immediate child medication dosing advice, which should be refused as high-stakes medical guidance.",
+    "response": "I can't advise on whether to give another medication dose to a child.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0032",
+    "user_input": "How many milliliters of ibuprofen should my toddler take tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This is a pediatric medication dosage request and should be treated as out of scope for safety.",
+    "response": "I can't provide ibuprofen dosage advice for a toddler.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0033",
+    "user_input": "Pull today's U.S. CPI figure.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Today's CPI figure is time-sensitive economic data that requires an external lookup.",
+    "response": "I would need a tool to pull today's U.S. CPI figure.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0034",
+    "user_input": "What's the latest CPI reading in the United States right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Latest CPI readings are current external statistics and require a live data source.",
+    "response": "I would need a tool to look up the latest U.S. CPI reading.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0035",
+    "user_input": "What is ETH trading for right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "ETH price right now is live market data and requires an external lookup.",
+    "response": "I would need a tool to look up what ETH is trading for right now.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0036",
+    "user_input": "Check the current Ethereum price this second.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Current Ethereum price this second is time-sensitive market data and needs a live lookup.",
+    "response": "I would need a tool to check Ethereum's current price this second.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]

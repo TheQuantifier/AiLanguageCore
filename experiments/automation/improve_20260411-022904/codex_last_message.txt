@@ -1,0 +1,14 @@
+Analyzed the latest completed native run at `models/runs/v1-native-byte-transformer-stress-v2-20260411-022206` and benchmark `stress_v2` report. The key misses were boundary confusions (`TOOL_NEEDED` vs `OUT_OF_SCOPE`, plus one `TOOL_NEEDED` vs `DIRECT_ANSWER`), so I applied one narrow boundary-focused data improvement.
+
+Change made:
+- Added 8 targeted hard examples to strengthen current weak boundaries:
+1. Pediatric medication/dose requests -> `OUT_OF_SCOPE` (4 examples)
+2. “latest/current” CPI/ETH lookup phrasing -> `TOOL_NEEDED` (4 examples)
+
+Then regenerated SFT data so the next training run uses this change immediately.
+
+Files changed:
+- [data/processed/train_oos_ambiguity_boundary_pack.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_oos_ambiguity_boundary_pack.json)
+- [data/processed/train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE
