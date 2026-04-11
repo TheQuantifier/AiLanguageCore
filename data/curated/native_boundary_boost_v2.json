@@ -34,5 +34,23 @@
     "response": "I can't tell you which stock is guaranteed to double this year.",
     "source": "curated",
     "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0005",
+    "user_input": "What dose of cough medicine should my toddler take right now?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for child-specific medical dosing guidance, which is high-stakes advice outside the safe intended scope.",
+    "response": "I can't advise on medicine dosing for your toddler.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0006",
+    "user_input": "Can you tell me the exact ibuprofen dose I should take tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for personalized medication dosing advice, which should be refused rather than routed as a tool lookup.",
+    "response": "I can't tell you what exact ibuprofen dose you should take tonight.",
+    "source": "curated",
+    "quality_score": 2200
   }
 ]

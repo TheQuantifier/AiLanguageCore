@@ -457,6 +457,104 @@ def build_cpu_state_dict(model) -> dict:
     return {name: tensor.detach().cpu() for name, tensor in model.state_dict().items()}
 
 
+class DirectMLAdamW:
+    def __init__(
+        self,
+        torch_module,
+        params,
+        lr: float,
+        weight_decay: float = 0.01,
+        betas: tuple[float, float] = (0.9, 0.999),
+        eps: float = 1e-8,
+    ) -> None:
+        self.torch = torch_module
+        self.params = [param for param in params if param.requires_grad]
+        self.lr = float(lr)
+        self.weight_decay = float(weight_decay)
+        self.beta1 = float(betas[0])
+        self.beta2 = float(betas[1])
+        self.eps = float(eps)
+        self.step_count = 0
+        self.state: dict[int, dict[str, object]] = {}
+
+    def zero_grad(self, set_to_none: bool = True) -> None:
+        for param in self.params:
+            if param.grad is None:
+                continue
+            if set_to_none:
+                param.grad = None
+            else:
+                param.grad.zero_()
+
+    def step(self) -> None:
+        self.step_count += 1
+        bias_correction1 = 1.0 - (self.beta1 ** self.step_count)
+        bias_correction2 = 1.0 - (self.beta2 ** self.step_count)
+
+        with self.torch.no_grad():
+            for param in self.params:
+                grad = param.grad
+                if grad is None:
+                    continue
+                if grad.is_sparse:
+                    raise RuntimeError("DirectMLAdamW does not support sparse gradients.")
+
+                state = self.state.get(id(param))
+                if state is None:
+                    state = {
+                        "exp_avg": self.torch.zeros_like(param),
+                        "exp_avg_sq": self.torch.zeros_like(param),
+                    }
+                    self.state[id(param)] = state
+
+                exp_avg = state["exp_avg"]
+                exp_avg_sq = state["exp_avg_sq"]
+
+                exp_avg.mul_(self.beta1).add_(grad, alpha=(1.0 - self.beta1))
+                exp_avg_sq.mul_(self.beta2).addcmul_(grad, grad, value=(1.0 - self.beta2))
+
+                denom = exp_avg_sq.sqrt() / math.sqrt(bias_correction2)
+                denom.add_(self.eps)
+                step_size = self.lr / bias_correction1
+
+                if self.weight_decay != 0.0:
+                    param.add_(param, alpha=(-self.lr * self.weight_decay))
+                param.addcdiv_(exp_avg, denom, value=-step_size)
+
+
+def create_optimizer(torch_module, model, config: dict, device_label: str):
+    optimizer_name = str(config.get("optimizer", "auto")).strip().lower()
+    lr = float(config["learning_rate"])
+    weight_decay = float(config.get("weight_decay", 0.01))
+    betas = tuple(config.get("adam_betas", [0.9, 0.999]))
+    eps = float(config.get("adam_eps", 1e-8))
+
+    if optimizer_name == "auto":
+        optimizer_name = "adamw"
+
+    if optimizer_name == "adamw_dml_safe":
+        optimizer = DirectMLAdamW(
+            torch_module,
+            model.parameters(),
+            lr=lr,
+            weight_decay=weight_decay,
+            betas=(float(betas[0]), float(betas[1])),
+            eps=eps,
+        )
+        return optimizer, "adamw_dml_safe"
+
+    if optimizer_name == "adamw":
+        optimizer = torch_module.optim.AdamW(
+            model.parameters(),
+            lr=lr,
+            weight_decay=weight_decay,
+            foreach=False,
+        )
+        return optimizer, "adamw"
+
+    raise ValueError("Unsupported optimizer. Expected one of: auto, adamw, adamw_dml_safe.")
+
+
 def render_progress_bar(current: int, total: int, width: int = 30) -> str:
     if total <= 0:
         total = 1
@@ -652,6 +750,9 @@ def main() -> int:
         f"heads={int(config['num_heads'])}, "
         f"dropout={float(config['dropout'])}"
     )
+    model = NativeTransformerLM(config).to(device)
+    optimizer, optimizer_label = create_optimizer(torch, model, config, device_label)
+    print(f"Optimizer: {optimizer_label}")
     print(
         "Dataset sizes: "
         f"train_rows={len(train_rows)}, "
@@ -663,14 +764,6 @@ def main() -> int:
         "Progress calculation: "
         f"total_steps = ceil(train_examples / batch_size) * num_train_epochs = "
         f"{total_batches_per_epoch} * {int(config['num_train_epochs'])} = {total_steps}"
-    )
-
-    model = NativeTransformerLM(config).to(device)
-    optimizer = torch.optim.AdamW(
-        model.parameters(),
-        lr=float(config["learning_rate"]),
-        weight_decay=float(config.get("weight_decay", 0.01)),
-        foreach=False,
     )
     class_weights = compute_response_type_weights(
         train_examples,

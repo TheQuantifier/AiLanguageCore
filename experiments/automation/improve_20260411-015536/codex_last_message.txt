@@ -1,0 +1,9 @@
+Applied one narrow boundary-focused improvement: I added six new `TOOL_NEEDED` training examples targeting the exact weak phrasing pattern from this run (`right this second` / `this minute` live-rate and live-crypto prompts), so the next training pass should better separate real-time lookup requests from `DIRECT_ANSWER`.
+
+Files changed:
+- [train_direct_answer_tool_boundary_pack.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_direct_answer_tool_boundary_pack.json)
+- [train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+
+I did not start another training run in this step.
+
+AUTOMATION_DECISION: CONTINUE

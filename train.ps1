@@ -13,12 +13,15 @@ $pythonPath = Join-Path $repoRoot '.python\python.exe'
 . (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
 
 $Type = Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'train'
+$hasEpochOverride = $PSBoundParameters.ContainsKey('Epochs')
 if ($null -ne $TypeOrEpoch) {
     $parsedEpoch = 0
     if ($TypeOrEpoch -is [int] -or $TypeOrEpoch -is [long]) {
         $Epochs = [int]$TypeOrEpoch
+        $hasEpochOverride = $true
     } elseif ([int]::TryParse([string]$TypeOrEpoch, [ref]$parsedEpoch)) {
         $Epochs = $parsedEpoch
+        $hasEpochOverride = $true
     } else {
         $Type = Resolve-AiLanguageCoreRequestedType -RepoRoot $repoRoot -CommandName 'train' -TypeName ([string]$TypeOrEpoch) -RequireTrainable
     }
@@ -47,13 +50,13 @@ if (-not (Test-Path $configPath)) {
 Write-Host "Starting native training from $repoRoot"
 Write-Host "Config: $configPath"
 Write-Host "Type: $Type"
-if ($PSBoundParameters.ContainsKey('Epochs')) {
+if ($hasEpochOverride) {
     Write-Host "Epoch override: $Epochs"
 }
 
 Push-Location $repoRoot
 try {
-    if ($PSBoundParameters.ContainsKey('Epochs')) {
+    if ($hasEpochOverride) {
         & $pythonPath scripts\train_native_model.py --config $configPath --num-train-epochs $Epochs
     } else {
         & $pythonPath scripts\train_native_model.py --config $configPath

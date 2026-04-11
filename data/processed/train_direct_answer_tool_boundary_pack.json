@@ -304,5 +304,59 @@
     "response": "A stock price is the current amount one share of a company's stock is selling for in the market.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0035",
+    "user_input": "What are mortgage rates doing this second?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Mortgage rates at this second are live time-sensitive values and require an external lookup.",
+    "response": "I would need a tool to look up what mortgage rates are doing this second.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0036",
+    "user_input": "What are mortgage rates right this second?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Rates right this second are current external financial data that cannot be answered from static knowledge.",
+    "response": "I would need a tool to look up mortgage rates right this second.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0037",
+    "user_input": "What is ETH trading at this minute?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "ETH trading value this minute is live market information and requires external lookup.",
+    "response": "I would need a tool to look up what ETH is trading at this minute.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0038",
+    "user_input": "What is Ethereum trading at this minute?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Ethereum's price this minute is time-sensitive market data that requires a live source.",
+    "response": "I would need a tool to look up what Ethereum is trading at this minute.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0039",
+    "user_input": "Can you check ETH price this minute?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Checking ETH price this minute requires real-time market data from an external source.",
+    "response": "I would need a tool to check ETH price this minute.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0040",
+    "user_input": "Can you check mortgage rates at this moment?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Mortgage rates at this moment are live external rate data and need a lookup tool.",
+    "response": "I would need a tool to check mortgage rates at this moment.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]

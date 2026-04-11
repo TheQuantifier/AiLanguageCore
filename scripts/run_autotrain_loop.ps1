@@ -158,6 +158,25 @@ function Acquire-AutotrainLock {
     return $stream
 }
 
+function Release-AutotrainLock {
+    param(
+        $LockHandle,
+        [string]$LockPath
+    )
+
+    if ($LockHandle) {
+        try {
+            $LockHandle.Dispose()
+        } catch {
+            Write-Warning "Failed to release autotrain lock handle: $($_.Exception.Message)"
+        }
+    }
+
+    if (Test-Path $LockPath) {
+        Remove-Item -LiteralPath $LockPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function Resolve-CodexExecutable {
     param(
         [string]$OverridePath
@@ -761,6 +780,7 @@ $recoveryInstructions
 }
 
 $pythonPath = Join-Path $repoRoot '.python\python.exe'
+$hasEpochOverride = $PSBoundParameters.ContainsKey('NumTrainEpochs')
 
 # Backward/CLI compatibility: when invoked positionally as
 # `autotrain <iterations> <epochs>`, PowerShell can bind those to
@@ -777,6 +797,7 @@ if ($Command -eq 'autotrain' -and $Type -and [int]::TryParse([string]$Type, [ref
             throw "NumTrainEpochs must be at least 1. Received: $MaxIterations"
         }
         $NumTrainEpochs = [int]$MaxIterations
+        $hasEpochOverride = $true
     }
 
     $MaxIterations = [int]$parsedTypeAsIterations
@@ -807,7 +828,6 @@ $logRoot = Join-Path $repoRoot 'experiments\automation'
 $statusPath = Join-Path $logRoot 'latest_status.json'
 $statusWatcherScript = Join-Path $repoRoot 'scripts\show_autotrain_status.ps1'
 $lockPath = Join-Path $logRoot 'autotrain.lock'
-$hasEpochOverride = $PSBoundParameters.ContainsKey('NumTrainEpochs')
 
 if (-not (Test-Path $pythonPath)) {
     throw "Python runtime not found: $pythonPath"
@@ -897,6 +917,8 @@ try {
 
         $improveResult = Invoke-CodexImprovementPass -IterationLabel $iterationLabel -IterationDir $iterationDir -RepoRoot $repoRoot -StatusPath $statusPath -CodexExecutable $codexExecutable -CodexModel $CodexModel -Prompt $Prompt -RecoveryThreshold $RecoveryThreshold -BenchmarkMetrics $benchmarkMetrics -LatestTrainingStatusPath $latestTrainingStatusPath -LatestBenchmarkStatusPath $latestBenchmarkStatusPath -Workflow 'codex -> decision' -ShowInlineProgress:(-not $OpenStatusWindow)
         $commitMessage = "improve: standalone codex pass $timestamp"
+        Release-AutotrainLock -LockHandle $autotrainLock -LockPath $lockPath
+        $autotrainLock = $null
         Invoke-GitPublish -RepoRoot $repoRoot -CommitMessage $commitMessage | Out-Null
 
         Write-Host $improveResult.SummaryLine
@@ -960,7 +982,10 @@ try {
 
         $codexPass = Invoke-CodexImprovementPass -IterationLabel $iterationLabel -IterationDir $iterationDir -RepoRoot $repoRoot -StatusPath $statusPath -CodexExecutable $codexExecutable -CodexModel $CodexModel -Prompt $Prompt -RecoveryThreshold $RecoveryThreshold -BenchmarkMetrics $benchmarkMetrics -LatestTrainingStatusPath $latestTrainingStatusPath -LatestBenchmarkStatusPath $latestBenchmarkStatusPath -Workflow $workflowName -ShowInlineProgress:(-not $OpenStatusWindow)
         $commitMessage = "autotrain: iteration $iterationLabel codex update"
+        Release-AutotrainLock -LockHandle $autotrainLock -LockPath $lockPath
+        $autotrainLock = $null
         Invoke-GitPublish -RepoRoot $repoRoot -CommitMessage $commitMessage | Out-Null
+        $autotrainLock = Acquire-AutotrainLock -LockPath $lockPath
         $decision = $codexPass.Decision
         $lastSummaryLine = $codexPass.SummaryLine
 
@@ -978,14 +1003,5 @@ try {
     Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $failedLabel -Phase 'failed' -Note $_.Exception.Message -Workflow $workflowName
     throw
 } finally {
-    if ($autotrainLock) {
-        try {
-            $autotrainLock.Dispose()
-        } catch {
-            Write-Warning "Failed to release autotrain lock handle: $($_.Exception.Message)"
-        }
-    }
-    if (Test-Path $lockPath) {
-        Remove-Item -LiteralPath $lockPath -Force -ErrorAction SilentlyContinue
-    }
+    Release-AutotrainLock -LockHandle $autotrainLock -LockPath $lockPath
 }

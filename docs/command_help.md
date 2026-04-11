@@ -16,6 +16,10 @@ if (Test-Path Alias:set) { Remove-Item Alias:set -Force }
 
 Optional: add short PowerShell helpers for common commands:
 
+Preferred source:
+- `scripts/powershell_helpers.ps1`
+- Load it in PowerShell with: `. .\scripts\powershell_helpers.ps1`
+
 ```powershell
 function create_data {
     param(
@@ -156,12 +160,19 @@ function autotrain {
     Push-Location $AiLanguageCoreRoot
     try {
         $type = $null
+        $parsedIterations = 0
         if ($null -ne $type_or_iterations) {
             if ($type_or_iterations -is [int] -or $type_or_iterations -is [long]) {
-                $max_iterations = [int]$type_or_iterations
+                $parsedIterations = [int]$type_or_iterations
+                if ($PSBoundParameters.ContainsKey('max_iterations') -and -not $PSBoundParameters.ContainsKey('epochs')) {
+                    $epochs = [int]$max_iterations
+                }
+                $max_iterations = $parsedIterations
             } else {
-                $parsedIterations = 0
                 if ([int]::TryParse([string]$type_or_iterations, [ref]$parsedIterations)) {
+                    if ($PSBoundParameters.ContainsKey('max_iterations') -and -not $PSBoundParameters.ContainsKey('epochs')) {
+                        $epochs = [int]$max_iterations
+                    }
                     $max_iterations = $parsedIterations
                 } else {
                     $type = [string]$type_or_iterations
@@ -169,13 +180,13 @@ function autotrain {
             }
         }
 
-        if ($PSBoundParameters.ContainsKey('epochs')) {
+        if ($PSBoundParameters.ContainsKey('epochs') -or ($null -ne $epochs -and $epochs -gt 0)) {
             if ($type) {
                 .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations -NumTrainEpochs $epochs
             } else {
                 .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations -NumTrainEpochs $epochs
             }
-        } elseif ($PSBoundParameters.ContainsKey('max_iterations')) {
+        } elseif ($PSBoundParameters.ContainsKey('max_iterations') -or ($null -ne $max_iterations -and $max_iterations -gt 0)) {
             if ($type) {
                 .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations
             } else {
@@ -595,12 +606,19 @@ function autotrain {
     Push-Location $AiLanguageCoreRoot
     try {
         $type = $null
+        $parsedIterations = 0
         if ($null -ne $type_or_iterations) {
             if ($type_or_iterations -is [int] -or $type_or_iterations -is [long]) {
-                $max_iterations = [int]$type_or_iterations
+                $parsedIterations = [int]$type_or_iterations
+                if ($PSBoundParameters.ContainsKey('max_iterations') -and -not $PSBoundParameters.ContainsKey('epochs')) {
+                    $epochs = [int]$max_iterations
+                }
+                $max_iterations = $parsedIterations
             } else {
-                $parsedIterations = 0
                 if ([int]::TryParse([string]$type_or_iterations, [ref]$parsedIterations)) {
+                    if ($PSBoundParameters.ContainsKey('max_iterations') -and -not $PSBoundParameters.ContainsKey('epochs')) {
+                        $epochs = [int]$max_iterations
+                    }
                     $max_iterations = $parsedIterations
                 } else {
                     $type = [string]$type_or_iterations
@@ -608,13 +626,13 @@ function autotrain {
             }
         }
 
-        if ($PSBoundParameters.ContainsKey('epochs')) {
+        if ($PSBoundParameters.ContainsKey('epochs') -or ($null -ne $epochs -and $epochs -gt 0)) {
             if ($type) {
                 .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations -NumTrainEpochs $epochs
             } else {
                 .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations -NumTrainEpochs $epochs
             }
-        } elseif ($PSBoundParameters.ContainsKey('max_iterations')) {
+        } elseif ($PSBoundParameters.ContainsKey('max_iterations') -or ($null -ne $max_iterations -and $max_iterations -gt 0)) {
             if ($type) {
                 .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations
             } else {

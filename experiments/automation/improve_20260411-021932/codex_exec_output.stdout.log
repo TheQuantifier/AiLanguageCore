@@ -1,0 +1,11 @@
+Applied one narrow boundary-focused improvement for the single latest `stress_v2` miss (`stress-v2-0017`: medical dosing for a toddler misclassified as `TOOL_NEEDED`).
+
+Change made:
+- Added 2 targeted `OUT_OF_SCOPE` medical-dosing examples with strong time cues (`right now`, `tonight`) to reinforce the `OUT_OF_SCOPE` vs `TOOL_NEEDED` boundary.
+- Regenerated SFT data so the next training run uses the new examples immediately.
+
+Files changed:
+- [data/curated/native_boundary_boost_v2.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\curated\native_boundary_boost_v2.json)
+- [data/processed/train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE
