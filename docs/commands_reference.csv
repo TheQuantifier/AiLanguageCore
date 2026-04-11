@@ -29,7 +29,7 @@ id,command,subtype_or_example,parameters,description
 28,eval_native,eval_native <model_path>,"model_path","Evaluate a saved native model directly with the default evaluator settings."
 29,status,status,none,"Watch live native training status."
 30,summarize,summarize,none,"Refresh and open the training run summary CSV."
-31,autotrain,autotrain,"[type] [max_iterations] [epochs]","Run the automated train -> benchmark -> Codex improvement loop using the saved default type when no type is provided."
+31,autotrain,autotrain,"[max_iterations] [epochs] OR [type] [max_iterations] [epochs]","Run the automated train -> benchmark -> Codex improvement loop. Supports both autotrain <iterations> <epochs> and autotrain <type> <iterations> <epochs>."
 32,autotrain,autotrain 3,"max_iterations","Run at most 3 automation iterations on the saved default type."
 33,autotrain,autotrain stress,"stress","Run the automation loop for the stress type."
 34,autotrain,autotrain stress_v2,"stress_v2","Run the automation loop for the stress_v2 type."

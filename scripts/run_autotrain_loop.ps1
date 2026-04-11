@@ -761,6 +761,28 @@ $recoveryInstructions
 }
 
 $pythonPath = Join-Path $repoRoot '.python\python.exe'
+
+# Backward/CLI compatibility: when invoked positionally as
+# `autotrain <iterations> <epochs>`, PowerShell can bind those to
+# -Type and -MaxIterations for this script shape. Re-map numeric type to
+# iterations and treat the second positional value as epoch override.
+$parsedTypeAsIterations = 0
+if ($Command -eq 'autotrain' -and $Type -and [int]::TryParse([string]$Type, [ref]$parsedTypeAsIterations)) {
+    if ($parsedTypeAsIterations -lt 1) {
+        throw "Max iterations must be at least 1. Received: $parsedTypeAsIterations"
+    }
+
+    if (-not $PSBoundParameters.ContainsKey('NumTrainEpochs') -and $PSBoundParameters.ContainsKey('MaxIterations')) {
+        if ($MaxIterations -lt 1) {
+            throw "NumTrainEpochs must be at least 1. Received: $MaxIterations"
+        }
+        $NumTrainEpochs = [int]$MaxIterations
+    }
+
+    $MaxIterations = [int]$parsedTypeAsIterations
+    $Type = $null
+}
+
 $selectedType = if ($Type) {
     $commandDefaultName = if ($Command -eq 'improve') { 'improve' } else { 'autotrain' }
     Resolve-AiLanguageCoreRequestedType -RepoRoot $repoRoot -CommandName $commandDefaultName -TypeName $Type -RequireTrainable
