@@ -322,5 +322,41 @@
     "response": "I would need a tool to check Ethereum's current price this second.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0037",
+    "user_input": "Should I go ahead with this plan?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for approval to proceed but does not provide what plan they mean or evaluation criteria.",
+    "response": "What plan are you referring to, and what outcome are you aiming for?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0038",
+    "user_input": "Is this good enough to submit now?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks whether something is ready to submit but does not include the content or standard being used.",
+    "response": "What are you planning to submit, and what standard are you trying to meet?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0039",
+    "user_input": "Pull the latest U.S. CPI number today.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The latest U.S. CPI number today is time-sensitive economic data and requires an external lookup.",
+    "response": "I would need a tool to pull the latest U.S. CPI number today.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0040",
+    "user_input": "Can you pull the most recent CPI reading for the U.S. right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "A most recent CPI reading is current external macroeconomic data that requires a live source.",
+    "response": "I would need a tool to pull the most recent U.S. CPI reading right now.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]

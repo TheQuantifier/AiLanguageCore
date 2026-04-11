@@ -479,11 +479,11 @@ while ($true) {
         $frameLines.Add('')
         Add-Lines -Target $frameLines -Lines (ConvertTo-Lines -Text 'Latest Metrics')
         Add-Lines -Target $frameLines -Lines (ConvertTo-Lines -Text ('-' * 'Latest Metrics'.Length))
-        $frameLines.Add('Benchmark size: {0}' -f [int]$payload.benchmark_size)
-        $frameLines.Add('Nonempty output: {0}' -f [int]$payload.nonempty_output_count)
-        $frameLines.Add('Valid output: {0} ({1})' -f [int]$payload.valid_output_count, (Format-Percent -Value ([double]$payload.valid_output_rate)))
-        $frameLines.Add('Correct type: {0} ({1})' -f [int]$payload.correct_response_type_count, (Format-Percent -Value ([double]$payload.response_type_accuracy)))
-        $frameLines.Add('Items/sec: {0:N2}' -f [double]$payload.items_per_sec)
+        $frameLines.Add(('Benchmark size: {0}' -f [int]$payload.benchmark_size))
+        $frameLines.Add(('Nonempty output: {0}' -f [int]$payload.nonempty_output_count))
+        $frameLines.Add(('Valid output: {0} ({1})' -f [int]$payload.valid_output_count, (Format-Percent -Value ([double]$payload.valid_output_rate))))
+        $frameLines.Add(('Correct type: {0} ({1})' -f [int]$payload.correct_response_type_count, (Format-Percent -Value ([double]$payload.response_type_accuracy))))
+        $frameLines.Add(('Items/sec: {0:N2}' -f [double]$payload.items_per_sec))
     }
 
     $renderedLineCount = Render-Frame -Lines $frameLines.ToArray() -PreviousLineCount $renderedLineCount

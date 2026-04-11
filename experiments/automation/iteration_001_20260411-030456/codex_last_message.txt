@@ -1,0 +1,11 @@
+Applied one narrow, boundary-focused data improvement for the single current miss (`TOOL_NEEDED` vs `DIRECT_ANSWER` on real-time crypto pricing phrasing).
+
+- Added 4 new `TOOL_NEEDED` training examples centered on the exact weak pattern: “What is `<asset>` trading at this minute/right now?”.
+- Regenerated SFT files so the next train run actually consumes these examples.
+- Kept loss strategy unchanged (`use_class_balanced_loss` still off), since there’s no new evidence it’s the right fix.
+
+Files changed:
+- [data/processed/train_direct_answer_tool_boundary_pack.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_direct_answer_tool_boundary_pack.json)
+- [data/processed/train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE

@@ -553,7 +553,7 @@ function Get-BenchmarkMetrics {
     }
 }
 
-function Test-CorrectTypeTargetReached {
+function Test-AutotrainTargetReached {
     param(
         [object]$BenchmarkMetrics
     )
@@ -566,7 +566,10 @@ function Test-CorrectTypeTargetReached {
         return $false
     }
 
-    return $BenchmarkMetrics.CorrectResponseTypeCount -ge $BenchmarkMetrics.BenchmarkSize
+    return (
+        $BenchmarkMetrics.CorrectResponseTypeCount -ge $BenchmarkMetrics.BenchmarkSize -and
+        $BenchmarkMetrics.ValidOutputCount -ge $BenchmarkMetrics.BenchmarkSize
+    )
 }
 
 function Invoke-GitPublish {
@@ -972,11 +975,11 @@ try {
         Write-Host ("Latest benchmark: valid_output_rate={0:P2} | response_type_accuracy={1:P2} | size={2}" -f $benchmarkMetrics.ValidOutputRate, $benchmarkMetrics.ResponseTypeAccuracy, $benchmarkMetrics.BenchmarkSize)
         Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'benchmark_complete' -Note 'Training and benchmark completed.' -Workflow $workflowName -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
 
-        if (Test-CorrectTypeTargetReached -BenchmarkMetrics $benchmarkMetrics) {
+        if (Test-AutotrainTargetReached -BenchmarkMetrics $benchmarkMetrics) {
             $lastSummaryLine = ("Loop {0} | {1}/{1} (100.0%) | nonempty_output={2} | valid_output={3} | correct_type={4} | items_per_sec={5:N2}" -f $iterationLabel, $benchmarkMetrics.BenchmarkSize, $benchmarkMetrics.NonemptyOutputCount, $benchmarkMetrics.ValidOutputCount, $benchmarkMetrics.CorrectResponseTypeCount, $benchmarkMetrics.ItemsPerSec)
-            Write-Host 'Reached correct_type target: 100% accuracy. Ending automation loop.'
+            Write-Host 'Reached autotrain target: valid_output and correct_type are both 100%. Ending automation loop.'
             Write-Host $lastSummaryLine
-            Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'stopped' -Note 'Reached correct_type target: 100% accuracy.' -Workflow $workflowName -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
+            Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'stopped' -Note 'Reached autotrain target: valid_output and correct_type are both 100%.' -Workflow $workflowName -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
             break
         }
 

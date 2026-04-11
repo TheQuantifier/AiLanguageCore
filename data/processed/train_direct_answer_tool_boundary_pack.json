@@ -358,5 +358,41 @@
     "response": "I would need a tool to check mortgage rates at this moment.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0041",
+    "user_input": "What is BTC trading at this minute?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "BTC's trading value this minute is live market data and requires an external lookup.",
+    "response": "I would need a tool to look up what BTC is trading at this minute.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0042",
+    "user_input": "What is SOL trading at this minute?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "SOL's current trading value is time-sensitive market information that needs a live source.",
+    "response": "I would need a tool to look up what SOL is trading at this minute.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0043",
+    "user_input": "What is Bitcoin trading at this minute?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Bitcoin's trading value this minute is external live market data and cannot be answered from static knowledge.",
+    "response": "I would need a tool to look up what Bitcoin is trading at this minute.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-da-tool-0044",
+    "user_input": "What is Ethereum trading at right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "Ethereum's value right now is real-time market data and requires an external lookup.",
+    "response": "I would need a tool to look up what Ethereum is trading at right now.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]
