@@ -5,7 +5,12 @@ import re
 import sys
 
 
-SYSTEM_PROMPT = "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."
+LABEL_ONLY_SYSTEM_PROMPT = "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."
+FULL_RESPONSE_SYSTEM_PROMPT = (
+    "Reply with valid JSON using exactly these keys: "
+    "response_type, reason, response. "
+    "response_type must be one of DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."
+)
 NATIVE_FOCUSED_BENCHMARKS = [
     (
         Path("data/processed/benchmark_stress.json"),
@@ -101,8 +106,17 @@ def load_optional_records(path: Path) -> list[dict]:
     return load_records(path)
 
 
-def build_assistant_target(record: dict) -> str:
+def build_label_assistant_target(record: dict) -> str:
     return str(record["response_type"])
+
+
+def build_full_response_assistant_target(record: dict) -> str:
+    payload = {
+        "response_type": str(record["response_type"]),
+        "reason": str(record["reason"]),
+        "response": str(record["response"]),
+    }
+    return json.dumps(payload, ensure_ascii=True)
 
 
 def normalize_user_input(text: str) -> str:
@@ -110,14 +124,26 @@ def normalize_user_input(text: str) -> str:
     return normalized.lower()
 
 
-def convert_record(record: dict) -> dict:
+def convert_record_label_only(record: dict) -> dict:
     return {
         "id": record["id"],
         "source": record["source"],
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": LABEL_ONLY_SYSTEM_PROMPT},
             {"role": "user", "content": record["user_input"]},
-            {"role": "assistant", "content": build_assistant_target(record)},
+            {"role": "assistant", "content": build_label_assistant_target(record)},
+        ],
+    }
+
+
+def convert_record_full_response(record: dict) -> dict:
+    return {
+        "id": record["id"],
+        "source": record["source"],
+        "messages": [
+            {"role": "system", "content": FULL_RESPONSE_SYSTEM_PROMPT},
+            {"role": "user", "content": record["user_input"]},
+            {"role": "assistant", "content": build_full_response_assistant_target(record)},
         ],
     }
 
@@ -188,7 +214,7 @@ def write_native_benchmark_variants() -> None:
         if not input_path.exists():
             continue
         records = load_records(input_path)
-        converted = [convert_record(record) for record in records]
+        converted = [convert_record_label_only(record) for record in records]
         write_jsonl(output_path, converted)
         print(f"Wrote {len(converted)} records to {output_path}")
 
@@ -206,7 +232,7 @@ def main() -> int:
         args.extra_train_inputs,
     )
 
-    datasets = [
+    full_response_datasets = [
         (
             merged_train_records,
             args.train_output,
@@ -216,15 +242,36 @@ def main() -> int:
         (benchmark_records, args.benchmark_output, str(args.benchmark_input)),
     ]
 
-    for records, output_path, source_label in datasets:
+    explicit_full_response_outputs = [
+        (merged_train_records, Path("data/processed/train_full_response_sft.jsonl")),
+        (validation_records, Path("data/processed/validation_full_response_sft.jsonl")),
+        (benchmark_records, Path("data/processed/benchmark_full_response_sft.jsonl")),
+    ]
+    explicit_category_prediction_outputs = [
+        (merged_train_records, Path("data/processed/train_category_prediction_sft.jsonl")),
+        (validation_records, Path("data/processed/validation_category_prediction_sft.jsonl")),
+        (benchmark_records, Path("data/processed/benchmark_category_prediction_sft.jsonl")),
+    ]
+
+    for records, output_path, source_label in full_response_datasets:
         converted = []
         print(f"Converting {len(records)} records from {source_label}")
         for index, record in enumerate(records, start=1):
-            converted.append(convert_record(record))
+            converted.append(convert_record_full_response(record))
             sys.stdout.write("\r" + render_progress_bar(index, len(records)) + " " * 8)
             sys.stdout.flush()
         write_jsonl(output_path, converted)
         sys.stdout.write("\n")
+        print(f"Wrote {len(converted)} records to {output_path}")
+
+    for records, output_path in explicit_full_response_outputs:
+        converted = [convert_record_full_response(record) for record in records]
+        write_jsonl(output_path, converted)
+        print(f"Wrote {len(converted)} records to {output_path}")
+
+    for records, output_path in explicit_category_prediction_outputs:
+        converted = [convert_record_label_only(record) for record in records]
+        write_jsonl(output_path, converted)
         print(f"Wrote {len(converted)} records to {output_path}")
 
     if args.extra_train_inputs:

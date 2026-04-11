@@ -20,188 +20,19 @@ Preferred source:
 - `scripts/powershell_helpers.ps1`
 - Load it in PowerShell with: `. .\scripts\powershell_helpers.ps1`
 
-```powershell
-function create_data {
-    param(
-        [Parameter(Mandatory = $true)][int]$count,
-        [int]$batch
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($PSBoundParameters.ContainsKey('batch')) {
-            & $py scripts\generate_data.py --count $count --batch-size $batch
-        } else {
-            & $py scripts\generate_data.py --count $count
-        }
-
-        & $py scripts\prepare_dataset.py
-        & $py scripts\convert_training_data.py
-    } finally {
-        Pop-Location
-    }
-}
-function set {
-    param(
-        [Parameter(Position = 0)][string]$type,
-        [Parameter(Position = 1)][string]$command_name
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($PSBoundParameters.ContainsKey('command_name')) {
-            .\set.ps1 $type $command_name
-        } elseif ($PSBoundParameters.ContainsKey('type')) {
-            .\set.ps1 $type
-        } else {
-            .\set.ps1
-        }
-    } finally {
-        Pop-Location
-    }
-}
-function get_type {
-    param(
-        [Parameter(Position = 0)][string]$command_name
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($PSBoundParameters.ContainsKey('command_name')) {
-            .\get_type.ps1 $command_name
-        } else {
-            .\get_type.ps1
-        }
-    } finally {
-        Pop-Location
-    }
-}
-function train {
-    param(
-        [Parameter(Position = 0)][object]$type_or_epochs,
-        [Parameter(Position = 1)][int]$epochs
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($type_or_epochs -is [int] -or $type_or_epochs -is [long]) {
-            .\train.ps1 $type_or_epochs
-            return
-        }
-
-        if ($PSBoundParameters.ContainsKey('epochs')) {
-            .\train.ps1 $type_or_epochs $epochs
-        } elseif ($PSBoundParameters.ContainsKey('type_or_epochs')) {
-            .\train.ps1 $type_or_epochs
-        } else {
-            .\train.ps1
-        }
-    } finally {
-        Pop-Location
-    }
-}
-function improve {
-    param(
-        [Parameter(Position = 0)][string]$type
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($PSBoundParameters.ContainsKey('type')) {
-            .\scripts\run_autotrain_loop.ps1 -Command improve -Type $type -OpenStatusWindow:$false
-        } else {
-            .\scripts\run_autotrain_loop.ps1 -Command improve -OpenStatusWindow:$false
-        }
-    } finally {
-        Pop-Location
-    }
-}
-function eval_native {
-    param(
-        [Parameter(Mandatory = $true)][string]$model_path
-    )
-
-    Write-Host "Evaluating native model: $model_path"
-    Push-Location $AiLanguageCoreRoot
-    try {
-        & $py scripts\evaluate_native_model.py --model-path $model_path
-    } finally {
-        Pop-Location
-    }
-}
-function benchmark {
-    param(
-        [Parameter(Position = 0)][string]$type,
-        [Parameter(Position = 1)][string]$model_path
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($PSBoundParameters.ContainsKey('model_path')) {
-            .\benchmark.ps1 $type $model_path
-        } elseif ($PSBoundParameters.ContainsKey('type')) {
-            .\benchmark.ps1 $type
-        } else {
-            .\benchmark.ps1
-        }
-    } finally {
-        Pop-Location
-    }
-}
-function status { Push-Location $AiLanguageCoreRoot; try { .\scripts\show_training_status.ps1 -Watch } finally { Pop-Location } }
-function summarize { Push-Location $AiLanguageCoreRoot; try { & $py scripts\summarize_training_runs.py; if (Test-Path .\experiments\training_runs_summary.csv) { Invoke-Item .\experiments\training_runs_summary.csv } } finally { Pop-Location } }
-function autotrain {
-    param(
-        [Parameter(Position = 0)][object]$type_or_iterations,
-        [Parameter(Position = 1)][int]$max_iterations,
-        [Parameter(Position = 2)][int]$epochs
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        $type = $null
-        $parsedIterations = 0
-        if ($null -ne $type_or_iterations) {
-            if ($type_or_iterations -is [int] -or $type_or_iterations -is [long]) {
-                $parsedIterations = [int]$type_or_iterations
-                if ($PSBoundParameters.ContainsKey('max_iterations') -and -not $PSBoundParameters.ContainsKey('epochs')) {
-                    $epochs = [int]$max_iterations
-                }
-                $max_iterations = $parsedIterations
-            } else {
-                if ([int]::TryParse([string]$type_or_iterations, [ref]$parsedIterations)) {
-                    if ($PSBoundParameters.ContainsKey('max_iterations') -and -not $PSBoundParameters.ContainsKey('epochs')) {
-                        $epochs = [int]$max_iterations
-                    }
-                    $max_iterations = $parsedIterations
-                } else {
-                    $type = [string]$type_or_iterations
-                }
-            }
-        }
-
-        if ($PSBoundParameters.ContainsKey('epochs') -or ($null -ne $epochs -and $epochs -gt 0)) {
-            if ($type) {
-                .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations -NumTrainEpochs $epochs
-            } else {
-                .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations -NumTrainEpochs $epochs
-            }
-        } elseif ($PSBoundParameters.ContainsKey('max_iterations') -or ($null -ne $max_iterations -and $max_iterations -gt 0)) {
-            if ($type) {
-                .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations
-            } else {
-                .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations
-            }
-        } elseif ($type) {
-            .\scripts\run_autotrain_loop.ps1 -Type $type
-        } else {
-            .\scripts\run_autotrain_loop.ps1
-        }
-    } finally {
-        Pop-Location
-    }
-}
-```
+Available helper functions:
+- `create_data <count> [batch]`: generate teacher data, prepare the dataset, and rebuild SFT files.
+- `set <type> [category] [command]`: save defaults globally or for one command.
+- `set_type <type> [category] [command]`: alias for `set`.
+- `get_type [command]`: show the saved default selection.
+- `train [type] [category] [epochs]`: train using the saved or explicit selection.
+- `benchmark [type] [category] [model_path]`: run the active benchmark for the saved or explicit selection.
+- `frozen_benchmark [type] [category] [model_path]`: run the regression benchmark for the current model selection.
+- `improve [type] [category]`: run the standalone Codex improvement pass.
+- `autotrain [type] [category] [max_iterations] [epochs]`: run the automated train -> benchmark -> Codex loop.
+- `eval_native <model_path>`: evaluate a saved native model directly.
+- `status`: watch live training status.
+- `summarize`: refresh and open the training summary CSV.
 
 ## 1. Collect AI Training Data
 
@@ -255,6 +86,10 @@ Outputs:
 - `data/processed/benchmark_account_tool_boundary_native_sft.jsonl`
 - `data/processed/benchmark_medical_refusal_boundary_native_sft.jsonl`
 - `data/processed/benchmark_oos_vs_tool_boundary_native_sft.jsonl`
+
+Format notes:
+- `train_sft.jsonl`, `validation_sft.jsonl`, and `benchmark_sft.jsonl` now use the full V1 response schema with JSON assistant targets: `response_type`, `reason`, and `response`
+- the focused native benchmark files such as `benchmark_stress_v2_native_sft.jsonl` remain label-only so they can continue acting as routing and boundary regression tests
 
 ## 3a. Data Pipeline In One Command
 
@@ -311,10 +146,21 @@ train 8
 train stress 8
 ```
 
-`set <type>` sets all type-aware command defaults (`train`, `benchmark`, `autotrain`, `improve`).
-`set <type> <command>` sets only that command's default type. It does not run the command.
+`set <type> [category]` sets all type-aware command defaults.
+`set <type> [category] <command>` sets only that command's default selection. It does not run the command.
+`set_type` is an alias for the same behavior.
 `core` is the fixed non-stress type. `default` is a dynamic pointer to each command's saved default.
 `stress_v2` is a harder stress track with its own benchmark file and training config.
+`stress_v2` is now frozen as a regression benchmark, so the active defaults should stay on `core` or another non-frozen trainable type.
+
+Categories:
+- `category_prediction`
+- `full_response`
+
+Examples:
+- `set core full_response`
+- `set stress category_prediction`
+- `set stress_v2 category_prediction frozen_benchmark`
 
 The helper now:
 - changes into the repo root automatically
@@ -323,13 +169,18 @@ The helper now:
 - starts the native trainer from the correct working directory
 
 Default training baseline:
-- `train` defaults to the type saved in `config/command_defaults.json`
+- `train` defaults to `core full_response`
+- `benchmark` defaults to the active training selection
+- `frozen_benchmark` defaults to `stress_v2 category_prediction`
+- `autotrain` and `improve` default to `core`
 - `set` changes the saved default trainable type used by `train`, `benchmark`, `autotrain`, and `improve`
 - `stress` uses `models\configs\v1_native_byte_transformer_stress_config.json`
 - `stress_v2` uses `models\configs\v1_native_byte_transformer_stress_v2_config.json`
-- `default` and `core` use `models\configs\v1_native_byte_transformer_config.json`
+- `core category_prediction` uses `models\configs\v1_native_byte_transformer_category_prediction_config.json`
+- `core full_response` uses `models\configs\v1_native_byte_transformer_config.json`
 - all configs default to `50` epochs
 - `train <N>` or `.\train.ps1 <N>` uses the currently set default type with an epoch override
+- `autotrain` and `improve` reject frozen types such as `stress_v2`
 
 Run just the Codex improvement pass against the latest completed training run:
 
@@ -382,6 +233,9 @@ With the helper above, you can just run:
 ```powershell
 eval_native <printed_native_run_output_dir>
 benchmark
+benchmark core full_response
+benchmark stress_v2 category_prediction
+frozen_benchmark
 benchmark stress
 benchmark stress_v2
 benchmark default
@@ -390,17 +244,24 @@ benchmark stress <printed_native_run_output_dir>
 ```
 
 Named benchmark types:
-- `default`, `core` -> `data/processed/benchmark_sft.jsonl`
-- `stress` -> `data/processed/benchmark_stress_native_sft.jsonl`
-- `stress_v2` -> `data/processed/benchmark_stress_v2_native_sft.jsonl`
+- `core full_response` -> `data/processed/benchmark_full_response_sft.jsonl`
+- `core category_prediction` -> `data/processed/benchmark_category_prediction_sft.jsonl`
+- `stress category_prediction` -> `data/processed/benchmark_stress_native_sft.jsonl`
+- `stress_v2 category_prediction` -> `data/processed/benchmark_stress_v2_native_sft.jsonl`
 - `account` -> `data/processed/benchmark_account_tool_boundary_native_sft.jsonl`
 - `medical` -> `data/processed/benchmark_medical_refusal_boundary_native_sft.jsonl`
 - `oos_tool` -> `data/processed/benchmark_oos_vs_tool_boundary_native_sft.jsonl`
 
 Default benchmark baseline:
-- `benchmark` defaults to the currently set default trainable type
+- `benchmark` defaults to the saved active selection for the `benchmark` command
+- `frozen_benchmark` is the dedicated regression gate
 - `account`, `medical`, and `oos_tool` are benchmark-only explicit types
-- use `benchmark default` when you want the original default benchmark
+- use `frozen_benchmark` when you want regression coverage instead of the active benchmark
+
+Frozen benchmark fallback order:
+- if the current selection is itself frozen and supports that category, use it
+- otherwise, use a frozen benchmark in the current category if one exists
+- otherwise, fall back to the saved `frozen_benchmark` default
 
 Show a table of all training runs and the currently saved benchmark report for each run:
 
@@ -433,221 +294,20 @@ Outputs:
 
 ## Shortcut Functions
 
-Copy this block into PowerShell when you want the shortcuts available for the
-current session:
-
-```powershell
-$AiLanguageCoreRoot = 'C:\Users\jhand\Documents\Github\AiLanguageCore'
-$py = Join-Path $AiLanguageCoreRoot '.python\python.exe'
-if (Test-Path Alias:set) { Remove-Item Alias:set -Force }
-
-function create_data {
-    param(
-        [Parameter(Mandatory = $true)][int]$count,
-        [int]$batch
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($PSBoundParameters.ContainsKey('batch')) {
-            & $py scripts\generate_data.py --count $count --batch-size $batch
-        } else {
-            & $py scripts\generate_data.py --count $count
-        }
-
-        & $py scripts\prepare_dataset.py
-        & $py scripts\convert_training_data.py
-    } finally {
-        Pop-Location
-    }
-}
-
-function set {
-    param(
-        [Parameter(Position = 0)][string]$type,
-        [Parameter(Position = 1)][string]$command_name
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($PSBoundParameters.ContainsKey('command_name')) {
-            .\set.ps1 $type $command_name
-        } elseif ($PSBoundParameters.ContainsKey('type')) {
-            .\set.ps1 $type
-        } else {
-            .\set.ps1
-        }
-    } finally {
-        Pop-Location
-    }
-}
-
-function get_type {
-    param(
-        [Parameter(Position = 0)][string]$command_name
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($PSBoundParameters.ContainsKey('command_name')) {
-            .\get_type.ps1 $command_name
-        } else {
-            .\get_type.ps1
-        }
-    } finally {
-        Pop-Location
-    }
-}
-
-function train {
-    param(
-        [Parameter(Position = 0)][object]$type_or_epochs,
-        [Parameter(Position = 1)][int]$epochs
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($type_or_epochs -is [int] -or $type_or_epochs -is [long]) {
-            .\train.ps1 $type_or_epochs
-            return
-        }
-
-        if ($PSBoundParameters.ContainsKey('epochs')) {
-            .\train.ps1 $type_or_epochs $epochs
-        } elseif ($PSBoundParameters.ContainsKey('type_or_epochs')) {
-            .\train.ps1 $type_or_epochs
-        } else {
-            .\train.ps1
-        }
-    } finally {
-        Pop-Location
-    }
-}
-
-function improve {
-    param(
-        [Parameter(Position = 0)][string]$type
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($PSBoundParameters.ContainsKey('type')) {
-            .\scripts\run_autotrain_loop.ps1 -Command improve -Type $type -OpenStatusWindow:$false
-        } else {
-            .\scripts\run_autotrain_loop.ps1 -Command improve -OpenStatusWindow:$false
-        }
-    } finally {
-        Pop-Location
-    }
-}
-
-function eval_native {
-    param(
-        [Parameter(Mandatory = $true)][string]$model_path
-    )
-
-    Write-Host "Evaluating native model: $model_path"
-    Push-Location $AiLanguageCoreRoot
-    try {
-        & $py scripts\evaluate_native_model.py --model-path $model_path
-    } finally {
-        Pop-Location
-    }
-}
-
-function benchmark {
-    param(
-        [Parameter(Position = 0)][string]$type,
-        [Parameter(Position = 1)][string]$model_path
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        if ($PSBoundParameters.ContainsKey('model_path')) {
-            .\benchmark.ps1 $type $model_path
-        } elseif ($PSBoundParameters.ContainsKey('type')) {
-            .\benchmark.ps1 $type
-        } else {
-            .\benchmark.ps1
-        }
-    } finally {
-        Pop-Location
-    }
-}
-
-function status {
-    Push-Location $AiLanguageCoreRoot
-    try {
-        .\scripts\show_training_status.ps1 -Watch
-    } finally {
-        Pop-Location
-    }
-}
-
-function summarize {
-    Push-Location $AiLanguageCoreRoot
-    try {
-        & $py scripts\summarize_training_runs.py
-        if (Test-Path .\experiments\training_runs_summary.csv) {
-            Invoke-Item .\experiments\training_runs_summary.csv
-        }
-    } finally {
-        Pop-Location
-    }
-}
-
-function autotrain {
-    param(
-        [Parameter(Position = 0)][object]$type_or_iterations,
-        [Parameter(Position = 1)][int]$max_iterations,
-        [int]$epochs
-    )
-
-    Push-Location $AiLanguageCoreRoot
-    try {
-        $type = $null
-        $parsedIterations = 0
-        if ($null -ne $type_or_iterations) {
-            if ($type_or_iterations -is [int] -or $type_or_iterations -is [long]) {
-                $parsedIterations = [int]$type_or_iterations
-                if ($PSBoundParameters.ContainsKey('max_iterations') -and -not $PSBoundParameters.ContainsKey('epochs')) {
-                    $epochs = [int]$max_iterations
-                }
-                $max_iterations = $parsedIterations
-            } else {
-                if ([int]::TryParse([string]$type_or_iterations, [ref]$parsedIterations)) {
-                    if ($PSBoundParameters.ContainsKey('max_iterations') -and -not $PSBoundParameters.ContainsKey('epochs')) {
-                        $epochs = [int]$max_iterations
-                    }
-                    $max_iterations = $parsedIterations
-                } else {
-                    $type = [string]$type_or_iterations
-                }
-            }
-        }
-
-        if ($PSBoundParameters.ContainsKey('epochs') -or ($null -ne $epochs -and $epochs -gt 0)) {
-            if ($type) {
-                .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations -NumTrainEpochs $epochs
-            } else {
-                .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations -NumTrainEpochs $epochs
-            }
-        } elseif ($PSBoundParameters.ContainsKey('max_iterations') -or ($null -ne $max_iterations -and $max_iterations -gt 0)) {
-            if ($type) {
-                .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations
-            } else {
-                .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations
-            }
-        } elseif ($type) {
-            .\scripts\run_autotrain_loop.ps1 -Type $type
-        } else {
-            .\scripts\run_autotrain_loop.ps1
-        }
-    } finally {
-        Pop-Location
-    }
-}
-```
+Load the current helper set from `scripts/powershell_helpers.ps1` when you want
+the shortcuts available for the session. The available helpers are:
+- `create_data`
+- `set`
+- `set_type`
+- `get_type`
+- `train`
+- `benchmark`
+- `frozen_benchmark`
+- `improve`
+- `autotrain`
+- `eval_native`
+- `status`
+- `summarize`
 
 ## Automated Train Loop
 

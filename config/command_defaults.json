@@ -1,10 +1,29 @@
 {
-    "default_type":  "stress_v2",
+    "global_defaults":  {
+                            "type":  "core",
+                            "category":  "full_response"
+                        },
     "command_defaults":  {
-                             "train":  "stress_v2",
-                             "benchmark":  "stress_v2",
-                             "autotrain":  "stress_v2",
-                             "improve":  "stress_v2"
+                             "train":  {
+                                           "type":  "core",
+                                           "category":  "full_response"
+                                       },
+                             "benchmark":  {
+                                               "type":  "core",
+                                               "category":  "full_response"
+                                           },
+                             "frozen_benchmark":  {
+                                                      "type":  "stress_v2",
+                                                      "category":  "category_prediction"
+                                                  },
+                             "autotrain":  {
+                                               "type":  "core",
+                                               "category":  "full_response"
+                                           },
+                             "improve":  {
+                                             "type":  "core",
+                                             "category":  "full_response"
+                                         }
                          },
-    "updated_at":  "2026-04-10T01:09:25.5981778-04:00"
+    "updated_at":  "2026-04-11T12:00:15.3970302-04:00"
 }

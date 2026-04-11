@@ -1,12 +1,12 @@
 {
-    "iteration_label":  "004",
-    "phase":  "decision",
-    "timestamp":  "2026-04-11 04:37:37",
-    "note":  "Codex decision: CONTINUE",
+    "iteration_label":  "005",
+    "phase":  "stopped",
+    "timestamp":  "2026-04-11 04:59:19",
+    "note":  "Reached autotrain target: valid_output and correct_type are both 100%.",
     "workflow":  "train -\u003e benchmark -\u003e codex -\u003e decision",
     "stage":  {
-                  "current":  "decision",
-                  "index":  5,
+                  "current":  "stopped",
+                  "index":  6,
                   "total":  8,
                   "order":  [
                                 "starting",
@@ -19,14 +19,14 @@
                                 "failed"
                             ]
               },
-    "training_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-stress-v2-20260411-041405\\training_status.json",
-    "benchmark_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-stress-v2-20260411-041405\\benchmark_status.json",
+    "training_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-stress-v2-20260411-043740\\training_status.json",
+    "benchmark_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-stress-v2-20260411-043740\\benchmark_status.json",
     "benchmark_size":  24,
     "nonempty_output_count":  24,
-    "valid_output_count":  23,
-    "correct_response_type_count":  22,
-    "items_per_sec":  3.3290528648948881,
-    "valid_output_rate":  0.95833333333333337,
-    "response_type_accuracy":  0.91666666666666663,
-    "benchmark_report":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-stress-v2-20260411-041405.json"
+    "valid_output_count":  24,
+    "correct_response_type_count":  24,
+    "items_per_sec":  3.5325734178951276,
+    "valid_output_rate":  1,
+    "response_type_accuracy":  1,
+    "benchmark_report":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-stress-v2-20260411-043740.json"
 }

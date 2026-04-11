@@ -10,15 +10,15 @@ $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 if ($CommandName) {
     $resolved = Resolve-AiLanguageCoreDefaultCommandName -CommandName $CommandName
-    $commandType = Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName $resolved
-    Write-Host "$resolved default type: $commandType"
+    $selection = Get-AiLanguageCoreDefaultSelection -RepoRoot $repoRoot -CommandName $resolved
+    Write-Host "$resolved defaults: type=$($selection.Type) | category=$($selection.Category)"
     exit 0
 }
 
-$globalType = Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot
-Write-Host "Global default type: $globalType"
+ $globalSelection = Get-AiLanguageCoreDefaultSelection -RepoRoot $repoRoot
+Write-Host "Global defaults: type=$($globalSelection.Type) | category=$($globalSelection.Category)"
 Write-Host "Command defaults:"
-Write-Host "  train: $(Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'train')"
-Write-Host "  benchmark: $(Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'benchmark')"
-Write-Host "  autotrain: $(Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'autotrain')"
-Write-Host "  improve: $(Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'improve')"
+foreach ($name in (Get-AiLanguageCoreDefaultCommandList)) {
+    $selection = Get-AiLanguageCoreDefaultSelection -RepoRoot $repoRoot -CommandName $name
+    Write-Host "  ${name}: type=$($selection.Type) | category=$($selection.Category)"
+}

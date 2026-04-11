@@ -2,7 +2,10 @@ param(
     [Parameter(Position = 0)]
     [object]$TypeOrEpoch,
     [Parameter(Position = 1)]
+    [object]$CategoryOrEpoch,
+    [Parameter(Position = 2)]
     [int]$Epochs,
+    [string]$Category,
     [string]$Config
 )
 
@@ -12,7 +15,9 @@ $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $pythonPath = Join-Path $repoRoot '.python\python.exe'
 . (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
 
-$Type = Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'train'
+$defaultSelection = Get-AiLanguageCoreDefaultSelection -RepoRoot $repoRoot -CommandName 'train'
+$Type = $defaultSelection.Type
+$ResolvedCategory = if ($Category) { Resolve-AiLanguageCoreCategory -CategoryName $Category } else { $defaultSelection.Category }
 $hasEpochOverride = $PSBoundParameters.ContainsKey('Epochs')
 if ($null -ne $TypeOrEpoch) {
     $parsedEpoch = 0
@@ -23,9 +28,29 @@ if ($null -ne $TypeOrEpoch) {
         $Epochs = $parsedEpoch
         $hasEpochOverride = $true
     } else {
-        $Type = Resolve-AiLanguageCoreRequestedType -RepoRoot $repoRoot -CommandName 'train' -TypeName ([string]$TypeOrEpoch) -RequireTrainable
+        $Type = Resolve-AiLanguageCoreType -TypeName ([string]$TypeOrEpoch) -RequireTrainable
+        if (-not $PSBoundParameters.ContainsKey('Category')) {
+            $ResolvedCategory = Get-AiLanguageCorePreferredCategoryForType -TypeName $Type
+        }
     }
 }
+
+if ($null -ne $CategoryOrEpoch) {
+    $parsedEpoch = 0
+    if ($CategoryOrEpoch -is [int] -or $CategoryOrEpoch -is [long]) {
+        $Epochs = [int]$CategoryOrEpoch
+        $hasEpochOverride = $true
+    } elseif ([int]::TryParse([string]$CategoryOrEpoch, [ref]$parsedEpoch)) {
+        $Epochs = [int]$parsedEpoch
+        $hasEpochOverride = $true
+    } else {
+        $ResolvedCategory = Resolve-AiLanguageCoreCategory -CategoryName ([string]$CategoryOrEpoch)
+    }
+}
+
+$selection = Resolve-AiLanguageCoreSelection -RepoRoot $repoRoot -CommandName 'train' -TypeName $Type -CategoryName $ResolvedCategory -RequireTrainable
+$Type = $selection.Type
+$ResolvedCategory = $selection.Category
 
 if (-not (Test-Path $pythonPath)) {
     throw "Python runtime not found: $pythonPath"
@@ -34,7 +59,7 @@ if (-not (Test-Path $pythonPath)) {
 $resolvedConfig = if ($PSBoundParameters.ContainsKey('Config')) {
     $Config
 } else {
-    Resolve-AiLanguageCoreTrainingConfig -RepoRoot $repoRoot -TypeName $Type
+    Resolve-AiLanguageCoreTrainingConfig -RepoRoot $repoRoot -TypeName $Type -CategoryName $ResolvedCategory
 }
 
 $configPath = if ([System.IO.Path]::IsPathRooted($resolvedConfig)) {
@@ -50,6 +75,7 @@ if (-not (Test-Path $configPath)) {
 Write-Host "Starting native training from $repoRoot"
 Write-Host "Config: $configPath"
 Write-Host "Type: $Type"
+Write-Host "Category: $ResolvedCategory"
 if ($hasEpochOverride) {
     Write-Host "Epoch override: $Epochs"
 }

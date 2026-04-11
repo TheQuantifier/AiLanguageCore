@@ -11,11 +11,24 @@ DEFAULT_CSV_OUT = DEFAULT_REPORTS_DIR / "training_runs_summary.csv"
 
 BENCHMARK_FILE_TO_TYPE = {
     "benchmark_sft.jsonl": "core",
+    "benchmark_category_prediction_sft.jsonl": "core",
+    "benchmark_full_response_sft.jsonl": "core",
     "benchmark_stress_native_sft.jsonl": "stress",
     "benchmark_stress_v2_native_sft.jsonl": "stress_v2",
     "benchmark_account_tool_boundary_native_sft.jsonl": "account",
     "benchmark_medical_refusal_boundary_native_sft.jsonl": "medical",
     "benchmark_oos_vs_tool_boundary_native_sft.jsonl": "oos_tool",
+}
+
+BENCHMARK_FILE_TO_CATEGORY = {
+    "benchmark_sft.jsonl": "full_response",
+    "benchmark_category_prediction_sft.jsonl": "category_prediction",
+    "benchmark_full_response_sft.jsonl": "full_response",
+    "benchmark_stress_native_sft.jsonl": "category_prediction",
+    "benchmark_stress_v2_native_sft.jsonl": "category_prediction",
+    "benchmark_account_tool_boundary_native_sft.jsonl": "category_prediction",
+    "benchmark_medical_refusal_boundary_native_sft.jsonl": "category_prediction",
+    "benchmark_oos_vs_tool_boundary_native_sft.jsonl": "category_prediction",
 }
 
 
@@ -63,6 +76,12 @@ def infer_type_from_benchmark_path(path_value: object) -> str:
     if not isinstance(path_value, str) or not path_value.strip():
         return "unknown"
     return BENCHMARK_FILE_TO_TYPE.get(Path(path_value).name, "custom")
+
+
+def infer_category_from_benchmark_path(path_value: object) -> str:
+    if not isinstance(path_value, str) or not path_value.strip():
+        return "unknown"
+    return BENCHMARK_FILE_TO_CATEGORY.get(Path(path_value).name, "custom")
 
 
 def parse_iso_datetime(value: object) -> datetime | None:
@@ -174,9 +193,13 @@ def build_rows(runs_dir: Path, reports_dir: Path) -> list[dict]:
         if training_type in {"unknown", "custom"}:
             training_type = infer_type_from_run_name(run_name)
 
+        training_category = report.get("training_category")
+        if not isinstance(training_category, str) or not training_category.strip():
+            training_category = infer_category_from_benchmark_path(status.get("benchmark_file"))
+
         rows.append(
             {
-                "training_category": "category_prediction",
+                "training_category": training_category,
                 "training_type": training_type,
                 "run": run_name,
                 "run_date": run_date,

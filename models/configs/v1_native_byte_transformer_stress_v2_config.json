@@ -1,7 +1,7 @@
 {
   "output_dir": "models/runs/v1-native-byte-transformer-stress-v2",
-  "train_file": "data/processed/train_sft.jsonl",
-  "validation_file": "data/processed/validation_sft.jsonl",
+  "train_file": "data/processed/train_category_prediction_sft.jsonl",
+  "validation_file": "data/processed/validation_category_prediction_sft.jsonl",
   "benchmark_file": "data/processed/benchmark_stress_v2_native_sft.jsonl",
   "device_preference": ["hip", "cuda", "directml", "cpu"],
   "seed": 11,

@@ -20,11 +20,24 @@ RESPONSE_TYPES = [
 
 BENCHMARK_FILE_TO_TYPE = {
     "benchmark_sft.jsonl": "core",
+    "benchmark_category_prediction_sft.jsonl": "core",
+    "benchmark_full_response_sft.jsonl": "core",
     "benchmark_stress_native_sft.jsonl": "stress",
     "benchmark_stress_v2_native_sft.jsonl": "stress_v2",
     "benchmark_account_tool_boundary_native_sft.jsonl": "account",
     "benchmark_medical_refusal_boundary_native_sft.jsonl": "medical",
     "benchmark_oos_vs_tool_boundary_native_sft.jsonl": "oos_tool",
+}
+
+BENCHMARK_FILE_TO_CATEGORY = {
+    "benchmark_sft.jsonl": "full_response",
+    "benchmark_category_prediction_sft.jsonl": "category_prediction",
+    "benchmark_full_response_sft.jsonl": "full_response",
+    "benchmark_stress_native_sft.jsonl": "category_prediction",
+    "benchmark_stress_v2_native_sft.jsonl": "category_prediction",
+    "benchmark_account_tool_boundary_native_sft.jsonl": "category_prediction",
+    "benchmark_medical_refusal_boundary_native_sft.jsonl": "category_prediction",
+    "benchmark_oos_vs_tool_boundary_native_sft.jsonl": "category_prediction",
 }
 
 
@@ -76,6 +89,10 @@ def infer_type_from_benchmark_file(path: Path) -> str:
     return BENCHMARK_FILE_TO_TYPE.get(path.name, "custom")
 
 
+def infer_category_from_benchmark_file(path: Path) -> str:
+    return BENCHMARK_FILE_TO_CATEGORY.get(path.name, "custom")
+
+
 def infer_training_type_from_model_path(model_path: Path) -> str:
     training_config_path = model_path / "training_config.json"
     if training_config_path.exists():
@@ -89,6 +106,26 @@ def infer_training_type_from_model_path(model_path: Path) -> str:
     if "-stress-" in model_path.name:
         return "stress"
     return "core"
+
+
+def infer_training_category_from_model_path(model_path: Path) -> str:
+    training_config_path = model_path / "training_config.json"
+    if training_config_path.exists():
+        try:
+            training_config = load_json(training_config_path)
+            train_file = training_config.get("train_file")
+            if isinstance(train_file, str) and "full_response" in train_file:
+                return "full_response"
+            if isinstance(train_file, str) and "category_prediction" in train_file:
+                return "category_prediction"
+            benchmark_file = training_config.get("benchmark_file")
+            if isinstance(benchmark_file, str) and benchmark_file.strip():
+                return infer_category_from_benchmark_file(Path(benchmark_file))
+        except Exception:
+            pass
+    if "full-response" in model_path.name:
+        return "full_response"
+    return "category_prediction"
 
 
 def load_jsonl(path: Path) -> list[dict]:
@@ -190,6 +227,100 @@ def extract_response_type(text: str) -> str | None:
     return None
 
 
+def parse_expected_payload(text: str) -> dict:
+    stripped = text.strip()
+    try:
+        payload = json.loads(stripped)
+    except json.JSONDecodeError:
+        return {
+            "format": "label_only",
+            "response_type": extract_response_type(stripped),
+            "reason": None,
+            "response": None,
+            "raw": stripped,
+        }
+
+    if not isinstance(payload, dict):
+        return {
+            "format": "unknown_json",
+            "response_type": None,
+            "reason": None,
+            "response": None,
+            "raw": stripped,
+        }
+
+    response_type = payload.get("response_type")
+    reason = payload.get("reason")
+    response = payload.get("response")
+    return {
+        "format": "full_response",
+        "response_type": response_type if isinstance(response_type, str) else None,
+        "reason": reason if isinstance(reason, str) else None,
+        "response": response if isinstance(response, str) else None,
+        "raw": stripped,
+    }
+
+
+def parse_generated_payload(text: str) -> dict:
+    stripped = text.strip()
+    if stripped == "":
+        return {
+            "format": "empty",
+            "valid_json": False,
+            "valid_output": False,
+            "response_type": None,
+            "reason": None,
+            "response": None,
+            "raw": text,
+        }
+
+    try:
+        payload = json.loads(stripped)
+    except json.JSONDecodeError:
+        predicted_type = extract_response_type(stripped)
+        return {
+            "format": "label_only_text",
+            "valid_json": False,
+            "valid_output": predicted_type in RESPONSE_TYPES,
+            "response_type": predicted_type,
+            "reason": None,
+            "response": None,
+            "raw": text,
+        }
+
+    if not isinstance(payload, dict):
+        return {
+            "format": "json_non_object",
+            "valid_json": False,
+            "valid_output": False,
+            "response_type": None,
+            "reason": None,
+            "response": None,
+            "raw": text,
+        }
+
+    response_type = payload.get("response_type")
+    reason = payload.get("reason")
+    response = payload.get("response")
+    valid_json = (
+        isinstance(response_type, str)
+        and response_type in RESPONSE_TYPES
+        and isinstance(reason, str)
+        and reason.strip() != ""
+        and isinstance(response, str)
+        and response.strip() != ""
+    )
+    return {
+        "format": "full_response_json",
+        "valid_json": valid_json,
+        "valid_output": valid_json,
+        "response_type": response_type if isinstance(response_type, str) else None,
+        "reason": reason if isinstance(reason, str) else None,
+        "response": response if isinstance(response, str) else None,
+        "raw": text,
+    }
+
+
 def detect_device(torch_module) -> tuple[object, str]:
     hip_available = bool(getattr(torch_module.version, "hip", None)) and torch_module.cuda.is_available()
     if hip_available:
@@ -245,6 +376,7 @@ def print_progress(
     nonempty_output: int,
     valid_output: int,
     correct_response_type: int,
+    valid_full_response: int,
     elapsed: float,
 ) -> None:
     rate = current / elapsed if elapsed > 0 else 0.0
@@ -253,6 +385,7 @@ def print_progress(
         f"nonempty_output={nonempty_output} | "
         f"valid_output={valid_output} | "
         f"correct_type={correct_response_type} | "
+        f"valid_full={valid_full_response} | "
         f"items_per_sec={rate:.2f}"
     )
     sys.stdout.write("\r" + line + " " * 8)
@@ -264,6 +397,8 @@ def main() -> int:
     output_report = resolve_output_report_path(args.model_path, args.output_report)
     benchmark_type = infer_type_from_benchmark_file(args.benchmark_file)
     training_type = infer_training_type_from_model_path(args.model_path)
+    benchmark_category = infer_category_from_benchmark_file(args.benchmark_file)
+    training_category = infer_training_category_from_model_path(args.model_path)
 
     import torch
     import torch.nn.functional as F  # noqa: F401
@@ -360,6 +495,8 @@ def main() -> int:
     correct_response_type = 0
     nonempty_output = 0
     valid_output = 0
+    valid_json = 0
+    valid_full_response = 0
     started_at = time.perf_counter()
     status_file = args.status_file.resolve() if args.status_file else None
 
@@ -373,8 +510,10 @@ def main() -> int:
             "current": 0,
             "total": len(benchmark_rows),
             "nonempty_output_count": 0,
+            "valid_json_count": 0,
             "valid_output_count": 0,
             "correct_response_type_count": 0,
+            "valid_full_response_count": 0,
             "items_per_sec": 0.0,
         },
     )
@@ -409,11 +548,23 @@ def main() -> int:
             generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])
             if generated_text != "":
                 nonempty_output += 1
-            predicted_type = extract_response_type(generated_text)
-            expected_type = row["messages"][2]["content"].strip()
-            is_valid_output = predicted_type in RESPONSE_TYPES
+            parsed_generated = parse_generated_payload(generated_text)
+            parsed_expected = parse_expected_payload(row["messages"][2]["content"])
+            predicted_type = parsed_generated["response_type"]
+            expected_type = parsed_expected["response_type"]
+            expected_format = parsed_expected["format"]
+            is_valid_json = False
+            if expected_format == "full_response":
+                is_valid_json = bool(parsed_generated["format"] == "full_response_json" and parsed_generated["valid_json"])
+            elif expected_format == "label_only":
+                is_valid_json = predicted_type in RESPONSE_TYPES
+            is_valid_output = is_valid_json
+            if is_valid_json:
+                valid_json += 1
             if is_valid_output:
                 valid_output += 1
+            if parsed_generated["format"] == "full_response_json" and parsed_generated["valid_json"]:
+                valid_full_response += 1
             if predicted_type == expected_type:
                 correct_response_type += 1
             results.append(
@@ -422,7 +573,14 @@ def main() -> int:
                     "user_input": row["messages"][1]["content"],
                     "expected_response_type": expected_type,
                     "predicted_response_type": predicted_type,
-                    "valid_json": is_valid_output,
+                    "expected_format": expected_format,
+                    "predicted_format": parsed_generated["format"],
+                    "valid_json": is_valid_json,
+                    "valid_output": is_valid_output,
+                    "expected_reason": parsed_expected["reason"],
+                    "predicted_reason": parsed_generated["reason"],
+                    "expected_response": parsed_expected["response"],
+                    "predicted_response": parsed_generated["response"],
                     "raw_generation": generated_text,
                 }
             )
@@ -432,6 +590,7 @@ def main() -> int:
                 nonempty_output=nonempty_output,
                 valid_output=valid_output,
                 correct_response_type=correct_response_type,
+                valid_full_response=valid_full_response,
                 elapsed=time.perf_counter() - started_at,
             )
             elapsed = time.perf_counter() - started_at
@@ -444,9 +603,11 @@ def main() -> int:
                     "output_report": str(output_report.resolve()),
                     "current": index,
                     "total": len(benchmark_rows),
+                    "valid_json_count": valid_json,
                     "nonempty_output_count": nonempty_output,
                     "valid_output_count": valid_output,
                     "correct_response_type_count": correct_response_type,
+                    "valid_full_response_count": valid_full_response,
                     "items_per_sec": (index / elapsed) if elapsed > 0 else 0.0,
                 },
             )
@@ -454,15 +615,19 @@ def main() -> int:
     elapsed_seconds = time.perf_counter() - started_at
     report = {
         "training_type": training_type,
+        "training_category": training_category,
         "benchmark_type": benchmark_type,
+        "benchmark_category": benchmark_category,
         "benchmark_file": str(args.benchmark_file.resolve()),
         "benchmark_size": len(benchmark_rows),
         "nonempty_output_count": nonempty_output,
         "nonempty_output_rate": nonempty_output / len(benchmark_rows) if benchmark_rows else 0.0,
-        "valid_json_count": valid_output,
-        "valid_json_rate": valid_output / len(benchmark_rows) if benchmark_rows else 0.0,
+        "valid_json_count": valid_json,
+        "valid_json_rate": valid_json / len(benchmark_rows) if benchmark_rows else 0.0,
         "valid_output_count": valid_output,
         "valid_output_rate": valid_output / len(benchmark_rows) if benchmark_rows else 0.0,
+        "valid_full_response_count": valid_full_response,
+        "valid_full_response_rate": valid_full_response / len(benchmark_rows) if benchmark_rows else 0.0,
         "correct_response_type_count": correct_response_type,
         "response_type_accuracy": correct_response_type / len(benchmark_rows) if benchmark_rows else 0.0,
         "elapsed_seconds": elapsed_seconds,
@@ -482,11 +647,14 @@ def main() -> int:
             "output_report": str(output_report.resolve()),
             "current": len(benchmark_rows),
             "total": len(benchmark_rows),
+            "valid_json_count": valid_json,
             "nonempty_output_count": nonempty_output,
             "valid_output_count": valid_output,
             "correct_response_type_count": correct_response_type,
+            "valid_full_response_count": valid_full_response,
             "items_per_sec": report["items_per_sec"],
             "valid_output_rate": report["valid_output_rate"],
+            "valid_json_rate": report["valid_json_rate"],
             "response_type_accuracy": report["response_type_accuracy"],
         },
     )

@@ -26,17 +26,60 @@ function create_data {
 function set {
     param(
         [Parameter(Position = 0)][string]$type,
+        [Parameter(Position = 1)][string]$category_or_command,
+        [Parameter(Position = 2)][string]$command_name
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        if ($PSBoundParameters.ContainsKey('command_name')) {
+            .\set.ps1 $type $category_or_command $command_name
+        } elseif ($PSBoundParameters.ContainsKey('category_or_command')) {
+            .\set.ps1 $type $category_or_command
+        } elseif ($PSBoundParameters.ContainsKey('type')) {
+            .\set.ps1 $type
+        } else {
+            .\set.ps1
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
+function set_type {
+    param(
+        [Parameter(Position = 0)][string]$type,
         [Parameter(Position = 1)][string]$command_name
     )
 
     Push-Location $AiLanguageCoreRoot
     try {
         if ($PSBoundParameters.ContainsKey('command_name')) {
-            .\set.ps1 $type $command_name
+            .\set_type.ps1 $type $command_name
         } elseif ($PSBoundParameters.ContainsKey('type')) {
-            .\set.ps1 $type
+            .\set_type.ps1 $type
         } else {
-            .\set.ps1
+            .\set_type.ps1
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
+function set_category {
+    param(
+        [Parameter(Position = 0)][string]$category,
+        [Parameter(Position = 1)][string]$command_name
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        if ($PSBoundParameters.ContainsKey('command_name')) {
+            .\set_category.ps1 $category $command_name
+        } elseif ($PSBoundParameters.ContainsKey('category')) {
+            .\set_category.ps1 $category
+        } else {
+            .\set_category.ps1
         }
     } finally {
         Pop-Location
@@ -63,7 +106,9 @@ function get_type {
 function train {
     param(
         [Parameter(Position = 0)][object]$type_or_epochs,
-        [Parameter(Position = 1)][int]$epochs
+        [Parameter(Position = 1)][object]$category_or_epochs,
+        [Parameter(Position = 2)][int]$epochs,
+        [string]$category
     )
 
     Push-Location $AiLanguageCoreRoot
@@ -73,10 +118,22 @@ function train {
             return
         }
 
-        if ($PSBoundParameters.ContainsKey('epochs')) {
-            .\train.ps1 $type_or_epochs $epochs
+        if ($PSBoundParameters.ContainsKey('category')) {
+            if ($PSBoundParameters.ContainsKey('epochs')) {
+                .\train.ps1 $type_or_epochs $category $epochs
+            } elseif ($PSBoundParameters.ContainsKey('type_or_epochs')) {
+                .\train.ps1 $type_or_epochs -Category $category
+            } else {
+                .\train.ps1 -Category $category
+            }
+        } elseif ($PSBoundParameters.ContainsKey('epochs')) {
+            .\train.ps1 $type_or_epochs $category_or_epochs $epochs
         } elseif ($PSBoundParameters.ContainsKey('type_or_epochs')) {
-            .\train.ps1 $type_or_epochs
+            if ($PSBoundParameters.ContainsKey('category_or_epochs')) {
+                .\train.ps1 $type_or_epochs $category_or_epochs
+            } else {
+                .\train.ps1 $type_or_epochs
+            }
         } else {
             .\train.ps1
         }
@@ -102,17 +159,55 @@ function eval_native {
 function benchmark {
     param(
         [Parameter(Position = 0)][string]$type,
-        [Parameter(Position = 1)][string]$model_path
+        [Parameter(Position = 1)][string]$model_path,
+        [string]$category
     )
 
     Push-Location $AiLanguageCoreRoot
     try {
-        if ($PSBoundParameters.ContainsKey('model_path')) {
+        if ($PSBoundParameters.ContainsKey('category')) {
+            if ($PSBoundParameters.ContainsKey('model_path')) {
+                .\benchmark.ps1 $type $model_path -Category $category
+            } elseif ($PSBoundParameters.ContainsKey('type')) {
+                .\benchmark.ps1 $type -Category $category
+            } else {
+                .\benchmark.ps1 -Category $category
+            }
+        } elseif ($PSBoundParameters.ContainsKey('model_path')) {
             .\benchmark.ps1 $type $model_path
         } elseif ($PSBoundParameters.ContainsKey('type')) {
             .\benchmark.ps1 $type
         } else {
             .\benchmark.ps1
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
+function frozen_benchmark {
+    param(
+        [Parameter(Position = 0)][string]$type,
+        [Parameter(Position = 1)][string]$model_path,
+        [string]$category
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        if ($PSBoundParameters.ContainsKey('category')) {
+            if ($PSBoundParameters.ContainsKey('model_path')) {
+                .\frozen_benchmark.ps1 $type $model_path -Category $category
+            } elseif ($PSBoundParameters.ContainsKey('type')) {
+                .\frozen_benchmark.ps1 $type -Category $category
+            } else {
+                .\frozen_benchmark.ps1 -Category $category
+            }
+        } elseif ($PSBoundParameters.ContainsKey('model_path')) {
+            .\frozen_benchmark.ps1 $type $model_path
+        } elseif ($PSBoundParameters.ContainsKey('type')) {
+            .\frozen_benchmark.ps1 $type
+        } else {
+            .\frozen_benchmark.ps1
         }
     } finally {
         Pop-Location
@@ -144,7 +239,8 @@ function autotrain {
     param(
         [Parameter(Position = 0)][object]$type_or_iterations,
         [Parameter(Position = 1)][int]$max_iterations,
-        [Parameter(Position = 2)][int]$epochs
+        [Parameter(Position = 2)][int]$epochs,
+        [string]$category
     )
 
     Push-Location $AiLanguageCoreRoot
@@ -172,20 +268,20 @@ function autotrain {
 
         if ($PSBoundParameters.ContainsKey('epochs') -or ($null -ne $epochs -and $epochs -gt 0)) {
             if ($type) {
-                .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations -NumTrainEpochs $epochs
+                .\scripts\run_autotrain_loop.ps1 -Type $type -Category $category -MaxIterations $max_iterations -NumTrainEpochs $epochs
             } else {
-                .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations -NumTrainEpochs $epochs
+                .\scripts\run_autotrain_loop.ps1 -Category $category -MaxIterations $max_iterations -NumTrainEpochs $epochs
             }
         } elseif ($PSBoundParameters.ContainsKey('max_iterations') -or ($null -ne $max_iterations -and $max_iterations -gt 0)) {
             if ($type) {
-                .\scripts\run_autotrain_loop.ps1 -Type $type -MaxIterations $max_iterations
+                .\scripts\run_autotrain_loop.ps1 -Type $type -Category $category -MaxIterations $max_iterations
             } else {
-                .\scripts\run_autotrain_loop.ps1 -MaxIterations $max_iterations
+                .\scripts\run_autotrain_loop.ps1 -Category $category -MaxIterations $max_iterations
             }
         } elseif ($type) {
-            .\scripts\run_autotrain_loop.ps1 -Type $type
+            .\scripts\run_autotrain_loop.ps1 -Type $type -Category $category
         } else {
-            .\scripts\run_autotrain_loop.ps1
+            .\scripts\run_autotrain_loop.ps1 -Category $category
         }
     } finally {
         Pop-Location
@@ -194,15 +290,16 @@ function autotrain {
 
 function improve {
     param(
-        [Parameter(Position = 0)][string]$type
+        [Parameter(Position = 0)][string]$type,
+        [string]$category
     )
 
     Push-Location $AiLanguageCoreRoot
     try {
         if ($PSBoundParameters.ContainsKey('type')) {
-            .\scripts\run_autotrain_loop.ps1 -Command improve -Type $type -OpenStatusWindow:$false
+            .\scripts\run_autotrain_loop.ps1 -Command improve -Type $type -Category $category -OpenStatusWindow:$false
         } else {
-            .\scripts\run_autotrain_loop.ps1 -Command improve -OpenStatusWindow:$false
+            .\scripts\run_autotrain_loop.ps1 -Command improve -Category $category -OpenStatusWindow:$false
         }
     } finally {
         Pop-Location

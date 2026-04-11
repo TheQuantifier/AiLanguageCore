@@ -2,6 +2,7 @@ param(
     [ValidateSet('autotrain', 'improve')]
     [string]$Command = 'autotrain',
     [string]$Type,
+    [string]$Category,
     [int]$MaxIterations = 30,
     [int]$NumTrainEpochs,
     [string]$Config,
@@ -484,10 +485,11 @@ function Invoke-CodexExec {
 function Get-LatestRunStatus {
     param(
         [string]$RepoRoot,
-        [string]$TypeName
+        [string]$TypeName,
+        [string]$CategoryName
     )
 
-    $latestRunPath = Get-AiLanguageCoreLatestCompletedRunPath -RepoRoot $RepoRoot -TypeName $TypeName
+    $latestRunPath = Get-AiLanguageCoreLatestCompletedRunPath -RepoRoot $RepoRoot -TypeName $TypeName -CategoryName $CategoryName
     $latestStatusPath = Join-Path $latestRunPath 'training_status.json'
 
     if (-not $latestStatusPath) {
@@ -731,6 +733,7 @@ The training command has just completed successfully.
 Inspect the latest native run under models/runs and its benchmark report under experiments.
 Make the next improvement directly in the repo so the next training iteration is the best next step.
 Current training type: $selectedType
+Current training category: $selectedCategory
 Current benchmark summary:
 - valid_output_rate: $($BenchmarkMetrics.ValidOutputRate)
 - response_type_accuracy: $($BenchmarkMetrics.ResponseTypeAccuracy)
@@ -807,16 +810,11 @@ if ($Command -eq 'autotrain' -and $Type -and [int]::TryParse([string]$Type, [ref
     $Type = $null
 }
 
-$selectedType = if ($Type) {
-    $commandDefaultName = if ($Command -eq 'improve') { 'improve' } else { 'autotrain' }
-    Resolve-AiLanguageCoreRequestedType -RepoRoot $repoRoot -CommandName $commandDefaultName -TypeName $Type -RequireTrainable
-} else {
-    if ($Command -eq 'improve') {
-        Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'improve'
-    } else {
-        Get-AiLanguageCoreDefaultType -RepoRoot $repoRoot -CommandName 'autotrain'
-    }
-}
+$commandDefaultName = if ($Command -eq 'improve') { 'improve' } else { 'autotrain' }
+$selection = Resolve-AiLanguageCoreSelection -RepoRoot $repoRoot -CommandName $commandDefaultName -TypeName $Type -CategoryName $Category -RequireTrainable
+$selectedType = $selection.Type
+$selectedCategory = $selection.Category
+Assert-AiLanguageCoreTypeOptimizable -TypeName $selectedType -CommandName $Command
 $configPath = if ($Config) {
     if ([System.IO.Path]::IsPathRooted($Config)) {
         $Config
@@ -824,7 +822,7 @@ $configPath = if ($Config) {
         Join-Path $repoRoot $Config
     }
 } else {
-    Resolve-AiLanguageCoreTrainingConfig -RepoRoot $repoRoot -TypeName $selectedType
+    Resolve-AiLanguageCoreTrainingConfig -RepoRoot $repoRoot -TypeName $selectedType -CategoryName $selectedCategory
 }
 $codexExecutable = Resolve-CodexExecutable -OverridePath $CodexPath
 $logRoot = Join-Path $repoRoot 'experiments\automation'
@@ -861,6 +859,7 @@ if ($MaxCpuThreads -gt 0) {
 Write-Host "Repo root: $repoRoot"
 Write-Host "Python: $pythonPath"
 Write-Host "Type: $selectedType"
+Write-Host "Category: $selectedCategory"
 Write-Host "Config: $configPath"
 Write-Host "Codex: $codexExecutable"
 Write-Host "Codex model: $CodexModel"
@@ -906,7 +905,7 @@ try {
         $iterationDir = Join-Path $logRoot "improve_$timestamp"
         New-Item -ItemType Directory -Force -Path $iterationDir | Out-Null
 
-        $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot -TypeName $selectedType
+        $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot -TypeName $selectedType -CategoryName $selectedCategory
         $latestTrainingStatusPath = ''
         $latestBenchmarkStatusPath = ''
         if ($latestRunStatus.output_dir) {
@@ -965,7 +964,7 @@ try {
 
         Invoke-TrainingRun -RepoRoot $repoRoot -PythonPath $pythonPath -ConfigPath $configPath -NumTrainEpochs $NumTrainEpochs -HasEpochOverride $hasEpochOverride
 
-        $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot -TypeName $selectedType
+        $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot -TypeName $selectedType -CategoryName $selectedCategory
         if ($latestRunStatus.output_dir) {
             $latestTrainingStatusPath = Join-Path $latestRunStatus.output_dir 'training_status.json'
             $latestBenchmarkStatusPath = Join-Path $latestRunStatus.output_dir 'benchmark_status.json'
