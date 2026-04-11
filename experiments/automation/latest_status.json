@@ -1,7 +1,7 @@
 {
-    "iteration_label":  "003",
+    "iteration_label":  "004",
     "phase":  "decision",
-    "timestamp":  "2026-04-11 04:14:02",
+    "timestamp":  "2026-04-11 04:37:37",
     "note":  "Codex decision: CONTINUE",
     "workflow":  "train -\u003e benchmark -\u003e codex -\u003e decision",
     "stage":  {
@@ -19,14 +19,14 @@
                                 "failed"
                             ]
               },
-    "training_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-stress-v2-20260411-035057\\training_status.json",
-    "benchmark_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-stress-v2-20260411-035057\\benchmark_status.json",
+    "training_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-stress-v2-20260411-041405\\training_status.json",
+    "benchmark_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-stress-v2-20260411-041405\\benchmark_status.json",
     "benchmark_size":  24,
     "nonempty_output_count":  24,
-    "valid_output_count":  24,
-    "correct_response_type_count":  23,
-    "items_per_sec":  3.6820646416701819,
-    "valid_output_rate":  1,
-    "response_type_accuracy":  0.95833333333333337,
-    "benchmark_report":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-stress-v2-20260411-035057.json"
+    "valid_output_count":  23,
+    "correct_response_type_count":  22,
+    "items_per_sec":  3.3290528648948881,
+    "valid_output_rate":  0.95833333333333337,
+    "response_type_accuracy":  0.91666666666666663,
+    "benchmark_report":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-stress-v2-20260411-041405.json"
 }

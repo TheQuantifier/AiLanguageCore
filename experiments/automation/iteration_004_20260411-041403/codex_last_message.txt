@@ -1,0 +1,15 @@
+Applied one narrow, boundary-focused data improvement for the latest `stress_v2` miss (`stress-v2-0009`: pharmacy lookup misrouted to `OUT_OF_SCOPE`).
+
+Change made:
+- Added 4 targeted examples to the OOS-vs-tool ambiguity training pack:
+1. 2 `TOOL_NEEDED` examples for “near me/open now” pharmacy-drugstore live lookups.
+2. 2 `OUT_OF_SCOPE` examples for medication dosing requests (including child dosing) to keep the medical safety boundary explicit.
+- Regenerated SFT datasets so the next `train` run uses these examples immediately.
+
+Files changed:
+- [data/processed/train_oos_ambiguity_boundary_pack.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_oos_ambiguity_boundary_pack.json)
+- [data/processed/train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+
+I did not run a new training iteration in this step; this patch is prepared for the next run.
+
+AUTOMATION_DECISION: CONTINUE
