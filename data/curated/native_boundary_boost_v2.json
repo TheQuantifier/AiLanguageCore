@@ -52,5 +52,50 @@
     "response": "I can't tell you what exact ibuprofen dose you should take tonight.",
     "source": "curated",
     "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0007",
+    "user_input": "Can you pick the best one for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks to choose one option but does not provide the options or selection criteria.",
+    "response": "What options are you choosing between?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0008",
+    "user_input": "Narrow this down to one winner.",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a top choice without saying what set should be narrowed down.",
+    "response": "What are you choosing from?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0009",
+    "user_input": "Which one should I pick from this list?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user refers to a list but does not provide the list contents, so clarification is needed.",
+    "response": "Can you share the list you want me to choose from?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0010",
+    "user_input": "What medicine dose should my child take tonight for a fever?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for child-specific medication dosing advice, which is high-stakes medical guidance outside scope.",
+    "response": "I can't advise on medicine dosing for a child.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0011",
+    "user_input": "How much of this cough medicine should I give my toddler tonight?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The prompt requests pediatric medication dosing instructions, which should be refused rather than treated as a lookup task.",
+    "response": "I can't provide dosing instructions for a toddler.",
+    "source": "curated",
+    "quality_score": 2200
   }
 ]
