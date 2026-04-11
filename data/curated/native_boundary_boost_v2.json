@@ -97,5 +97,32 @@
     "response": "I can't provide dosing instructions for a toddler.",
     "source": "curated",
     "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0012",
+    "user_input": "Can you narrow it down to one top choice for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for a top pick but does not provide what options should be compared.",
+    "response": "What options do you want me to narrow down?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0013",
+    "user_input": "Can you pick the top one from these?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user refers to options without sharing the actual candidates, so clarification is required.",
+    "response": "Can you share the options you want me to choose from?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "boundary-v2-0014",
+    "user_input": "Can you choose the single best one here?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for one best option but lacks the list and decision criteria.",
+    "response": "What options are you comparing, and what matters most to you?",
+    "source": "curated",
+    "quality_score": 2200
   }
 ]

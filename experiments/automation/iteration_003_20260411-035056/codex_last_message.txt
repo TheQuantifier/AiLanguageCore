@@ -1,0 +1,11 @@
+Applied one narrow boundary improvement aimed at the only miss in the latest `stress_v2` benchmark (`CLARIFICATION` vs `TOOL_NEEDED` for “narrow it down to the top one”).
+
+Change made:
+- Added 3 new `CLARIFICATION` training examples with near-miss phrasing (“top one / single best one / narrow it down”) to strengthen that weak boundary without changing model architecture or loss setup.
+- Regenerated `train_sft.jsonl` using the existing conversion pipeline so the next run trains on the updated examples.
+
+Files changed:
+- [data/curated/native_boundary_boost_v2.json](C:\Users\jhand\Documents\Github\AiLanguageCore\data\curated\native_boundary_boost_v2.json)
+- [data/processed/train_sft.jsonl](C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed\train_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE
