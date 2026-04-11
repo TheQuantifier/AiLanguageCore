@@ -637,8 +637,8 @@ This loop trains, then runs Codex in unattended mode to make the next change,
 then trains again until Codex says stop or an error occurs.
 
 Default behavior:
-- runs up to `50` iterations
-- stops earlier only on error or when Codex returns `AUTOMATION_DECISION: STOP`
+- runs up to `30` iterations
+- stops earlier on error, when `correct_type` reaches 100% (`correct_response_type_count == benchmark_size`), or when Codex returns `AUTOMATION_DECISION: STOP`
 - opens a second PowerShell window that mirrors the current autotrain state with live progress bars for:
   - the iteration pipeline
   - training progress

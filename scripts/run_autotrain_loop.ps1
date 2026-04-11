@@ -2,19 +2,161 @@ param(
     [ValidateSet('autotrain', 'improve')]
     [string]$Command = 'autotrain',
     [string]$Type,
-    [int]$MaxIterations = 50,
+    [int]$MaxIterations = 30,
     [int]$NumTrainEpochs,
     [string]$Config,
     [string]$Prompt = 'Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.',
     [string]$CodexPath,
     [string]$CodexModel = 'gpt-5.3-codex',
     [double]$RecoveryThreshold = 0.50,
-    [switch]$OpenStatusWindow = $true
+    [switch]$OpenStatusWindow = $true,
+    [double]$MinFreeMemoryGB = 2.0,
+    [double]$MinFreeDiskGB = 5.0,
+    [switch]$StopOnBattery = $true,
+    [int]$MinBatteryPercent = 35,
+    [int]$SafetyCheckIntervalSeconds = 20,
+    [int]$MaxSafetyWaitMinutes = 10,
+    [int]$MaxCpuThreads = 0,
+    [switch]$LowerPriority = $true
 )
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 . (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
+
+function Get-AutotrainSafetySnapshot {
+    param(
+        [string]$RepoRoot
+    )
+
+    $resolvedRoot = (Resolve-Path $RepoRoot).Path
+    $os = Get-CimInstance -ClassName Win32_OperatingSystem
+    $freeMemoryGb = [double]$os.FreePhysicalMemory / 1MB
+    $totalMemoryGb = [double]$os.TotalVisibleMemorySize / 1MB
+
+    $driveRoot = [System.IO.Path]::GetPathRoot($resolvedRoot)
+    $driveName = $driveRoot.Substring(0, 1)
+    $drive = Get-PSDrive -Name $driveName
+    $freeDiskGb = [double]$drive.Free / 1GB
+
+    $battery = $null
+    try {
+        $battery = Get-CimInstance -ClassName Win32_Battery -ErrorAction Stop | Select-Object -First 1
+    } catch {
+        $battery = $null
+    }
+
+    $hasBattery = $null -ne $battery
+    $batteryPercent = $null
+    $batteryStatus = $null
+    $onBattery = $false
+    if ($hasBattery) {
+        if ($null -ne $battery.EstimatedChargeRemaining) {
+            $batteryPercent = [int]$battery.EstimatedChargeRemaining
+        }
+        if ($null -ne $battery.BatteryStatus) {
+            $batteryStatus = [int]$battery.BatteryStatus
+        }
+        if ($batteryStatus -in @(1, 4, 5, 11)) {
+            $onBattery = $true
+        }
+    }
+
+    return [pscustomobject]@{
+        FreeMemoryGb = $freeMemoryGb
+        TotalMemoryGb = $totalMemoryGb
+        FreeDiskGb = $freeDiskGb
+        DriveName = $driveName
+        HasBattery = $hasBattery
+        BatteryPercent = $batteryPercent
+        BatteryStatus = $batteryStatus
+        OnBattery = $onBattery
+    }
+}
+
+function Test-AutotrainSafety {
+    param(
+        [object]$Snapshot,
+        [double]$RequiredFreeMemoryGb,
+        [double]$RequiredFreeDiskGb,
+        [bool]$ShouldStopOnBattery,
+        [int]$RequiredBatteryPercent
+    )
+
+    $issues = @()
+    if ($Snapshot.FreeMemoryGb -lt $RequiredFreeMemoryGb) {
+        $issues += ("free RAM {0:N2} GB < required {1:N2} GB" -f $Snapshot.FreeMemoryGb, $RequiredFreeMemoryGb)
+    }
+    if ($Snapshot.FreeDiskGb -lt $RequiredFreeDiskGb) {
+        $issues += ("free disk ({0}:) {1:N2} GB < required {2:N2} GB" -f $Snapshot.DriveName, $Snapshot.FreeDiskGb, $RequiredFreeDiskGb)
+    }
+    if ($ShouldStopOnBattery -and $Snapshot.HasBattery -and $Snapshot.OnBattery) {
+        $issues += 'running on battery power'
+    }
+    if ($ShouldStopOnBattery -and $Snapshot.HasBattery -and $null -ne $Snapshot.BatteryPercent -and $Snapshot.BatteryPercent -lt $RequiredBatteryPercent) {
+        $issues += ("battery {0}% < required {1}%" -f $Snapshot.BatteryPercent, $RequiredBatteryPercent)
+    }
+
+    return [pscustomobject]@{
+        IsSafe = ($issues.Count -eq 0)
+        Issues = $issues
+    }
+}
+
+function Wait-ForAutotrainSafeResources {
+    param(
+        [string]$RepoRoot,
+        [double]$RequiredFreeMemoryGb,
+        [double]$RequiredFreeDiskGb,
+        [bool]$ShouldStopOnBattery,
+        [int]$RequiredBatteryPercent,
+        [int]$PollIntervalSeconds,
+        [int]$MaxWaitMinutes
+    )
+
+    $deadline = (Get-Date).AddMinutes($MaxWaitMinutes)
+    while ($true) {
+        $snapshot = Get-AutotrainSafetySnapshot -RepoRoot $RepoRoot
+        $safety = Test-AutotrainSafety `
+            -Snapshot $snapshot `
+            -RequiredFreeMemoryGb $RequiredFreeMemoryGb `
+            -RequiredFreeDiskGb $RequiredFreeDiskGb `
+            -ShouldStopOnBattery $ShouldStopOnBattery `
+            -RequiredBatteryPercent $RequiredBatteryPercent
+
+        if ($safety.IsSafe) {
+            Write-Host ("Safety check passed | free_ram={0:N2}GB/{1:N2}GB | free_disk={2:N2}GB | on_battery={3}" -f $snapshot.FreeMemoryGb, $snapshot.TotalMemoryGb, $snapshot.FreeDiskGb, $snapshot.OnBattery)
+            return $snapshot
+        }
+
+        $remaining = [int][Math]::Ceiling(($deadline - (Get-Date)).TotalSeconds)
+        if ($remaining -le 0) {
+            $issueText = $safety.Issues -join '; '
+            throw "Safety guard timeout after $MaxWaitMinutes minute(s): $issueText"
+        }
+        Write-Warning ("Safety guard waiting ({0}s left): {1}" -f $remaining, ($safety.Issues -join '; '))
+        Start-Sleep -Seconds ([Math]::Max(1, $PollIntervalSeconds))
+    }
+}
+
+function Acquire-AutotrainLock {
+    param(
+        [string]$LockPath
+    )
+
+    try {
+        $stream = [System.IO.File]::Open($LockPath, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None)
+    } catch {
+        throw "Another autotrain process appears to be running (lock held at $LockPath). Stop the other process or remove stale lock after confirming no active run."
+    }
+
+    $payload = "pid=$PID`nstarted_at=$((Get-Date).ToString('yyyy-MM-dd HH:mm:ss'))`n"
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
+    $stream.SetLength(0)
+    $stream.Write($bytes, 0, $bytes.Length)
+    $stream.Flush()
+    return $stream
+}
 
 function Resolve-CodexExecutable {
     param(
@@ -392,6 +534,22 @@ function Get-BenchmarkMetrics {
     }
 }
 
+function Test-CorrectTypeTargetReached {
+    param(
+        [object]$BenchmarkMetrics
+    )
+
+    if ($null -eq $BenchmarkMetrics) {
+        return $false
+    }
+
+    if ($BenchmarkMetrics.BenchmarkSize -le 0) {
+        return $false
+    }
+
+    return $BenchmarkMetrics.CorrectResponseTypeCount -ge $BenchmarkMetrics.BenchmarkSize
+}
+
 function Invoke-GitPublish {
     param(
         [string]$RepoRoot,
@@ -626,6 +784,8 @@ $codexExecutable = Resolve-CodexExecutable -OverridePath $CodexPath
 $logRoot = Join-Path $repoRoot 'experiments\automation'
 $statusPath = Join-Path $logRoot 'latest_status.json'
 $statusWatcherScript = Join-Path $repoRoot 'scripts\show_autotrain_status.ps1'
+$lockPath = Join-Path $logRoot 'autotrain.lock'
+$hasEpochOverride = $PSBoundParameters.ContainsKey('NumTrainEpochs')
 
 if (-not (Test-Path $pythonPath)) {
     throw "Python runtime not found: $pythonPath"
@@ -637,6 +797,22 @@ if (-not (Test-Path $configPath)) {
 
 New-Item -ItemType Directory -Force -Path $logRoot | Out-Null
 
+if ($LowerPriority) {
+    try {
+        [System.Diagnostics.Process]::GetCurrentProcess().PriorityClass = [System.Diagnostics.ProcessPriorityClass]::BelowNormal
+    } catch {
+        Write-Warning "Could not lower process priority: $($_.Exception.Message)"
+    }
+}
+
+if ($MaxCpuThreads -gt 0) {
+    $threadValue = [string]$MaxCpuThreads
+    $env:OMP_NUM_THREADS = $threadValue
+    $env:MKL_NUM_THREADS = $threadValue
+    $env:OPENBLAS_NUM_THREADS = $threadValue
+    $env:NUMEXPR_NUM_THREADS = $threadValue
+}
+
 Write-Host "Repo root: $repoRoot"
 Write-Host "Python: $pythonPath"
 Write-Host "Type: $selectedType"
@@ -646,10 +822,17 @@ Write-Host "Codex model: $CodexModel"
 Write-Host "Automation logs: $logRoot"
 Write-Host "Command: $Command"
 Write-Host "Max iterations: $MaxIterations"
-if ($PSBoundParameters.ContainsKey('NumTrainEpochs')) {
+if ($hasEpochOverride) {
     Write-Host "Epoch override: $NumTrainEpochs"
 }
 Write-Host "Recovery threshold (valid output rate): $RecoveryThreshold"
+Write-Host ("Safety guard: min_free_ram={0:N2}GB | min_free_disk={1:N2}GB | stop_on_battery={2} | min_battery={3}% | wait={4}m | poll={5}s" -f $MinFreeMemoryGB, $MinFreeDiskGB, $StopOnBattery, $MinBatteryPercent, $MaxSafetyWaitMinutes, $SafetyCheckIntervalSeconds)
+if ($LowerPriority) {
+    Write-Host "Process priority: BelowNormal"
+}
+if ($MaxCpuThreads -gt 0) {
+    Write-Host "CPU thread cap: $MaxCpuThreads"
+}
 
 $workflowName = if ($Command -eq 'improve') { 'codex -> decision' } else { 'train -> benchmark -> codex -> decision' }
 $startupNote = if ($Command -eq 'improve') { 'Standalone improve initialized.' } else { 'Autotrain initialized.' }
@@ -667,8 +850,11 @@ if ($OpenStatusWindow -and (Test-Path $statusWatcherScript)) {
 
 $iteration = 0
 $lastSummaryLine = $null
+$autotrainLock = $null
 
 try {
+    $autotrainLock = Acquire-AutotrainLock -LockPath $lockPath
+
     if ($Command -eq 'improve') {
         $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
         $iterationLabel = 'improve'
@@ -719,9 +905,18 @@ try {
 
         Write-Host ''
         Write-Host "=== Iteration ${iterationLabel}: training ==="
+        Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'training' -Note 'Waiting for safe system resources.' -Workflow $workflowName
+        $null = Wait-ForAutotrainSafeResources `
+            -RepoRoot $repoRoot `
+            -RequiredFreeMemoryGb $MinFreeMemoryGB `
+            -RequiredFreeDiskGb $MinFreeDiskGB `
+            -ShouldStopOnBattery $StopOnBattery `
+            -RequiredBatteryPercent $MinBatteryPercent `
+            -PollIntervalSeconds $SafetyCheckIntervalSeconds `
+            -MaxWaitMinutes $MaxSafetyWaitMinutes
         Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'training' -Note 'Training in progress.' -Workflow $workflowName
 
-        Invoke-TrainingRun -RepoRoot $repoRoot -PythonPath $pythonPath -ConfigPath $configPath -NumTrainEpochs $NumTrainEpochs -HasEpochOverride $PSBoundParameters.ContainsKey('NumTrainEpochs')
+        Invoke-TrainingRun -RepoRoot $repoRoot -PythonPath $pythonPath -ConfigPath $configPath -NumTrainEpochs $NumTrainEpochs -HasEpochOverride $hasEpochOverride
 
         $latestRunStatus = Get-LatestRunStatus -RepoRoot $repoRoot -TypeName $selectedType
         if ($latestRunStatus.output_dir) {
@@ -732,6 +927,14 @@ try {
 
         Write-Host ("Latest benchmark: valid_output_rate={0:P2} | response_type_accuracy={1:P2} | size={2}" -f $benchmarkMetrics.ValidOutputRate, $benchmarkMetrics.ResponseTypeAccuracy, $benchmarkMetrics.BenchmarkSize)
         Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'benchmark_complete' -Note 'Training and benchmark completed.' -Workflow $workflowName -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
+
+        if (Test-CorrectTypeTargetReached -BenchmarkMetrics $benchmarkMetrics) {
+            $lastSummaryLine = ("Loop {0} | {1}/{1} (100.0%) | nonempty_output={2} | valid_output={3} | correct_type={4} | items_per_sec={5:N2}" -f $iterationLabel, $benchmarkMetrics.BenchmarkSize, $benchmarkMetrics.NonemptyOutputCount, $benchmarkMetrics.ValidOutputCount, $benchmarkMetrics.CorrectResponseTypeCount, $benchmarkMetrics.ItemsPerSec)
+            Write-Host 'Reached correct_type target: 100% accuracy. Ending automation loop.'
+            Write-Host $lastSummaryLine
+            Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'stopped' -Note 'Reached correct_type target: 100% accuracy.' -Workflow $workflowName -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
+            break
+        }
 
         $codexPass = Invoke-CodexImprovementPass -IterationLabel $iterationLabel -IterationDir $iterationDir -RepoRoot $repoRoot -StatusPath $statusPath -CodexExecutable $codexExecutable -CodexModel $CodexModel -Prompt $Prompt -RecoveryThreshold $RecoveryThreshold -BenchmarkMetrics $benchmarkMetrics -LatestTrainingStatusPath $latestTrainingStatusPath -LatestBenchmarkStatusPath $latestBenchmarkStatusPath -Workflow $workflowName -ShowInlineProgress:(-not $OpenStatusWindow)
         $commitMessage = "autotrain: iteration $iterationLabel codex update"
@@ -752,4 +955,15 @@ try {
     $failedLabel = if ($iteration -gt 0) { '{0:D3}' -f $iteration } else { '---' }
     Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $failedLabel -Phase 'failed' -Note $_.Exception.Message -Workflow $workflowName
     throw
+} finally {
+    if ($autotrainLock) {
+        try {
+            $autotrainLock.Dispose()
+        } catch {
+            Write-Warning "Failed to release autotrain lock handle: $($_.Exception.Message)"
+        }
+    }
+    if (Test-Path $lockPath) {
+        Remove-Item -LiteralPath $lockPath -Force -ErrorAction SilentlyContinue
+    }
 }
