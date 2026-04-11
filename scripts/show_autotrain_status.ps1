@@ -216,15 +216,113 @@ function Write-SectionTitle {
     Write-Host ('-' * $Title.Length)
 }
 
+function Get-ConsoleWidth {
+    try {
+        return [Math]::Max(60, [Console]::WindowWidth)
+    } catch {
+        return 120
+    }
+}
+
+function Wrap-Sections {
+    param(
+        [string]$Prefix,
+        [string[]]$Sections,
+        [int]$Width,
+        [string]$ContinuationPrefix = ''
+    )
+
+    $safeWidth = [Math]::Max(40, $Width)
+    $lines = New-Object System.Collections.Generic.List[string]
+    $currentPrefix = $Prefix
+    $currentLine = $Prefix
+
+    foreach ($section in ($Sections | Where-Object { $_ -and $_.Trim().Length -gt 0 })) {
+        $candidate = if ($currentLine -eq $currentPrefix) {
+            $currentLine + $section
+        } else {
+            $currentLine + ' | ' + $section
+        }
+
+        if ($candidate.Length -le $safeWidth -or $currentLine -eq $currentPrefix) {
+            $currentLine = $candidate
+            continue
+        }
+
+        $lines.Add($currentLine)
+        $currentPrefix = $ContinuationPrefix
+        $currentLine = $currentPrefix + $section
+    }
+
+    if ($currentLine) {
+        $lines.Add($currentLine)
+    }
+
+    return $lines.ToArray()
+}
+
+function ConvertTo-Lines {
+    param(
+        [string]$Text
+    )
+
+    if ($null -eq $Text) {
+        return @('')
+    }
+
+    return @([string]$Text -split "`r?`n")
+}
+
+function Render-Frame {
+    param(
+        [string[]]$Lines,
+        [int]$PreviousLineCount
+    )
+
+    $width = Get-ConsoleWidth
+    $safeLines = foreach ($line in $Lines) {
+        $text = if ($null -eq $line) { '' } else { [string]$line }
+        if ($text.Length -gt $width) {
+            $text.Substring(0, $width)
+        } else {
+            $text.PadRight($width)
+        }
+    }
+
+    $totalLines = [Math]::Max($safeLines.Count, $PreviousLineCount)
+
+    try {
+        [Console]::SetCursorPosition(0, 0)
+    } catch {
+    }
+
+    for ($i = 0; $i -lt $totalLines; $i++) {
+        if ($i -lt $safeLines.Count) {
+            Write-Host $safeLines[$i]
+        } else {
+            Write-Host (' ' * $width)
+        }
+    }
+
+    return $safeLines.Count
+}
+
+try {
+    [Console]::CursorVisible = $false
+} catch {
+}
+
+$renderedLineCount = 0
 while ($true) {
-    Clear-Host
-    Write-Host 'Autotrain Status Mirror'
-    Write-Host ''
+    $frameLines = New-Object System.Collections.Generic.List[string]
+    $frameLines.Add('Autotrain Status Mirror')
+    $frameLines.Add('')
 
     $payload = Read-JsonFile -Path $statusPath
     if ($null -eq $payload) {
-        Write-Host 'Waiting for autotrain status file...'
-        Write-Host $statusPath
+        $frameLines.Add('Waiting for autotrain status file...')
+        $frameLines.Add($statusPath)
+        $renderedLineCount = Render-Frame -Lines $frameLines.ToArray() -PreviousLineCount $renderedLineCount
         Start-Sleep -Milliseconds $RefreshMilliseconds
         continue
     }
@@ -245,23 +343,26 @@ while ($true) {
     }
     $benchmarkStatus = Read-JsonFile -Path $benchmarkStatusPath
 
-    Write-SectionTitle -Title 'Iteration'
+    $consoleWidth = Get-ConsoleWidth
+    $frameLines.AddRange((ConvertTo-Lines -Text 'Iteration'))
+    $frameLines.AddRange((ConvertTo-Lines -Text ('-' * 'Iteration'.Length)))
     $iterationLabel = if ($payload.iteration_label) { $payload.iteration_label } else { '---' }
     $phase = if ($payload.phase) { $payload.phase } else { 'starting' }
     $workflow = if ($payload.workflow) { [string]$payload.workflow } else { 'train -> benchmark -> codex -> decision' }
-    Write-Host ("Loop: {0}" -f $iterationLabel)
-    Write-Host ("Phase: {0}" -f $phase)
-    Write-Host (Format-BarLine -Label 'Pipeline' -Ratio (Get-StageRatio -Phase $phase) -Details $workflow)
+    $frameLines.Add(("Loop: {0}" -f $iterationLabel))
+    $frameLines.Add(("Phase: {0}" -f $phase))
+    $frameLines.Add((Format-BarLine -Label 'Pipeline' -Ratio (Get-StageRatio -Phase $phase) -Details $workflow))
 
     if ($payload.timestamp) {
-        Write-Host ("Updated: {0}" -f $payload.timestamp)
+        $frameLines.Add(("Updated: {0}" -f $payload.timestamp))
     }
     if ($payload.note) {
-        Write-Host ("Note: {0}" -f $payload.note)
+        $frameLines.Add(("Note: {0}" -f $payload.note))
     }
 
-    Write-Host ''
-    Write-SectionTitle -Title 'Processes'
+    $frameLines.Add('')
+    $frameLines.AddRange((ConvertTo-Lines -Text 'Processes'))
+    $frameLines.AddRange((ConvertTo-Lines -Text ('-' * 'Processes'.Length)))
 
     if ($trainingStatus) {
         $trainStep = if ($null -ne $trainingStatus.global_step) { [int]$trainingStatus.global_step } else { 0 }
@@ -279,7 +380,7 @@ while ($true) {
             ('eta=' + (Format-OptionalDuration -Seconds $trainEtaSeconds)), `
             (Get-AbsoluteEta -EtaSeconds $trainEtaSeconds), `
             $trainingStatus.status
-        Write-Host (Format-BarLine -Label 'Training' -Ratio $trainRatio -Details $trainDetails)
+        $frameLines.Add((Format-BarLine -Label 'Training' -Ratio $trainRatio -Details $trainDetails))
         if ($trainingStatus.latest_log) {
             $parts = @()
             if ($null -ne $trainingStatus.latest_log.train_loss) {
@@ -288,13 +389,20 @@ while ($true) {
             if ($null -ne $trainingStatus.latest_log.validation_loss) {
                 $parts += ('val_loss={0:N4}' -f [double]$trainingStatus.latest_log.validation_loss)
             }
+            if ($null -ne $trainingStatus.latest_log.train_steps_per_second) {
+                $parts += ('steps_per_sec={0:N2}' -f [double]$trainingStatus.latest_log.train_steps_per_second)
+            }
+            if ($null -ne $trainingStatus.latest_log.train_samples_per_second) {
+                $parts += ('samples_per_sec={0:N2}' -f [double]$trainingStatus.latest_log.train_samples_per_second)
+            }
             if ($parts.Count -gt 0) {
-                Write-Host ("             {0}" -f ($parts -join ' | '))
+                $metricPrefix = '             '
+                $frameLines.AddRange((Wrap-Sections -Prefix $metricPrefix -Sections $parts -Width $consoleWidth -ContinuationPrefix $metricPrefix))
             }
         }
     } else {
         $details = if ($phase -eq 'training') { 'waiting for training status...' } else { 'idle' }
-        Write-Host (Format-BarLine -Label 'Training' -Ratio 0.0 -Details $details)
+        $frameLines.Add((Format-BarLine -Label 'Training' -Ratio 0.0 -Details $details))
     }
 
     if ($benchmarkStatus) {
@@ -316,7 +424,7 @@ while ($true) {
             ('eta=' + (Format-OptionalDuration -Seconds $benchEtaSeconds)), `
             (Get-AbsoluteEta -EtaSeconds $benchEtaSeconds), `
             $benchmarkStatus.status
-        Write-Host (Format-BarLine -Label 'Benchmark' -Ratio $benchRatio -Details $benchDetails)
+        $frameLines.Add((Format-BarLine -Label 'Benchmark' -Ratio $benchRatio -Details $benchDetails))
         if ($null -ne $benchmarkStatus.valid_output_rate -or $null -ne $benchmarkStatus.response_type_accuracy) {
             $benchMeta = @()
             if ($null -ne $benchmarkStatus.valid_output_rate) {
@@ -326,13 +434,14 @@ while ($true) {
                 $benchMeta += ('accuracy={0}' -f (Format-Percent -Value ([double]$benchmarkStatus.response_type_accuracy)))
             }
             if ($benchMeta.Count -gt 0) {
-                Write-Host ("             {0}" -f ($benchMeta -join ' | '))
+                $metricPrefix = '             '
+                $frameLines.AddRange((Wrap-Sections -Prefix $metricPrefix -Sections $benchMeta -Width $consoleWidth -ContinuationPrefix $metricPrefix))
             }
         }
     } else {
         $benchmarkDetails = if ($phase -eq 'training') { 'queued after training' } elseif ($phase -eq 'codex' -or $phase -eq 'decision' -or $phase -eq 'stopped' -or $phase -eq 'interrupted') { 'completed' } else { 'idle' }
         $benchmarkRatio = if ($benchmarkDetails -eq 'completed') { 1.0 } else { 0.0 }
-        Write-Host (Format-BarLine -Label 'Benchmark' -Ratio $benchmarkRatio -Details $benchmarkDetails)
+        $frameLines.Add((Format-BarLine -Label 'Benchmark' -Ratio $benchmarkRatio -Details $benchmarkDetails))
     }
 
     $codexActive = $phase -eq 'codex'
@@ -349,21 +458,23 @@ while ($true) {
         default { 'idle' }
     }
     if ($codexActive) {
-        Write-Host (Format-BarLine -Label 'Codex' -Ratio 0.0 -Details $codexDetails -Indeterminate)
+        $frameLines.Add((Format-BarLine -Label 'Codex' -Ratio 0.0 -Details $codexDetails -Indeterminate))
     } else {
         $codexRatio = if ($phase -eq 'decision' -or $phase -eq 'stopped' -or $phase -eq 'interrupted') { 1.0 } elseif ($phase -eq 'benchmark_complete') { 0.15 } else { 0.0 }
-        Write-Host (Format-BarLine -Label 'Codex' -Ratio $codexRatio -Details $codexDetails)
+        $frameLines.Add((Format-BarLine -Label 'Codex' -Ratio $codexRatio -Details $codexDetails))
     }
 
     if ($null -ne $payload.benchmark_size) {
-        Write-Host ''
-        Write-SectionTitle -Title 'Latest Metrics'
-        Write-Host ('Benchmark size: {0}' -f [int]$payload.benchmark_size)
-        Write-Host ('Nonempty output: {0}' -f [int]$payload.nonempty_output_count)
-        Write-Host ('Valid output: {0} ({1})' -f [int]$payload.valid_output_count, (Format-Percent -Value ([double]$payload.valid_output_rate)))
-        Write-Host ('Correct type: {0} ({1})' -f [int]$payload.correct_response_type_count, (Format-Percent -Value ([double]$payload.response_type_accuracy)))
-        Write-Host ('Items/sec: {0:N2}' -f [double]$payload.items_per_sec)
+        $frameLines.Add('')
+        $frameLines.AddRange((ConvertTo-Lines -Text 'Latest Metrics'))
+        $frameLines.AddRange((ConvertTo-Lines -Text ('-' * 'Latest Metrics'.Length)))
+        $frameLines.Add('Benchmark size: {0}' -f [int]$payload.benchmark_size)
+        $frameLines.Add('Nonempty output: {0}' -f [int]$payload.nonempty_output_count)
+        $frameLines.Add('Valid output: {0} ({1})' -f [int]$payload.valid_output_count, (Format-Percent -Value ([double]$payload.valid_output_rate)))
+        $frameLines.Add('Correct type: {0} ({1})' -f [int]$payload.correct_response_type_count, (Format-Percent -Value ([double]$payload.response_type_accuracy)))
+        $frameLines.Add('Items/sec: {0:N2}' -f [double]$payload.items_per_sec)
     }
 
+    $renderedLineCount = Render-Frame -Lines $frameLines.ToArray() -PreviousLineCount $renderedLineCount
     Start-Sleep -Milliseconds $RefreshMilliseconds
 }
