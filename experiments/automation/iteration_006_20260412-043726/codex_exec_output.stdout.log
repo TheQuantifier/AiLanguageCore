@@ -1,0 +1,6 @@
+Latest run analysis: `valid_output_rate=1.0` and `response_type_accuracy=0.8852459` are stable, but Stage-2 had a transfer risk in same-shape tokenizer scenarios.
+I made one narrow fix in Stage-2 init: `token_embedding.weight` and `lm_head.weight` are now always tokenizer-remapped before generic same-shape copying, preventing silent token-id semantic drift across runs.
+This preserves JSON/type stability priority while safely improving wording-training continuity for the next iteration.
+Files touched: [scripts/train_native_model.py](C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/train_native_model.py)
+Validation run: `python -m py_compile scripts/train_native_model.py`
+AUTOMATION_DECISION: CONTINUE

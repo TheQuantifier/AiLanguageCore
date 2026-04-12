@@ -630,10 +630,6 @@ def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteToken
         if name not in target_state:
             skipped_names.append(name)
             continue
-        if target_state[name].shape == tensor.shape:
-            updated_state[name] = tensor
-            loaded_names.append(name)
-            continue
         if name in {"token_embedding.weight", "lm_head.weight"}:
             if len(target_state[name].shape) == 2 and len(tensor.shape) == 2 and int(target_state[name].shape[1]) == int(tensor.shape[1]):
                 updated_state[name] = remap_vocab_matrix(
@@ -643,6 +639,10 @@ def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteToken
                 )
                 loaded_names.append(name)
                 continue
+        if target_state[name].shape == tensor.shape:
+            updated_state[name] = tensor
+            loaded_names.append(name)
+            continue
         if name == "position_embedding.weight":
             updated_state[name] = transfer_position_embedding(
                 source_tensor=tensor,
