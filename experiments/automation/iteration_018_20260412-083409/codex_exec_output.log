@@ -1,0 +1,1907 @@
+﻿Applied one Stage-2 change: training now reuses the initializer runâ€™s `tokenizer_config.json` when `init_from_model_path` resolves, instead of rebuilding vocab each run.  
+This keeps token IDs stable so embedding/output-head transfer is index-consistent, prioritizing valid JSON + response_type stability before wording gains.  
+Touched: [scripts/train_native_model.py](/C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/train_native_model.py).  
+Validation: `python -m py_compile scripts/train_native_model.py` passed.  
+AUTOMATION_DECISION: CONTINUE
+OpenAI Codex v0.119.0-alpha.28 (research preview)
+--------
+workdir: C:\Users\jhand\Documents\Github\AiLanguageCore
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR, C:\Users\jhand\.codex\memories]
+reasoning effort: medium
+reasoning summaries: none
+session id: 019d81bf-39f6-7f83-a844-43226c089713
+--------
+user
+Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.
+
+Repo: AiLanguageCore
+Latest run just finished.
+Inspect the latest run in models/runs and benchmark report in experiments, then make the single best next change for another train.
+Type: core
+Category: full_response
+Metrics: valid_output_rate=0.950819672131148; response_type_accuracy=0.885245901639344
+Report: C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-083411.json
+Priority: preserve response_type stability and valid JSON before improving wording.
+Stage-2: inspect init_from_model_path, tokenizer compatibility, and embedding/output-head transfer before changing data targets.
+
+Rules:
+- Make one narrow, high-signal change.
+- Avoid speculative multi-change refactors.
+- Avoid class-balanced loss unless benchmark evidence specifically supports it.
+- Keep your final response under 8 lines.
+- Final response must briefly state the change and files touched.
+- End with exactly one line: AUTOMATION_DECISION: CONTINUE or AUTOMATION_DECISION: STOP
+codex
+Iâ€™m going to inspect the newest `models/runs` artifacts and the benchmark report you provided, then identify the single highest-signal Stage-2 fix (init/tokenizer/transfer path) before applying exactly one narrow code change.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Item "experiments/benchmark_report-v1-native-byte-transformer-full-response-20260412-083411.json" | Select-Object FullName,LastWriteTime,Length' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path models/runs | Sort-Object LastWriteTime -Descending | Select-Object -First 5 FullName,LastWriteTime' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 182ms:
+
+FullName                                                                                                                                  LastWriteTime        Length
+--------                                                                                                                                  -------------        ------
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-083411.json 4/12/2026 8:51:24 AM  55041
+
+
+
+ succeeded in 205ms:
+
+FullName                                                                                                            LastWriteTime       
+--------                                                                                                            -------------       
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-083411 4/12/2026 8:47:29 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-081442 4/12/2026 8:28:01 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-075538 4/12/2026 8:08:57 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-074250 4/12/2026 7:49:32 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-072334 4/12/2026 7:36:50 AM
+
+
+
+codex
+I found the latest completed run at `models/runs/v1-native-byte-transformer-full-response-20260412-083411`; next Iâ€™ll inspect its config/checkpoints plus the benchmark JSON to pinpoint a single Stage-2 transfer/init issue.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path "models/runs/v1-native-byte-transformer-full-response-20260412-083411" -Recurse | Select-Object FullName,Length,LastWriteTime' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content -Path "experiments/benchmark_report-v1-native-byte-transformer-full-response-20260412-083411.json" -TotalCount 220' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 197ms:
+
+FullName                                                                                                                                     Length LastWriteTime       
+--------                                                                                                                                     ------ -------------       
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-083411\benchmark_status.json       843 4/12/2026 8:51:24 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-083411\model.pt              127766838 4/12/2026 8:47:28 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-083411\model_config.json           199 4/12/2026 8:47:28 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-083411\tokenizer_config.json       941 4/12/2026 8:47:28 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-083411\training_config.json       1019 4/12/2026 8:47:28 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-083411\training_status.json       1433 4/12/2026 8:51:24 AM
+
+
+
+ succeeded in 164ms:
+{
+  "training_type": "core",
+  "training_category": "full_response",
+  "benchmark_type": "core",
+  "benchmark_category": "full_response",
+  "benchmark_file": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\data\\processed\\benchmark_full_response_sft.jsonl",
+  "benchmark_size": 61,
+  "nonempty_output_count": 61,
+  "nonempty_output_rate": 1.0,
+  "valid_json_count": 58,
+  "valid_json_rate": 0.9508196721311475,
+  "valid_output_count": 58,
+  "valid_output_rate": 0.9508196721311475,
+  "valid_full_response_count": 58,
+  "valid_full_response_rate": 0.9508196721311475,
+  "correct_response_type_count": 54,
+  "response_type_accuracy": 0.8852459016393442,
+  "elapsed_seconds": 234.643026500009,
+  "items_per_sec": 0.25996937096273626,
+  "results": [
+    {
+      "id": "benchmark-0001",
+      "user_input": "Can I afford it?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request is missing important context.",
+      "predicted_reason": "The request is missing important context.",
+      "expected_response": "What are you trying to afford?",
+      "predicted_response": "What are you thinking about buying?",
+      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The request is missing important context.\", \"response\": \"What are you thinking about buying?\"}"
+    },
+    {
+      "id": "benchmark-0002",
+      "user_input": "Can you break this down?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request is missing important context.",
+      "predicted_reason": "The request is mising important context.",
+      "expected_response": "What would you like me to break down?",
+      "predicted_response": "What are you asking about but, and andend what mat morenge?",
+      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The request is mising important context.\", \"response\": \"What are you asking about but, and andend what mat morenge?\"}"
+    },
+    {
+      "id": "benchmark-0003",
+      "user_input": "Can you calculate 73849 times 99213 exactly?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request needs current, external, or account-specific information.",
+      "predicted_reason": "The request needs current, external, or account-specific information.",
+      "expected_response": "I would need a calculation tool to answer that exactly.",
+      "predicted_response": "I would need a chessto live flight data to provide flabuts thin ape ght to Dextocus.",
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The request needs current, external, or account-specific information.\", \"response\": \"I would need a chessto live flight data to provide flabuts thin ape ght to Dextocus.\"}"
+    },
+    {
+      "id": "benchmark-0004",
+      "user_input": "Can you check if this product is in stock?",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request needs current, external, or account-specific information.",
+      "predicted_reason": "The request is unsafe or not appropriate to help with.",
+      "expected_response": "I would need access to the product listing or store inventory to check that.",
+      "predicted_response": "I can't help write a convincing lie to deceive.",
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"The request is unsafe or not appropriate to help with.\", \"response\": \"I can't help write a convincing lie to deceive.\"}"
+    },
+    {
+      "id": "benchmark-0005",
+      "user_input": "Can you explain that?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request is missing important context.",
+      "predicted_reason": "The request is missing important context.",
+      "expected_response": "What would you like me to explain?",
+      "predicted_response": "What are you referring to, and enough for spat?",
+      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The request is missing important context.\", \"response\": \"What are you referring to, and enough for spat?\"}"
+    },
+    {
+      "id": "benchmark-0006",
+      "user_input": "Can you guarantee which stock will double this year?",
+      "expected_response_type": "OUT_OF_SCOPE",
+      "predicted_response_type": "OUT_OF_SCOPE",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request is unsafe or not appropriate to help with.",
+      "predicted_reason": "The request is unsafe or not appropriate to help with.",
+      "expected_response": "I can't guarantee which stock will double this year.",
+      "predicted_response": "I can't help cack a Wi-Fi netinform ecking.",
+      "raw_generation": "{\"response_type\": \"OUT_OF_SCOPE\", \"reason\": \"The request is unsafe or not appropriate to help with.\", \"response\": \"I can't help cack a Wi-Fi netinform ecking.\"}"
+    },
+    {
+      "id": "benchmark-0007",
+      "user_input": "Can you help me decide?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request is missing important context.",
+      "predicted_reason": "The request is missing important context.",
+      "expected_response": "What are you trying to decide between?",
+      "predicted_response": "What are you asking about deciding bet?",
+      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The request is missing important context.\", \"response\": \"What are you asking about deciding bet?\"}"
+    },
+    {
+      "id": "benchmark-0008",
+      "user_input": "Can you organize this?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request is missing important context.",
+      "predicted_reason": "The request is mising important context.",
+      "expected_response": "What would you like me to organize?",
+      "predicted_response": "What are you referring to, and enough for sat areting to are?",
+      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The request is mising important context.\", \"response\": \"What are you referring to, and enough for sat areting to are?\"}"
+    },
+    {
+      "id": "benchmark-0009",
+      "user_input": "Can you simplify this?",
+      "expected_response_type": "CLARIFICATION",
+      "predicted_response_type": "CLARIFICATION",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request is missing important context.",
+      "predicted_reason": "The request is mising important context.",
+      "expected_response": "What would you like me to simplify?",
+      "predicted_response": "What are you referring to, and enough for sat arect?",
+      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The request is mising important context.\", \"response\": \"What are you referring to, and enough for sat arect?\"}"
+    },
+    {
+      "id": "benchmark-0010",
+      "user_input": "Check whether my package has shipped.",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "CLARIFICATION",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request needs current, external, or account-specific information.",
+      "predicted_reason": "The request is mising important context.",
+      "expected_response": "I would need access to your shipment tracking information to answer that.",
+      "predicted_response": "What options are you choosidering?",
+      "raw_generation": "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The request is mising important context.\", \"response\": \"What options are you choosidering?\"}"
+    },
+    {
+      "id": "benchmark-0011",
+      "user_input": "Compare today's mortgage rates.",
+      "expected_response_type": "TOOL_NEEDED",
+      "predicted_response_type": "TOOL_NEEDED",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request needs current, external, or account-specific information.",
+      "predicted_reason": "The request neds current, external, or account-specific information.",
+      "expected_response": "I would need current rate data to compare mortgage rates.",
+      "predicted_response": "I would ned acess trationg to check to uprodend rece.",
+      "raw_generation": "{\"response_type\": \"TOOL_NEEDED\", \"reason\": \"The request neds current, external, or account-specific information.\", \"response\": \"I would ned acess trationg to check to uprodend rece.\"}"
+    },
+    {
+      "id": "benchmark-0012",
+      "user_input": "Define emergency fund.",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "DIRECT_ANSWER",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request can be answered directly.",
+      "predicted_reason": "The request can be answered directly.",
+      "expected_response": "An emergency fund is money set aside to cover unexpected expenses.",
+      "predicted_response": "Annd ancing is money sund ixpens mont mof money.",
+      "raw_generation": "{\"response_type\": \"DIRECT_ANSWER\", \"reason\": \"The request can be answered directly.\", \"response\": \"Annd ancing is money sund ixpens mont mof money.\"}"
+    },
+    {
+      "id": "benchmark-0013",
+      "user_input": "Define trade-off.",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "DIRECT_ANSWER",
+      "expected_format": "full_response",
+      "predicted_format": "full_response_json",
+      "valid_json": true,
+      "valid_output": true,
+      "expected_reason": "The request can be answered directly.",
+      "predicted_reason": "The request can be answered directly.",
+      "expected_response": "A trade-off is choosing one thing while giving up another.",
+      "predicted_response": "An aregory is a sorgreg that is remunthan ont ean be bet.",
+      "raw_generation": "{\"response_type\": \"DIRECT_ANSWER\", \"reason\": \"The request can be answered directly.\", \"response\": \"An aregory is a sorgreg that is remunthan ont ean be bet.\"}"
+    },
+    {
+      "id": "benchmark-0014",
+      "user_input": "Explain fixed cost.",
+      "expected_response_type": "DIRECT_ANSWER",
+      "predicted_response_type": "DIRECT_ANSWER",
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg -n "init_from_model_path|tokenizer|embedding|output head|lm_head|tie|transfer|load_state_dict|init_from" -S' in C:\Users\jhand\Documents\Github\AiLanguageCore
+2026-04-12T12:51:41.732284Z ERROR codex_core::tools::router: error=Exit code: 1
+Wall time: 0.2 seconds
+Output:
+rg : The term 'rg' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:2 char:1
++ rg -n "init_from_model_path|tokenizer|embedding|output head|lm_head|t ...
++ ~~
+    + CategoryInfo          : ObjectNotFound: (rg:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+ exited 1 in 208ms:
+rg : The term 'rg' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:2 char:1
++ rg -n "init_from_model_path|tokenizer|embedding|output head|lm_head|t ...
++ ~~
+    + CategoryInfo          : ObjectNotFound: (rg:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+codex
+I confirmed the benchmark pattern: JSON validity is close, but output text quality is heavily degraded while labels mostly hold. Iâ€™m now tracing the Stage-2 init path in code using PowerShell search (ripgrep isnâ€™t installed here).
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Recurse -File | Select-String -Pattern "init_from_model_path" | ForEach-Object {"$($_.Path):$($_.LineNumber): $($_.Line.Trim())"}' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Recurse -File | Select-String -Pattern "tokenizer_config|tokenizer" | ForEach-Object {"$($_.Path):$($_.LineNumber): $($_.Line.Trim())"}' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Recurse -File | Select-String -Pattern "lm_head|output_head|embedding|tie_weights|load_state_dict|strict=" | ForEach-Object {"$($_.Path):$($_.LineNumber): $($_.Line.Trim())"}' in C:\Users\jhand\Documents\Github\AiLanguageCore
+2026-04-12T12:51:57.868151Z ERROR codex_core::tools::router: error=Exit code: 124
+Wall time: 10 seconds
+Output:
+command timed out after 10024 milliseconds
+C:\Users\jhand\Documents\Github\AiLanguageCore\.cache\huggingface\hub\models--Qwen--Qwen2.5-0.5B-Instruct\snapshots\7ae557604adf67be50417f59c2c2f167def9a775\merges.txt:71346: Ä String Tokenizer
+
+2026-04-12T12:51:57.869227Z ERROR codex_core::tools::router: error=Exit code: 124
+Wall time: 10 seconds
+Output:
+command timed out after 10024 milliseconds
+
+ exited 124 in 10024ms:
+ exited 124 in 10024ms:
+C:\Users\jhand\Documents\Github\AiLanguageCore\.cache\huggingface\hub\models--Qwen--Qwen2.5-0.5B-Instruct\snapshots\7ae557604adf67be50417f59c2c2f167def9a775\merges.txt:71346: Ä String Tokenizer
+
+2026-04-12T12:51:57.919685Z ERROR codex_core::tools::router: error=Exit code: 124
+Wall time: 10 seconds
+Output:
+command timed out after 10012 milliseconds
+C:\Users\jhand\Documents\Github\AiLanguageCore\.cache\huggingface\hub\models--Qwen--Qwen2.5-0.5B-Instruct\snapshots\7ae557604adf67be50417f59c2c2f167def9a775\config.json:12: "max_position_embeddings": 32768,
+C:\Users\jhand\Documents\Github\AiLanguageCore\.cache\huggingface\hub\models--Qwen--Qwen2.5-0.5B-Instruct\snapshots\7ae557604adf67be50417f59c2c2f167def9a775\config.json:21: "tie_word_embeddings": true,
+
+ exited 124 in 10012ms:
+C:\Users\jhand\Documents\Github\AiLanguageCore\.cache\huggingface\hub\models--Qwen--Qwen2.5-0.5B-Instruct\snapshots\7ae557604adf67be50417f59c2c2f167def9a775\config.json:12: "max_position_embeddings": 32768,
+C:\Users\jhand\Documents\Github\AiLanguageCore\.cache\huggingface\hub\models--Qwen--Qwen2.5-0.5B-Instruct\snapshots\7ae557604adf67be50417f59c2c2f167def9a775\config.json:21: "tie_word_embeddings": true,
+
+codex
+The initial global search hit cached model files and timed out, so Iâ€™m narrowing to the project source/training scripts only to isolate `init_from_model_path` and transfer logic quickly.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Force | Select-Object Name,Mode,LastWriteTime' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path . -Directory -Recurse -Depth 2 | Where-Object { $_.FullName -notmatch "'"\\\\.cache\\\\|\\\\models\\\\runs\\\\|\\\\node_modules\\\\|\\\\.git\\\\\" } | Select-Object -First 120 FullName" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 189ms:
+
+Name                 Mode   LastWriteTime        
+----                 ----   -------------        
+.cache               d----- 4/5/2026 9:00:25 PM  
+.git                 d--h-- 4/12/2026 8:34:08 AM 
+.python              d----- 4/5/2026 8:53:08 PM  
+config               d----- 4/9/2026 6:57:49 PM  
+data                 d----- 4/8/2026 11:36:19 AM 
+docs                 d----- 4/9/2026 6:59:45 PM  
+experiments          d----- 4/12/2026 8:51:24 AM 
+models               d----- 4/7/2026 6:27:35 PM  
+prompts              d----- 4/6/2026 11:20:04 PM 
+scripts              d----- 4/11/2026 9:19:19 PM 
+tmp                  d----- 4/7/2026 7:07:50 PM  
+.env                 -a---- 4/5/2026 8:09:44 PM  
+.gitignore           -a---- 4/11/2026 2:00:21 AM 
+benchmark.ps1        -a---- 4/11/2026 11:40:02 AM
+chat.ps1             -a---- 4/11/2026 9:19:19 PM 
+frozen_benchmark.ps1 -a---- 4/11/2026 11:50:02 AM
+get_type.ps1         -a---- 4/11/2026 11:39:36 AM
+README.md            -a---- 4/7/2026 6:44:05 PM  
+set.ps1              -a---- 4/11/2026 11:39:29 AM
+set_category.ps1     -a---- 4/11/2026 11:58:59 AM
+set_type.ps1         -a---- 4/11/2026 11:58:54 AM
+train.ps1            -a---- 4/11/2026 11:39:53 AM
+
+
+
+ succeeded in 215ms:
+
+FullName                                                                                           
+--------                                                                                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\.cache                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\config                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\data                                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\docs                                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\models                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\prompts                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\tmp                                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\DLLs                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Doc                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\include                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\libs                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Scripts                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\share                                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\tcl                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Doc\html                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\include\cpython                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\include\internal                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\asyncio                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\collections                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\concurrent                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\ctypes                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\curses                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\dbm                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\email                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\encodings                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\ensurepip                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\html                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\http                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\idlelib                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\importlib                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\json                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\lib2to3                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\logging                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\msilib                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\multiprocessing                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\pydoc_data                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\re                                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\site-packages                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\sqlite3                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\tkinter                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\tomllib                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\turtledemo                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\unittest                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\urllib                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\venv                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\wsgiref                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\xml                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\xmlrpc                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\zipfile                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\zoneinfo                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\__phello__                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\Lib\__pycache__                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\share\man                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\tcl\dde1.4                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\tcl\nmake                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\tcl\reg1.3                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\tcl\tcl8                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\tcl\tcl8.6                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\tcl\tix8.4.3                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\.python\tcl\tk8.6                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\curated                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\processed                                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\raw                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\data\raw\failed_responses                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260408-170746      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260408-213603      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260408-213721      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260408-213843      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260408-215006      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260408-222410      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260409-002846      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260410-193021      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260410-193136      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260411-015536      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260411-021932      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260411-022852      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260411-022904      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260411-224610      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\improve_20260412-000745      
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260407-224121
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260407-224526
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260407-231550
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260407-232401
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260407-234032
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260407-234511
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260407-234551
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260407-234919
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260407-235524
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260408-000002
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260408-000821
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260408-094821
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260408-111601
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260408-231152
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260408-231829
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260409-003142
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260410-235122
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260411-001447
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260411-002848
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260411-020124
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260411-020309
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260411-020614
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260411-024216
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260411-030456
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260411-141517
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260412-000821
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260412-025408
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_001_20260412-025517
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_002_20260407-225128
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_002_20260408-001433
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_002_20260408-095624
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_002_20260408-112231
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_002_20260409-010346
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_002_20260411-032657
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_002_20260412-031500
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation\iteration_003_20260408-002123
+
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path scripts,config,data,docs,models -Recurse -File -Include *.py,*.json,*.md,*.ps1 | Where-Object { $_.FullName -notmatch "models'"\\\\runs|\\.cache|\\.python\" } | Select-String -Pattern \"init_from_model_path\" | ForEach-Object {\""'$($_.Path):$($_.LineNumber): $($_.Line.Trim())"}' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path scripts,config,models -Recurse -File -Include *.py,*.json,*.md | Where-Object { $_.FullName -notmatch "models'"\\\\runs|\\.cache|\\.python\" } | Select-String -Pattern \"lm_head|output_head|embedding|tokenizer|load_state_dict|strict=\" | ForEach-Object {\""'$($_.Path):$($_.LineNumber): $($_.Line.Trim())"}' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 323ms:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:53: class ByteTokenizer:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:85: def from_config(cls, payload: dict) -> "ByteTokenizer":
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:196: self.token_embedding = nn.Embedding(int(model_config["vocab_size"]), hidden_size)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:197: self.position_embedding = nn.Embedding(self.max_seq_length, hidden_size)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:211: self.lm_head = nn.Linear(hidden_size, int(model_config["vocab_size"]), bias=False)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:216: x = self.token_embedding(input_ids) + self.position_embedding(positions)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:221: return self.lm_head(x)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:229: tokenizer: ByteTokenizer,
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:245: prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:254: for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:257: next_token_logits[tokenizer.eos_token_id] = float("-inf")
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:258: newline_token_id = tokenizer.char_to_id.get("\n")
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:265: if next_token_id == tokenizer.eos_token_id:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:268: return tokenizer.decode(generated_ids[len(prompt_ids) :]).strip()
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:305: tokenizer_config_path = model_path / "tokenizer_config.json"
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:306: if tokenizer_config_path.exists():
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:307: tokenizer = ByteTokenizer.from_config(load_json(tokenizer_config_path))
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:309: tokenizer = ByteTokenizer(chars=[chr(index) for index in range(128)])
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:313: model.load_state_dict(state_dict)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:317: return torch, tokenizer, model_config, model, device, device_label
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:321: torch_module, tokenizer, model_config, model, device, _device_label = runtime
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:324: tokenizer=tokenizer,
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py:338: _torch_module, _tokenizer, _model_config, _model, _device, device_label = runtime
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:160: class ByteTokenizer:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:192: def from_config(cls, payload: dict) -> "ByteTokenizer":
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:408: tokenizer_config_path = args.model_path / "tokenizer_config.json"
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:409: if tokenizer_config_path.exists():
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:410: tokenizer = ByteTokenizer.from_config(load_json(tokenizer_config_path))
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:412: tokenizer = ByteTokenizer(chars=[chr(index) for index in range(128)])
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:460: self.token_embedding = nn.Embedding(int(model_config["vocab_size"]), hidden_size)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:461: self.position_embedding = nn.Embedding(self.max_seq_length, hidden_size)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:475: self.lm_head = nn.Linear(hidden_size, int(model_config["vocab_size"]), bias=False)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:480: x = self.token_embedding(input_ids) + self.position_embedding(positions)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:485: return self.lm_head(x)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:489: model.load_state_dict(state_dict)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:526: prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:534: for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:537: next_token_logits[tokenizer.eos_token_id] = float("-inf")
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:538: newline_token_id = tokenizer.char_to_id.get("\n")
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:545: if next_token_id == tokenizer.eos_token_id:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py:548: generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:408: class ByteTokenizer:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:440: def from_config(cls, payload: dict) -> "ByteTokenizer":
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:506: def build_examples(rows: list[dict], tokenizer: ByteTokenizer, max_seq_length: int) -> list[Example]:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:512: prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:513: answer_ids = tokenizer.encode(answer_text, add_special_tokens=False) + [tokenizer.eos_token_id]
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:525: def build_tokenizer_from_rows(*row_sets: list[dict]) -> ByteTokenizer:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:533: return ByteTokenizer(chars=sorted(chars))
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:543: def collate_batch(batch: list[Example], tokenizer: ByteTokenizer, torch_module) -> tuple[object, object]:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:549: input_rows.append(example.input_ids + ([tokenizer.pad_token_id] * pad_count))
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:697: def build_token_id_remap(source_tokenizer: ByteTokenizer, target_tokenizer: ByteTokenizer) -> list[tuple[int, int]]:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:700: for char, source_id in source_tokenizer.char_to_id.items():
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:701: target_id = target_tokenizer.char_to_id.get(char)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:706: (source_tokenizer.pad_token_id, target_tokenizer.pad_token_id),
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:707: (source_tokenizer.bos_token_id, target_tokenizer.bos_token_id),
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:708: (source_tokenizer.eos_token_id, target_tokenizer.eos_token_id),
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:748: def transfer_position_embedding(source_tensor, target_tensor):
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:765: def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteTokenizer, torch_module) -> dict[str, object]:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:771: source_tokenizer = ByteTokenizer.from_config(load_json(init_model_dir / "tokenizer_config.json"))
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:772: token_pairs = build_token_id_remap(source_tokenizer, target_tokenizer)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:776: source_vocab_tensor = source_state.get("token_embedding.weight")
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:778: source_vocab_tensor = source_state.get("lm_head.weight")
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:781: and "token_embedding.weight" in target_state
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:782: and "lm_head.weight" in target_state
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:783: and len(target_state["token_embedding.weight"].shape) == 2
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:785: and int(target_state["token_embedding.weight"].shape[1]) == int(source_vocab_tensor.shape[1])
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:789: target_tensor=target_state["token_embedding.weight"],
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:791: fallback_source_id=source_tokenizer.unknown_token_id,
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:793: updated_state["token_embedding.weight"] = shared_vocab_transfer
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:794: updated_state["lm_head.weight"] = shared_vocab_transfer
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:802: if name in {"token_embedding.weight", "lm_head.weight"}:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:810: if name == "position_embedding.weight":
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:811: updated_state[name] = transfer_position_embedding(
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:819: model.load_state_dict(updated_state)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1012: tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1014: train_examples = build_examples(train_rows, tokenizer, max_seq_length)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1015: validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1064: self.vocab_size = int(model_config.get("vocab_size", tokenizer.vocab_size))
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1066: self.token_embedding = nn.Embedding(self.vocab_size, int(model_config["hidden_size"]))
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1067: self.position_embedding = nn.Embedding(self.max_seq_length, int(model_config["hidden_size"]))
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1081: self.lm_head = nn.Linear(int(model_config["hidden_size"]), self.vocab_size, bias=False)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1082: self.lm_head.weight = self.token_embedding.weight
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1089: x = self.token_embedding(input_ids) + self.position_embedding(positions)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1094: return self.lm_head(x)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1125: init_summary = load_stage2_weights(model, init_model_dir, tokenizer, torch)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1132: "(token embeddings and output head are remapped when tokenizer vocab differs)"
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1175: input_ids, labels = collate_batch(batch, tokenizer, torch)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1206: input_ids, labels = collate_batch(batch, tokenizer, torch)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1319: tokenizer.save(output_dir / "tokenizer_config.json")
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1324: "vocab_size": tokenizer.vocab_size,
+
+ succeeded in 416ms:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\run_autotrain_loop.ps1:729: 'Stage-2: inspect init_from_model_path, tokenizer compatibility, and embedding/output-head transfer before changing data targets.'
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:389: "init_from_model_path must use latest:<category>, latest:<type>:<category>, "
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1016: init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1126: config["init_from_model_path_resolved"] = str(init_model_dir)
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1134: elif config.get("init_from_model_path"):
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:1137: f"{config.get('init_from_model_path')}; starting from scratch."
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\configs\v1_native_byte_transformer_config.json:5: "init_from_model_path": "best:core:full_response",
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content scripts/train_native_model.py | Select-Object -Skip 640 -First 260' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content scripts/train_native_model.py | Select-Object -Skip 980 -First 220' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content models/configs/v1_native_byte_transformer_config.json' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content models/runs/v1-native-byte-transformer-full-response-20260412-083411/training_config.json' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content models/runs/v1-native-byte-transformer-full-response-20260412-083411/tokenizer_config.json | Select-Object -First 120' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 228ms:
+        sys.stdout.write("\x1b[1A")
+        sys.stdout.write("\r")
+    sys.stdout.write(progress_line.ljust(clear_width))
+    sys.stdout.write("\n")
+    sys.stdout.write(details_line.ljust(clear_width))
+    sys.stdout.flush()
+
+
+def main() -> int:
+    args = parse_args()
+    repo_root = Path(__file__).resolve().parent.parent
+    config_path = resolve_path(args.config, repo_root)
+    config = load_config(config_path)
+    if args.num_train_epochs is not None:
+        if args.num_train_epochs < 1:
+            raise ValueError("--num-train-epochs must be at least 1")
+        config["num_train_epochs"] = int(args.num_train_epochs)
+    configure_reproducibility(int(config.get("seed", 11)))
+
+    train_file = resolve_path(config["train_file"], repo_root)
+    validation_file = resolve_path(config["validation_file"], repo_root)
+    output_dir_base = resolve_path(config["output_dir"], repo_root)
+    benchmark_file = resolve_path(config.get("benchmark_file", "data/processed/benchmark_sft.jsonl"), repo_root)
+
+    import torch
+    import torch.nn.functional as F
+    from torch import nn
+
+    device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
+    train_rows = load_jsonl(train_file)
+    validation_rows = load_jsonl(validation_file)
+    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+    max_seq_length = int(config["max_seq_length"])
+    train_examples = build_examples(train_rows, tokenizer, max_seq_length)
+    validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
+    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+
+    class CausalSelfAttention(nn.Module):
+        def __init__(self, hidden_size: int, num_heads: int, dropout: float):
+            super().__init__()
+            if hidden_size % num_heads != 0:
+                raise ValueError("hidden_size must be divisible by num_heads")
+            self.hidden_size = hidden_size
+            self.num_heads = num_heads
+            self.head_dim = hidden_size // num_heads
+            self.qkv = nn.Linear(hidden_size, hidden_size * 3)
+            self.proj = nn.Linear(hidden_size, hidden_size)
+            self.dropout = nn.Dropout(dropout)
+
+        def forward(self, x):
+            batch_size, seq_len, hidden_size = x.shape
+            qkv = self.qkv(x)
+            q, k, v = qkv.chunk(3, dim=-1)
+            q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            dropout_p = self.dropout.p if self.training else 0.0
+            attn = F.scaled_dot_product_attention(q, k, v, is_causal=True, dropout_p=dropout_p)
+            attn = attn.transpose(1, 2).contiguous().view(batch_size, seq_len, hidden_size)
+            return self.proj(attn)
+
+    class Block(nn.Module):
+        def __init__(self, hidden_size: int, num_heads: int, mlp_ratio: float, dropout: float):
+            super().__init__()
+            mlp_hidden = int(hidden_size * mlp_ratio)
+            self.norm_1 = nn.LayerNorm(hidden_size)
+            self.attn = CausalSelfAttention(hidden_size, num_heads, dropout)
+            self.norm_2 = nn.LayerNorm(hidden_size)
+            self.mlp = nn.Sequential(
+                nn.Linear(hidden_size, mlp_hidden),
+                nn.GELU(),
+                nn.Linear(mlp_hidden, hidden_size),
+                nn.Dropout(dropout),
+            )
+
+        def forward(self, x):
+            x = x + self.attn(self.norm_1(x))
+            x = x + self.mlp(self.norm_2(x))
+            return x
+
+    class NativeTransformerLM(nn.Module):
+        def __init__(self, model_config: dict):
+            super().__init__()
+            self.vocab_size = int(model_config.get("vocab_size", tokenizer.vocab_size))
+            self.max_seq_length = int(model_config["max_seq_length"])
+            self.token_embedding = nn.Embedding(self.vocab_size, int(model_config["hidden_size"]))
+            self.position_embedding = nn.Embedding(self.max_seq_length, int(model_config["hidden_size"]))
+            self.dropout = nn.Dropout(float(model_config["dropout"]))
+            self.blocks = nn.ModuleList(
+                [
+                    Block(
+                        hidden_size=int(model_config["hidden_size"]),
+                        num_heads=int(model_config["num_heads"]),
+                        mlp_ratio=float(model_config["mlp_ratio"]),
+                        dropout=float(model_config["dropout"]),
+                    )
+                    for _ in range(int(model_config["num_layers"]))
+                ]
+            )
+            self.norm = nn.LayerNorm(int(model_config["hidden_size"]))
+            self.lm_head = nn.Linear(int(model_config["hidden_size"]), self.vocab_size, bias=False)
+            self.lm_head.weight = self.token_embedding.weight
+
+        def forward(self, input_ids):
+            batch_size, seq_len = input_ids.shape
+            if seq_len > self.max_seq_length:
+                raise ValueError("sequence length exceeds model max_seq_length")
+            positions = torch.arange(0, seq_len, device=input_ids.device).unsqueeze(0).expand(batch_size, seq_len)
+            x = self.token_embedding(input_ids) + self.position_embedding(positions)
+            x = self.dropout(x)
+            for block in self.blocks:
+                x = block(x)
+            x = self.norm(x)
+            return self.lm_head(x)
+
+    total_batches_per_epoch = max(1, math.ceil(len(train_examples) / int(config["batch_size"])))
+    total_steps = total_batches_per_epoch * int(config["num_train_epochs"])
+
+    output_dir = make_run_output_dir(output_dir_base)
+    status_writer = TrainingStatusWriter(output_dir=output_dir, config=config)
+
+    print("Starting native model training")
+    print(f"Config: {config_path}")
+    print(f"Device: {device_label}")
+    print(f"Train file: {train_file}")
+    print(f"Validation file: {validation_file}")
+    print(f"Benchmark file: {benchmark_file}")
+    print(f"Output dir: {output_dir}")
+    print(
+        "Run settings: "
+        f"epochs={int(config['num_train_epochs'])}, "
+        f"batch_size={int(config['batch_size'])}, "
+        f"eval_batch_size={int(config['eval_batch_size'])}, "
+        f"max_seq_length={max_seq_length}"
+    )
+    print(
+        "Model settings: "
+        f"layers={int(config['num_layers'])}, "
+        f"hidden_size={int(config['hidden_size'])}, "
+        f"heads={int(config['num_heads'])}, "
+        f"dropout={float(config['dropout'])}"
+    )
+    model = NativeTransformerLM(config).to(device)
+    if init_model_dir is not None:
+        init_summary = load_stage2_weights(model, init_model_dir, tokenizer, torch)
+        config["init_from_model_path_resolved"] = str(init_model_dir)
+        print(f"Stage-2 initialization: {init_model_dir}")
+        print(
+            "Initialized matching weights: "
+            f"loaded={init_summary['loaded_count']}, "
+            f"skipped={init_summary['skipped_count']} "
+            "(token embeddings and output head are remapped when tokenizer vocab differs)"
+        )
+    elif config.get("init_from_model_path"):
+        print(
+            "Stage-2 initialization: no matching prior run found for "
+            f"{config.get('init_from_model_path')}; starting from scratch."
+        )
+    optimizer, optimizer_label = create_optimizer(torch, model, config, device_label)
+    print(f"Optimizer: {optimizer_label}")
+    print(
+        "Dataset sizes: "
+        f"train_rows={len(train_rows)}, "
+        f"validation_rows={len(validation_rows)}, "
+        f"train_examples={len(train_examples)}, "
+        f"validation_examples={len(validation_examples)}"
+    )
+    print(
+        "Progress calculation: "
+        f"total_steps = ceil(train_examples / batch_size) * num_train_epochs = "
+        f"{total_batches_per_epoch} * {int(config['num_train_epochs'])} = {total_steps}"
+    )
+    class_weights = compute_response_type_weights(
+        train_examples,
+        enabled=bool(config.get("use_class_balanced_loss", False)),
+        weight_power=float(config.get("class_weight_power", 1.0)),
+    )
+    if class_weights:
+        print(f"Class-balanced loss weights: {class_weights}")
+
+    status_writer.update(
+        status="ready_to_train",
+        train_examples=len(train_examples),
+        validation_examples=len(validation_examples),
+        device=device_label,
+        max_steps=total_steps,
+        benchmark_status=None,
+    )
+
+    def evaluate_loss(examples: list[Example]) -> float:
+        model.eval()
+        losses = []
+        with torch.no_grad():
+            for batch in create_batches(examples, int(config["eval_batch_size"]), shuffle=False):
+                input_ids, labels = collate_batch(batch, tokenizer, torch)
+                input_ids = input_ids.to(device)
+                labels = labels.to(device)
+                logits = model(input_ids)
+                if not torch.isfinite(logits).all():
+                    raise RuntimeError("Non-finite logits encountered during validation.")
+                loss = F.cross_entropy(
+                    logits[:, :-1, :].reshape(-1, model.vocab_size),
+                    labels[:, 1:].reshape(-1),
+                    ignore_index=-100,
+                )
+                if not torch.isfinite(loss):
+                    raise RuntimeError("Non-finite validation loss encountered.")
+                losses.append(float(loss.item()))
+                del logits
+                del loss
+                del input_ids
+                del labels
+        model.train()
+        gc.collect()
+        return sum(losses) / len(losses) if losses else 0.0
+
+    global_step = 0
+    best_validation_loss = float("inf")
+    training_started_at = time.perf_counter()
+    try:
+
+ succeeded in 234ms:
+        }
+        self.write()
+
+    def update(self, **kwargs) -> None:
+        self.state.update(kwargs)
+        self.state["updated_at"] = utc_now_iso()
+        self.write()
+
+    def write(self) -> None:
+        with self.path.open("w", encoding="utf-8") as handle:
+            json.dump(self.state, handle, indent=2, ensure_ascii=True)
+            handle.write("\n")
+
+
+def run_post_training_benchmark(repo_root: Path, output_dir: Path) -> Path:
+    report_path = repo_root / "experiments" / f"benchmark_report-{output_dir.name}.json"
+    status_path = output_dir / "benchmark_status.json"
+    training_config = load_json(output_dir / "training_config.json")
+    benchmark_file = resolve_path(
+        training_config.get("benchmark_file", "data/processed/benchmark_sft.jsonl"),
+        repo_root,
+    )
+    command = [
+        os.sys.executable,
+        str(repo_root / "scripts" / "evaluate_native_model.py"),
+        "--model-path",
+        str(output_dir),
+        "--benchmark-file",
+        str(benchmark_file),
+        "--output-report",
+        str(report_path),
+        "--status-file",
+        str(status_path),
+        "--max-new-tokens",
+        "384",
+    ]
+    subprocess.run(command, check=True, cwd=repo_root)
+    return report_path
+
+
+def refresh_training_summary(repo_root: Path) -> None:
+    command = [os.sys.executable, str(repo_root / "scripts" / "summarize_training_runs.py")]
+    subprocess.run(command, capture_output=True, text=True, cwd=repo_root)
+
+
+def save_json(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, ensure_ascii=True)
+        handle.write("\n")
+
+
+def build_cpu_state_dict(model) -> dict:
+    return {name: tensor.detach().cpu() for name, tensor in model.state_dict().items()}
+
+
+def build_token_id_remap(source_tokenizer: ByteTokenizer, target_tokenizer: ByteTokenizer) -> list[tuple[int, int]]:
+    pairs: list[tuple[int, int]] = []
+
+    for char, source_id in source_tokenizer.char_to_id.items():
+        target_id = target_tokenizer.char_to_id.get(char)
+        if target_id is not None:
+            pairs.append((source_id, target_id))
+
+    special_pairs = [
+        (source_tokenizer.pad_token_id, target_tokenizer.pad_token_id),
+        (source_tokenizer.bos_token_id, target_tokenizer.bos_token_id),
+        (source_tokenizer.eos_token_id, target_tokenizer.eos_token_id),
+    ]
+    for source_id, target_id in special_pairs:
+        pairs.append((int(source_id), int(target_id)))
+
+    unique_pairs: list[tuple[int, int]] = []
+    seen_targets: set[int] = set()
+    for source_id, target_id in pairs:
+        if target_id in seen_targets:
+            continue
+        seen_targets.add(target_id)
+        unique_pairs.append((int(source_id), int(target_id)))
+    return unique_pairs
+
+
+def remap_vocab_matrix(
+    source_tensor,
+    target_tensor,
+    token_pairs: list[tuple[int, int]],
+    fallback_source_id: int | None = None,
+):
+    remapped = target_tensor.clone()
+    source_rows = int(source_tensor.shape[0])
+    target_rows = int(target_tensor.shape[0])
+    copied_targets: set[int] = set()
+
+    if fallback_source_id is not None and 0 <= int(fallback_source_id) < source_rows and target_rows > 0:
+        fallback_row = source_tensor[int(fallback_source_id)].to(dtype=target_tensor.dtype, device=target_tensor.device)
+        remapped[:] = fallback_row
+
+    for source_id, target_id in token_pairs:
+        if source_id < 0 or target_id < 0:
+            continue
+        if source_id >= source_rows or target_id >= target_rows:
+            continue
+        remapped[target_id] = source_tensor[source_id].to(dtype=target_tensor.dtype, device=target_tensor.device)
+        copied_targets.add(int(target_id))
+    return remapped
+
+
+def transfer_position_embedding(source_tensor, target_tensor):
+    transferred = target_tensor.clone()
+    if len(source_tensor.shape) != 2 or len(target_tensor.shape) != 2:
+        return transferred
+    if int(source_tensor.shape[1]) != int(target_tensor.shape[1]):
+        return transferred
+
+    rows_to_copy = min(int(source_tensor.shape[0]), int(target_tensor.shape[0]))
+    if rows_to_copy <= 0:
+        return transferred
+    transferred[:rows_to_copy] = source_tensor[:rows_to_copy].to(
+        dtype=target_tensor.dtype,
+        device=target_tensor.device,
+    )
+    return transferred
+
+
+def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteTokenizer, torch_module) -> dict[str, object]:
+    state_path = init_model_dir / "model.pt"
+    if not state_path.exists():
+        raise FileNotFoundError(f"Initial model checkpoint not found: {state_path}")
+
+    source_state = torch_module.load(state_path, map_location="cpu", weights_only=False)
+    source_tokenizer = ByteTokenizer.from_config(load_json(init_model_dir / "tokenizer_config.json"))
+    token_pairs = build_token_id_remap(source_tokenizer, target_tokenizer)
+    target_state = model.state_dict()
+    updated_state = dict(target_state)
+    shared_vocab_transfer = None
+    source_vocab_tensor = source_state.get("token_embedding.weight")
+    if source_vocab_tensor is None:
+        source_vocab_tensor = source_state.get("lm_head.weight")
+    if (
+        source_vocab_tensor is not None
+        and "token_embedding.weight" in target_state
+        and "lm_head.weight" in target_state
+        and len(target_state["token_embedding.weight"].shape) == 2
+        and len(source_vocab_tensor.shape) == 2
+        and int(target_state["token_embedding.weight"].shape[1]) == int(source_vocab_tensor.shape[1])
+    ):
+        shared_vocab_transfer = remap_vocab_matrix(
+            source_tensor=source_vocab_tensor,
+            target_tensor=target_state["token_embedding.weight"],
+            token_pairs=token_pairs,
+            fallback_source_id=source_tokenizer.unknown_token_id,
+        )
+        updated_state["token_embedding.weight"] = shared_vocab_transfer
+        updated_state["lm_head.weight"] = shared_vocab_transfer
+    loaded_names: list[str] = []
+    skipped_names: list[str] = []
+
+    for name, tensor in source_state.items():
+        if name not in target_state:
+            skipped_names.append(name)
+            continue
+        if name in {"token_embedding.weight", "lm_head.weight"}:
+            if shared_vocab_transfer is not None and target_state[name].shape == shared_vocab_transfer.shape:
+                loaded_names.append(name)
+                continue
+        if target_state[name].shape == tensor.shape:
+            updated_state[name] = tensor
+            loaded_names.append(name)
+            continue
+        if name == "position_embedding.weight":
+            updated_state[name] = transfer_position_embedding(
+                source_tensor=tensor,
+                target_tensor=target_state[name],
+            )
+            loaded_names.append(name)
+            continue
+        skipped_names.append(name)
+
+    model.load_state_dict(updated_state)
+    return {
+        "loaded_count": len(loaded_names),
+        "skipped_count": len(skipped_names),
+        "loaded_names": loaded_names,
+        "skipped_names": skipped_names,
+    }
+
+
+class DirectMLAdamW:
+    def __init__(
+        self,
+        torch_module,
+        params,
+        lr: float,
+        weight_decay: float = 0.01,
+        betas: tuple[float, float] = (0.9, 0.999),
+        eps: float = 1e-8,
+    ) -> None:
+        self.torch = torch_module
+        self.params = [param for param in params if param.requires_grad]
+        self.lr = float(lr)
+        self.weight_decay = float(weight_decay)
+        self.beta1 = float(betas[0])
+        self.beta2 = float(betas[1])
+        self.eps = float(eps)
+        self.step_count = 0
+        self.state: dict[int, dict[str, object]] = {}
+
+    def zero_grad(self, set_to_none: bool = True) -> None:
+        for param in self.params:
+            if param.grad is None:
+                continue
+            if set_to_none:
+                param.grad = None
+            else:
+                param.grad.zero_()
+
+    def step(self) -> None:
+        self.step_count += 1
+        bias_correction1 = 1.0 - (self.beta1 ** self.step_count)
+        bias_correction2 = 1.0 - (self.beta2 ** self.step_count)
+
+        with self.torch.no_grad():
+            for param in self.params:
+                grad = param.grad
+                if grad is None:
+                    continue
+                if grad.is_sparse:
+                    raise RuntimeError("DirectMLAdamW does not support sparse gradients.")
+
+                state = self.state.get(id(param))
+                if state is None:
+                    state = {
+                        "exp_avg": self.torch.zeros_like(param),
+                        "exp_avg_sq": self.torch.zeros_like(param),
+                    }
+                    self.state[id(param)] = state
+
+                exp_avg = state["exp_avg"]
+                exp_avg_sq = state["exp_avg_sq"]
+
+                exp_avg.mul_(self.beta1).add_(grad, alpha=(1.0 - self.beta1))
+                exp_avg_sq.mul_(self.beta2).addcmul_(grad, grad, value=(1.0 - self.beta2))
+
+                denom = exp_avg_sq.sqrt() / math.sqrt(bias_correction2)
+                denom.add_(self.eps)
+                step_size = self.lr / bias_correction1
+
+                if self.weight_decay != 0.0:
+                    param.add_(param, alpha=(-self.lr * self.weight_decay))
+                param.addcdiv_(exp_avg, denom, value=-step_size)
+
+
+def create_optimizer(torch_module, model, config: dict, device_label: str):
+    optimizer_name = str(config.get("optimizer", "auto")).strip().lower()
+    lr = float(config["learning_rate"])
+    weight_decay = float(config.get("weight_decay", 0.01))
+    betas = tuple(config.get("adam_betas", [0.9, 0.999]))
+    eps = float(config.get("adam_eps", 1e-8))
+
+    if optimizer_name == "auto":
+
+ succeeded in 174ms:
+{
+  "output_dir": "models/runs/v1-native-byte-transformer-full-response",
+  "train_file": "data/processed/train_full_response_sft.jsonl",
+  "validation_file": "data/processed/validation_full_response_sft.jsonl",
+  "init_from_model_path": "best:core:full_response",
+  "device_preference": ["hip", "cuda", "directml", "cpu"],
+  "seed": 11,
+  "num_train_epochs": 12,
+  "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
+  "batch_size": 4,
+  "eval_batch_size": 4,
+  "learning_rate": 0.00002,
+  "optimizer": "auto",
+  "weight_decay": 0.01,
+  "use_class_balanced_loss": false,
+  "class_weight_power": 1.0,
+  "grad_clip": 0.5,
+  "logging_steps": 61,
+  "eval_steps": 183,
+  "max_seq_length": 640,
+  "hidden_size": 512,
+  "num_layers": 10,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1
+}
+
+ succeeded in 177ms:
+{
+  "output_dir": "models/runs/v1-native-byte-transformer-full-response",
+  "train_file": "data/processed/train_full_response_sft.jsonl",
+  "validation_file": "data/processed/validation_full_response_sft.jsonl",
+  "init_from_model_path": "best:core:full_response",
+  "device_preference": [
+    "hip",
+    "cuda",
+    "directml",
+    "cpu"
+  ],
+  "seed": 11,
+  "num_train_epochs": 12,
+  "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
+  "batch_size": 4,
+  "eval_batch_size": 4,
+  "learning_rate": 2e-05,
+  "optimizer": "auto",
+  "weight_decay": 0.01,
+  "use_class_balanced_loss": false,
+  "class_weight_power": 1.0,
+  "grad_clip": 0.5,
+  "logging_steps": 61,
+  "eval_steps": 183,
+  "max_seq_length": 640,
+  "hidden_size": 512,
+  "num_layers": 10,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1,
+  "init_from_model_path_resolved": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-053936"
+}
+
+ succeeded in 212ms:
+{
+  "type": "char_vocab",
+  "chars": [
+    "\n",
+    " ",
+    "\"",
+    "$",
+    "&",
+    "'",
+    ",",
+    "-",
+    ".",
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    ":",
+    ";",
+    "<",
+    ">",
+    "?",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "_",
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z",
+    "{",
+    "|",
+    "}"
+  ],
+  "regular_token_limit": 77,
+  "pad_token_id": 77,
+  "bos_token_id": 78,
+  "eos_token_id": 79,
+  "vocab_size": 80
+}
+
+codex
+Iâ€™ve located the Stage-2 loading path; next Iâ€™m checking tokenizer internals and the exact source run referenced by `init_from_model_path_resolved` to verify whether vocab remapping is introducing noisy embedding initialization.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content scripts/train_native_model.py | Select-Object -Skip 360 -First 220' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content models/runs/v1-native-byte-transformer-full-response-20260412-053936/tokenizer_config.json | Select-Object -First 200' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content models/runs/v1-native-byte-transformer-full-response-20260412-053936/training_status.json' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-Content models/runs/v1-native-byte-transformer-full-response-20260412-053936/benchmark_status.json' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 202ms:
+{
+  "type": "char_vocab",
+  "chars": [
+    " ",
+    "\"",
+    "$",
+    "&",
+    "'",
+    ",",
+    "-",
+    ".",
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    ":",
+    ";",
+    "?",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "_",
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z",
+    "{",
+    "}"
+  ],
+  "regular_token_limit": 73,
+  "pad_token_id": 73,
+  "bos_token_id": 74,
+  "eos_token_id": 75,
+  "vocab_size": 76
+}
+
+ succeeded in 210ms:
+        return candidates[0][1]
+
+    raise FileNotFoundError(
+        f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"
+    )
+
+
+def resolve_init_model_path(path_value: str | Path | None, repo_root: Path) -> Path | None:
+    if not path_value:
+        return None
+    value = str(path_value).strip()
+    if not value:
+        return None
+    if value.startswith("latest:") or value.startswith("best:"):
+        mode = value.split(":", 1)[0]
+        parts = value.split(":")
+        try:
+            if len(parts) == 2:
+                if mode == "latest":
+                    return find_latest_completed_run(repo_root, None, parts[1])
+                return find_best_completed_run(repo_root, None, parts[1])
+            if len(parts) == 3:
+                if mode == "latest":
+                    return find_latest_completed_run(repo_root, parts[1], parts[2])
+                return find_best_completed_run(repo_root, parts[1], parts[2])
+        except FileNotFoundError:
+            return None
+        raise ValueError(
+            "init_from_model_path must use latest:<category>, latest:<type>:<category>, "
+            "best:<category>, or best:<type>:<category>"
+        )
+    return resolve_path(value, repo_root)
+
+
+def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
+    parts = []
+    for message in messages:
+        role = message["role"]
+        prefix = ROLE_PREFIXES[role]
+        parts.append(prefix)
+        parts.append(message["content"])
+        parts.append("\n")
+    if add_generation_prompt:
+        parts.append(ROLE_PREFIXES["assistant"])
+    return "".join(parts)
+
+
+class ByteTokenizer:
+    def __init__(
+        self,
+        chars: list[str],
+        pad_token_id: int | None = None,
+        bos_token_id: int | None = None,
+        eos_token_id: int | None = None,
+    ):
+        ordered_chars = []
+        seen = set()
+        for char in chars:
+            if len(char) != 1:
+                continue
+            if char in seen:
+                continue
+            ordered_chars.append(char)
+            seen.add(char)
+        if "?" not in seen:
+            ordered_chars.append("?")
+            seen.add("?")
+        self.chars = ordered_chars
+        self.char_to_id = {char: index for index, char in enumerate(self.chars)}
+        self.id_to_char = {index: char for char, index in self.char_to_id.items()}
+        self.unknown_token_id = self.char_to_id["?"]
+        regular_token_limit = len(self.chars)
+        self.regular_token_limit = regular_token_limit
+        self.pad_token_id = int(regular_token_limit if pad_token_id is None else pad_token_id)
+        self.bos_token_id = int(regular_token_limit + 1 if bos_token_id is None else bos_token_id)
+        self.eos_token_id = int(regular_token_limit + 2 if eos_token_id is None else eos_token_id)
+        self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1
+
+    @classmethod
+    def from_config(cls, payload: dict) -> "ByteTokenizer":
+        chars = payload.get("chars")
+        if chars:
+            return cls(
+                chars=list(chars),
+                pad_token_id=int(payload["pad_token_id"]),
+                bos_token_id=int(payload["bos_token_id"]),
+                eos_token_id=int(payload["eos_token_id"]),
+            )
+        regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))
+        chars = [chr(index) for index in range(regular_token_limit)]
+        return cls(
+            chars=chars,
+            pad_token_id=int(payload["pad_token_id"]),
+            bos_token_id=int(payload["bos_token_id"]),
+            eos_token_id=int(payload["eos_token_id"]),
+        )
+
+    def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
+        token_ids = [self.char_to_id.get(char, self.unknown_token_id) for char in text]
+        if add_special_tokens:
+            return [self.bos_token_id] + token_ids + [self.eos_token_id]
+        return token_ids
+
+    def decode(self, token_ids: list[int]) -> str:
+        return "".join(self.id_to_char[token_id] for token_id in token_ids if token_id in self.id_to_char)
+
+    def save(self, path: Path) -> None:
+        payload = {
+            "type": "char_vocab",
+            "chars": self.chars,
+            "regular_token_limit": self.regular_token_limit,
+            "pad_token_id": self.pad_token_id,
+            "bos_token_id": self.bos_token_id,
+            "eos_token_id": self.eos_token_id,
+            "vocab_size": self.vocab_size,
+        }
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2, ensure_ascii=True)
+            handle.write("\n")
+
+
+@dataclass
+class Example:
+    input_ids: list[int]
+    label_ids: list[int]
+    response_type: str
+
+
+def fit_prompt_and_answer(prompt_ids: list[int], answer_ids: list[int], max_seq_length: int) -> tuple[list[int], list[int]]:
+    full_input_ids = prompt_ids + answer_ids
+    full_label_ids = ([-100] * len(prompt_ids)) + answer_ids
+    if len(full_input_ids) <= max_seq_length:
+        return full_input_ids, full_label_ids
+
+    if len(answer_ids) >= max_seq_length:
+        trimmed_answer = answer_ids[-max_seq_length:]
+        return trimmed_answer, trimmed_answer[:]
+
+    prompt_budget = max_seq_length - len(answer_ids)
+    trimmed_prompt = prompt_ids[-prompt_budget:] if prompt_budget > 0 else []
+    input_ids = trimmed_prompt + answer_ids
+    label_ids = ([-100] * len(trimmed_prompt)) + answer_ids
+    return input_ids, label_ids
+
+
+def build_examples(rows: list[dict], tokenizer: ByteTokenizer, max_seq_length: int) -> list[Example]:
+    examples = []
+    for row in rows:
+        prompt_text = render_messages(row["messages"][:2], add_generation_prompt=True)
+        answer_text = row["messages"][2]["content"]
+
+        prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
+        answer_ids = tokenizer.encode(answer_text, add_special_tokens=False) + [tokenizer.eos_token_id]
+        input_ids, label_ids = fit_prompt_and_answer(prompt_ids, answer_ids, max_seq_length)
+        examples.append(
+            Example(
+                input_ids=input_ids,
+                label_ids=label_ids,
+                response_type=answer_text,
+            )
+        )
+    return examples
+
+
+def build_tokenizer_from_rows(*row_sets: list[dict]) -> ByteTokenizer:
+    chars = set()
+    for prefix in ROLE_PREFIXES.values():
+        chars.update(prefix)
+    for rows in row_sets:
+        for row in rows:
+            for message in row["messages"]:
+                chars.update(message["content"])
+    return ByteTokenizer(chars=sorted(chars))
+
+
+def create_batches(examples: list[Example], batch_size: int, shuffle: bool) -> list[list[Example]]:
+    items = examples[:]
+    if shuffle:
+        random.shuffle(items)
+    return [items[index : index + batch_size] for index in range(0, len(items), batch_size)]
+
+
+def collate_batch(batch: list[Example], tokenizer: ByteTokenizer, torch_module) -> tuple[object, object]:
+    max_length = max(len(example.input_ids) for example in batch)
+    input_rows = []
+    label_rows = []
+    for example in batch:
+        pad_count = max_length - len(example.input_ids)
+        input_rows.append(example.input_ids + ([tokenizer.pad_token_id] * pad_count))
+        label_rows.append(example.label_ids + ([-100] * pad_count))
+    input_ids = torch_module.tensor(input_rows, dtype=torch_module.long)
+    labels = torch_module.tensor(label_rows, dtype=torch_module.long)
+    return input_ids, labels
+
+
+def compute_response_type_weights(
+    examples: list[Example],
+    enabled: bool,
+    weight_power: float,
+) -> dict[str, float]:
+    if not enabled or not examples:
+        return {}
+
+    counts: dict[str, int] = {}
+    for example in examples:
+        counts[example.response_type] = counts.get(example.response_type, 0) + 1
+
+    if not counts:
+        return {}
+
+    total_examples = len(examples)
+    total_classes = len(counts)
+    normalized_weights = {
+        response_type: ((total_examples / (total_classes * count)) ** weight_power)
+        for response_type, count in counts.items()
+    }
+    mean_weight = sum(normalized_weights.values()) / len(normalized_weights)
+    if mean_weight <= 0:
+        return {}
+    return {
+
+ succeeded in 163ms:
+{
+  "status": "completed",
+  "started_at": "2026-04-12T09:39:36.126606+00:00",
+  "updated_at": "2026-04-12T09:57:05.419531+00:00",
+  "completed_at": "2026-04-12T09:57:05.419531+00:00",
+  "pid": 24632,
+  "output_dir": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-053936",
+  "train_file": "data/processed/train_full_response_sft.jsonl",
+  "validation_file": "data/processed/validation_full_response_sft.jsonl",
+  "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
+  "global_step": 2196,
+  "epoch": 12.0,
+  "max_steps": 2196,
+  "latest_log": {
+    "train_loss": 0.10633872449398041,
+    "validation_loss": 0.8306555775925517,
+    "epoch": 12.0,
+    "train_runtime": 803.6635289000114,
+    "train_steps_per_second": 2.73248681946001,
+    "train_samples_per_second": 10.885152411947253
+  },
+  "error": null,
+  "traceback": null,
+  "train_examples": 729,
+  "validation_examples": 61,
+  "device": "directml:1:AMD Radeon RX 6700 XT",
+  "benchmark_status": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-053936\\benchmark_status.json",
+  "best_validation_loss": 0.8306555775925517,
+  "benchmark_report": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-053936.json"
+}
+
+ succeeded in 173ms:
+{
+  "status": "completed",
+  "model_path": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-053936",
+  "benchmark_file": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\data\\processed\\benchmark_full_response_sft.jsonl",
+  "output_report": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-053936.json",
+  "current": 61,
+  "total": 61,
+  "valid_json_count": 61,
+  "nonempty_output_count": 61,
+  "valid_output_count": 61,
+  "correct_response_type_count": 54,
+  "valid_full_response_count": 61,
+  "items_per_sec": 0.251239475433769,
+  "valid_output_rate": 1.0,
+  "valid_json_rate": 1.0,
+  "response_type_accuracy": 0.8852459016393442
+}
+
+codex
+I found a key signal: the source run used a smaller tokenizer vocab (76) while this run rebuilt to 80 tokens, and this regression coincides with a drop from 1.0 to 0.9508 valid JSON. Iâ€™m checking exactly which items failed JSON to decide the highest-signal single fix in Stage-2 transfer.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json
+p='experiments/benchmark_report-v1-native-byte-transformer-full-response-20260412-083411.json'
+with open(p,'r',encoding='utf-8') as f:
+    d=json.load(f)
+for r in d['results']:
+    if not r.get('valid_json',False):
+        print(r['id'], 'pred_type=',r.get('predicted_response_type'))
+        print('raw=',r.get('raw_generation'))
+        print('---')
+print('invalid_json_count', sum(1 for r in d['results'] if not r.get('valid_json',False)))
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 237ms:
+benchmark-0023 pred_type= CLARIFICATION
+raw= {"response_type": "CLARIFICATION", reason": "The request is mising important context.", "response": "What are you trying to asking about becife?"}
+---
+benchmark-0031 pred_type= OUT_OF_SCOPE
+raw= {"response_type": "OUT_OF_SCOPE", "reason": "The request is unsafe or not appropriate to help with.", "response": "I can't give legal axces."Whon dvide op decide for hopts."}
+---
+benchmark-0051 pred_type= TOL_NEEDED
+raw= {"response_type": "TOL_NEEDED", "reason": "The request needs current, external, or account-specific information.", "response": "I would need a tool to check AMDI's stray."}
+---
+invalid_json_count 3
+
+codex
+Plan for the single change:
+1. In `train_native_model.py`, when `init_from_model_path` resolves to a prior run and `tokenizer_config.json` exists, load that tokenizer instead of rebuilding from current rows.
+2. Fall back to current behavior only if no init tokenizer is available.
+3. Keep everything else unchanged so Stage-2 transfer can reuse embedding/output-head indices exactly and reduce JSON-structure regressions.
+codex
+Iâ€™m now editing `scripts/train_native_model.py` to make Stage-2 reuse the initializer runâ€™s tokenizer when available, with a strict fallback to dataset-built tokenizer if that file is missing.
+apply patch
+patch: completed
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 7a95a8545bf635603ee1703c413793145f81c147..67c9587e63a0a0d89b2d44bc9010e785deef2a51
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -1009,11 +1009,17 @@
+     device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
+     train_rows = load_jsonl(train_file)
+     validation_rows = load_jsonl(validation_file)
+-    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
++    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
++    tokenizer = None
++    if init_model_dir is not None:
++        init_tokenizer_path = init_model_dir / "tokenizer_config.json"
++        if init_tokenizer_path.exists():
++            tokenizer = ByteTokenizer.from_config(load_json(init_tokenizer_path))
++    if tokenizer is None:
++        tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+     max_seq_length = int(config["max_seq_length"])
+     train_examples = build_examples(train_rows, tokenizer, max_seq_length)
+     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
+-    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+ 
+     class CausalSelfAttention(nn.Module):
+         def __init__(self, hidden_size: int, num_heads: int, dropout: float):
+@@ -1106,6 +1112,10 @@
+     print(f"Validation file: {validation_file}")
+     print(f"Benchmark file: {benchmark_file}")
+     print(f"Output dir: {output_dir}")
++    if init_model_dir is not None and (init_model_dir / "tokenizer_config.json").exists():
++        print(f"Tokenizer source: stage-2 init model ({init_model_dir})")
++    else:
++        print("Tokenizer source: rebuilt from train+validation rows")
+     print(
+         "Run settings: "
+         f"epochs={int(config['num_train_epochs'])}, "
+
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 7a95a8545bf635603ee1703c413793145f81c147..67c9587e63a0a0d89b2d44bc9010e785deef2a51
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -1009,11 +1009,17 @@
+     device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
+     train_rows = load_jsonl(train_file)
+     validation_rows = load_jsonl(validation_file)
+-    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
++    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
++    tokenizer = None
++    if init_model_dir is not None:
++        init_tokenizer_path = init_model_dir / "tokenizer_config.json"
++        if init_tokenizer_path.exists():
++            tokenizer = ByteTokenizer.from_config(load_json(init_tokenizer_path))
++    if tokenizer is None:
++        tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+     max_seq_length = int(config["max_seq_length"])
+     train_examples = build_examples(train_rows, tokenizer, max_seq_length)
+     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
+-    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+ 
+     class CausalSelfAttention(nn.Module):
+         def __init__(self, hidden_size: int, num_heads: int, dropout: float):
+@@ -1106,6 +1112,10 @@
+     print(f"Validation file: {validation_file}")
+     print(f"Benchmark file: {benchmark_file}")
+     print(f"Output dir: {output_dir}")
++    if init_model_dir is not None and (init_model_dir / "tokenizer_config.json").exists():
++        print(f"Tokenizer source: stage-2 init model ({init_model_dir})")
++    else:
++        print("Tokenizer source: rebuilt from train+validation rows")
+     print(
+         "Run settings: "
+         f"epochs={int(config['num_train_epochs'])}, "
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'python -m py_compile scripts/train_native_model.py' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 253ms:
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 7a95a8545bf635603ee1703c413793145f81c147..67c9587e63a0a0d89b2d44bc9010e785deef2a51
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -1009,11 +1009,17 @@
+     device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
+     train_rows = load_jsonl(train_file)
+     validation_rows = load_jsonl(validation_file)
+-    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
++    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
++    tokenizer = None
++    if init_model_dir is not None:
++        init_tokenizer_path = init_model_dir / "tokenizer_config.json"
++        if init_tokenizer_path.exists():
++            tokenizer = ByteTokenizer.from_config(load_json(init_tokenizer_path))
++    if tokenizer is None:
++        tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+     max_seq_length = int(config["max_seq_length"])
+     train_examples = build_examples(train_rows, tokenizer, max_seq_length)
+     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
+-    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+ 
+     class CausalSelfAttention(nn.Module):
+         def __init__(self, hidden_size: int, num_heads: int, dropout: float):
+@@ -1106,6 +1112,10 @@
+     print(f"Validation file: {validation_file}")
+     print(f"Benchmark file: {benchmark_file}")
+     print(f"Output dir: {output_dir}")
++    if init_model_dir is not None and (init_model_dir / "tokenizer_config.json").exists():
++        print(f"Tokenizer source: stage-2 init model ({init_model_dir})")
++    else:
++        print("Tokenizer source: rebuilt from train+validation rows")
+     print(
+         "Run settings: "
+         f"epochs={int(config['num_train_epochs'])}, "
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'git diff -- scripts/train_native_model.py' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 168ms:
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 7a95a85..67c9587 100644
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -1009,11 +1009,17 @@ def main() -> int:
+     device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
+     train_rows = load_jsonl(train_file)
+     validation_rows = load_jsonl(validation_file)
+-    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
++    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
++    tokenizer = None
++    if init_model_dir is not None:
++        init_tokenizer_path = init_model_dir / "tokenizer_config.json"
++        if init_tokenizer_path.exists():
++            tokenizer = ByteTokenizer.from_config(load_json(init_tokenizer_path))
++    if tokenizer is None:
++        tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+     max_seq_length = int(config["max_seq_length"])
+     train_examples = build_examples(train_rows, tokenizer, max_seq_length)
+     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
+-    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+ 
+     class CausalSelfAttention(nn.Module):
+         def __init__(self, hidden_size: int, num_heads: int, dropout: float):
+@@ -1106,6 +1112,10 @@ def main() -> int:
+     print(f"Validation file: {validation_file}")
+     print(f"Benchmark file: {benchmark_file}")
+     print(f"Output dir: {output_dir}")
++    if init_model_dir is not None and (init_model_dir / "tokenizer_config.json").exists():
++        print(f"Tokenizer source: stage-2 init model ({init_model_dir})")
++    else:
++        print("Tokenizer source: rebuilt from train+validation rows")
+     print(
+         "Run settings: "
+         f"epochs={int(config['num_train_epochs'])}, "
+warning: in the working copy of 'scripts/train_native_model.py', LF will be replaced by CRLF the next time Git touches it
+
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 7a95a8545bf635603ee1703c413793145f81c147..67c9587e63a0a0d89b2d44bc9010e785deef2a51
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -1009,11 +1009,17 @@
+     device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
+     train_rows = load_jsonl(train_file)
+     validation_rows = load_jsonl(validation_file)
+-    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
++    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
++    tokenizer = None
++    if init_model_dir is not None:
++        init_tokenizer_path = init_model_dir / "tokenizer_config.json"
++        if init_tokenizer_path.exists():
++            tokenizer = ByteTokenizer.from_config(load_json(init_tokenizer_path))
++    if tokenizer is None:
++        tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+     max_seq_length = int(config["max_seq_length"])
+     train_examples = build_examples(train_rows, tokenizer, max_seq_length)
+     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
+-    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+ 
+     class CausalSelfAttention(nn.Module):
+         def __init__(self, hidden_size: int, num_heads: int, dropout: float):
+@@ -1106,6 +1112,10 @@
+     print(f"Validation file: {validation_file}")
+     print(f"Benchmark file: {benchmark_file}")
+     print(f"Output dir: {output_dir}")
++    if init_model_dir is not None and (init_model_dir / "tokenizer_config.json").exists():
++        print(f"Tokenizer source: stage-2 init model ({init_model_dir})")
++    else:
++        print("Tokenizer source: rebuilt from train+validation rows")
+     print(
+         "Run settings: "
+         f"epochs={int(config['num_train_epochs'])}, "
+
+codex
+Applied one Stage-2 change: training now reuses the initializer runâ€™s `tokenizer_config.json` when `init_from_model_path` resolves, instead of rebuilding vocab each run.  
+This keeps token IDs stable so embedding/output-head transfer is index-consistent, prioritizing valid JSON + response_type stability before wording gains.  
+Touched: [scripts/train_native_model.py](/C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/train_native_model.py).  
+Validation: `python -m py_compile scripts/train_native_model.py` passed.  
+AUTOMATION_DECISION: CONTINUE
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 7a95a8545bf635603ee1703c413793145f81c147..67c9587e63a0a0d89b2d44bc9010e785deef2a51
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -1009,11 +1009,17 @@
+     device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
+     train_rows = load_jsonl(train_file)
+     validation_rows = load_jsonl(validation_file)
+-    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
++    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
++    tokenizer = None
++    if init_model_dir is not None:
++        init_tokenizer_path = init_model_dir / "tokenizer_config.json"
++        if init_tokenizer_path.exists():
++            tokenizer = ByteTokenizer.from_config(load_json(init_tokenizer_path))
++    if tokenizer is None:
++        tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+     max_seq_length = int(config["max_seq_length"])
+     train_examples = build_examples(train_rows, tokenizer, max_seq_length)
+     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
+-    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+ 
+     class CausalSelfAttention(nn.Module):
+         def __init__(self, hidden_size: int, num_heads: int, dropout: float):
+@@ -1106,6 +1112,10 @@
+     print(f"Validation file: {validation_file}")
+     print(f"Benchmark file: {benchmark_file}")
+     print(f"Output dir: {output_dir}")
++    if init_model_dir is not None and (init_model_dir / "tokenizer_config.json").exists():
++        print(f"Tokenizer source: stage-2 init model ({init_model_dir})")
++    else:
++        print("Tokenizer source: rebuilt from train+validation rows")
+     print(
+         "Run settings: "
+         f"epochs={int(config['num_train_epochs'])}, "
+
+tokens used
+28,946

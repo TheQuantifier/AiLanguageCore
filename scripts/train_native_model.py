@@ -1009,11 +1009,17 @@ def main() -> int:
     device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
     train_rows = load_jsonl(train_file)
     validation_rows = load_jsonl(validation_file)
-    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+    tokenizer = None
+    if init_model_dir is not None:
+        init_tokenizer_path = init_model_dir / "tokenizer_config.json"
+        if init_tokenizer_path.exists():
+            tokenizer = ByteTokenizer.from_config(load_json(init_tokenizer_path))
+    if tokenizer is None:
+        tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
     max_seq_length = int(config["max_seq_length"])
     train_examples = build_examples(train_rows, tokenizer, max_seq_length)
     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
-    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
 
     class CausalSelfAttention(nn.Module):
         def __init__(self, hidden_size: int, num_heads: int, dropout: float):
@@ -1106,6 +1112,10 @@ def main() -> int:
     print(f"Validation file: {validation_file}")
     print(f"Benchmark file: {benchmark_file}")
     print(f"Output dir: {output_dir}")
+    if init_model_dir is not None and (init_model_dir / "tokenizer_config.json").exists():
+        print(f"Tokenizer source: stage-2 init model ({init_model_dir})")
+    else:
+        print("Tokenizer source: rebuilt from train+validation rows")
     print(
         "Run settings: "
         f"epochs={int(config['num_train_epochs'])}, "

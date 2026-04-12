@@ -1,0 +1,5 @@
+Applied one Stage-2 change: training now reuses the initializer run’s `tokenizer_config.json` when `init_from_model_path` resolves, instead of rebuilding vocab each run.  
+This keeps token IDs stable so embedding/output-head transfer is index-consistent, prioritizing valid JSON + response_type stability before wording gains.  
+Touched: [scripts/train_native_model.py](/C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/train_native_model.py).  
+Validation: `python -m py_compile scripts/train_native_model.py` passed.  
+AUTOMATION_DECISION: CONTINUE
