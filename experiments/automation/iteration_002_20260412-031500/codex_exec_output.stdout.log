@@ -1,0 +1,5 @@
+Latest run (`2026-04-12 03:15:01`) had `valid_output_rate=0.9836` with one JSON-key typo case and `response_type_accuracy=0.6721`, so the highest-signal next step is stabilizing continuation, not retargeting data.
+Changed stage-2 init for full-response training to continue from the latest full-response checkpoint instead of re-initializing from category-prediction each run.
+This preserves tokenizer/embedding/output-head compatibility already implemented in `load_stage2_weights` while reducing iteration-to-iteration drift.
+Files touched: `models/configs/v1_native_byte_transformer_config.json`
+AUTOMATION_DECISION: CONTINUE

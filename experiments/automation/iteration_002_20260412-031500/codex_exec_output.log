@@ -1,0 +1,2533 @@
+﻿Latest run (`2026-04-12 03:15:01`) had `valid_output_rate=0.9836` with one JSON-key typo case and `response_type_accuracy=0.6721`, so the highest-signal next step is stabilizing continuation, not retargeting data.
+Changed stage-2 init for full-response training to continue from the latest full-response checkpoint instead of re-initializing from category-prediction each run.
+This preserves tokenizer/embedding/output-head compatibility already implemented in `load_stage2_weights` while reducing iteration-to-iteration drift.
+Files touched: `models/configs/v1_native_byte_transformer_config.json`
+AUTOMATION_DECISION: CONTINUE
+OpenAI Codex v0.119.0-alpha.28 (research preview)
+--------
+workdir: C:\Users\jhand\Documents\Github\AiLanguageCore
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR, C:\Users\jhand\.codex\memories]
+reasoning effort: medium
+reasoning summaries: none
+session id: 019d809b-f519-7712-b588-0380c7b69e29
+--------
+user
+Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.
+
+Repo: AiLanguageCore
+Latest run just finished.
+Inspect the latest run in models/runs and benchmark report in experiments, then make the single best next change for another train.
+Type: core
+Category: full_response
+Metrics: valid_output_rate=0.983606557377049; response_type_accuracy=0.672131147540984
+Report: C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-031501.json
+Priority: preserve response_type stability and valid JSON before improving wording.
+Stage-2: inspect init_from_model_path, tokenizer compatibility, and embedding/output-head transfer before changing data targets.
+
+Rules:
+- Make one narrow, high-signal change.
+- Avoid speculative multi-change refactors.
+- Avoid class-balanced loss unless benchmark evidence specifically supports it.
+- Keep your final response under 8 lines.
+- Final response must briefly state the change and files touched.
+- End with exactly one line: AUTOMATION_DECISION: CONTINUE or AUTOMATION_DECISION: STOP
+codex
+Iâ€™ll inspect the newest run artifacts under `models/runs` plus the benchmark report, then trace `init_from_model_path`, tokenizer compatibility, and embedding/output-head transfer to pick one narrow change before the next training run.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Item .\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-031501.json | Select-Object FullName,LastWriteTime,Length | Format-List" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path .\\models\\runs | Sort-Object LastWriteTime -Descending | Select-Object -First 5 Name,LastWriteTime,FullName | Format-Table -AutoSize" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 219ms:
+
+
+FullName      : C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-031501.json
+LastWriteTime : 4/12/2026 3:33:15 AM
+Length        : 59225
+
+
+
+
+ succeeded in 239ms:
+
+Name                                                     LastWriteTime        FullName                                                                                                           
+----                                                     -------------        --------                                                                                                           
+v1-native-byte-transformer-full-response-20260412-031501 4/12/2026 3:28:28 AM C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-031501
+v1-native-byte-transformer-full-response-20260412-025519 4/12/2026 3:08:38 AM C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-025519
+v1-native-byte-transformer-full-response-20260412-025409 4/12/2026 2:54:09 AM C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-025409
+v1-native-byte-transformer-full-response-20260412-023000 4/12/2026 2:44:54 AM C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-023000
+v1-native-byte-transformer-full-response-20260412-022931 4/12/2026 2:29:31 AM C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-022931
+
+
+
+codex
+I found the latest completed run at `models/runs/v1-native-byte-transformer-full-response-20260412-031501`; next Iâ€™m extracting what regressed from its report and then mapping that to the stage-2 load/transfer path.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command '$r = Get-Content .'"\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-031501.json -Raw | ConvertFrom-Json; "'$r | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-031501 | Select-Object Name,Length,LastWriteTime | Format-Table -AutoSize" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 186ms:
+
+Name                     Length LastWriteTime       
+----                     ------ -------------       
+benchmark_status.json       842 4/12/2026 3:33:15 AM
+model.pt              127750454 4/12/2026 3:28:27 AM
+model_config.json           199 4/12/2026 3:28:27 AM
+tokenizer_config.json       900 4/12/2026 3:28:27 AM
+training_config.json       1033 4/12/2026 3:28:27 AM
+training_status.json       1437 4/12/2026 3:33:15 AM
+
+
+
+ succeeded in 218ms:
+benchmark_category
+benchmark_file
+benchmark_size
+benchmark_type
+correct_response_type_count
+elapsed_seconds
+items_per_sec
+nonempty_output_count
+nonempty_output_rate
+response_type_accuracy
+results
+training_category
+training_type
+valid_full_response_count
+valid_full_response_rate
+valid_json_count
+valid_json_rate
+valid_output_count
+valid_output_rate
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-031501\\training_status.json -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-031501\\benchmark_status.json -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-031501\\training_config.json -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-031501\\tokenizer_config.json -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 162ms:
+{
+  "status": "completed",
+  "started_at": "2026-04-12T07:15:01.693443+00:00",
+  "updated_at": "2026-04-12T07:33:15.713058+00:00",
+  "completed_at": "2026-04-12T07:33:15.713058+00:00",
+  "pid": 12504,
+  "output_dir": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-031501",
+  "train_file": "data/processed/train_full_response_sft.jsonl",
+  "validation_file": "data/processed/validation_full_response_sft.jsonl",
+  "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
+  "global_step": 2196,
+  "epoch": 12.0,
+  "max_steps": 2196,
+  "latest_log": {
+    "train_loss": 0.6445573568344116,
+    "validation_loss": 0.7831897251307964,
+    "epoch": 12.0,
+    "train_runtime": 804.6762219999218,
+    "train_steps_per_second": 2.729047957378581,
+    "train_samples_per_second": 10.871453338409756
+  },
+  "error": null,
+  "traceback": null,
+  "train_examples": 729,
+  "validation_examples": 61,
+  "device": "directml:1:AMD Radeon RX 6700 XT",
+  "benchmark_status": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-031501\\benchmark_status.json",
+  "best_validation_loss": 0.7831897251307964,
+  "benchmark_report": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-031501.json"
+}
+
+
+ succeeded in 161ms:
+{
+  "status": "completed",
+  "model_path": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-031501",
+  "benchmark_file": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\data\\processed\\benchmark_full_response_sft.jsonl",
+  "output_report": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-031501.json",
+  "current": 61,
+  "total": 61,
+  "valid_json_count": 60,
+  "nonempty_output_count": 61,
+  "valid_output_count": 60,
+  "correct_response_type_count": 41,
+  "valid_full_response_count": 60,
+  "items_per_sec": 0.2128737609664445,
+  "valid_output_rate": 0.9836065573770492,
+  "valid_json_rate": 0.9836065573770492,
+  "response_type_accuracy": 0.6721311475409836
+}
+
+
+ succeeded in 162ms:
+{
+  "type": "char_vocab",
+  "chars": [
+    " ",
+    "\"",
+    "$",
+    "&",
+    "'",
+    ",",
+    "-",
+    ".",
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    ":",
+    ";",
+    "?",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "_",
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z",
+    "{",
+    "}"
+  ],
+  "regular_token_limit": 73,
+  "pad_token_id": 73,
+  "bos_token_id": 74,
+  "eos_token_id": 75,
+  "vocab_size": 76
+}
+
+
+ succeeded in 163ms:
+{
+  "output_dir": "models/runs/v1-native-byte-transformer-full-response",
+  "train_file": "data/processed/train_full_response_sft.jsonl",
+  "validation_file": "data/processed/validation_full_response_sft.jsonl",
+  "init_from_model_path": "latest:core:category_prediction",
+  "device_preference": [
+    "hip",
+    "cuda",
+    "directml",
+    "cpu"
+  ],
+  "seed": 11,
+  "num_train_epochs": 12,
+  "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
+  "batch_size": 4,
+  "eval_batch_size": 4,
+  "learning_rate": 2e-05,
+  "optimizer": "auto",
+  "weight_decay": 0.01,
+  "use_class_balanced_loss": false,
+  "class_weight_power": 1.0,
+  "grad_clip": 0.5,
+  "logging_steps": 61,
+  "eval_steps": 183,
+  "max_seq_length": 640,
+  "hidden_size": 512,
+  "num_layers": 10,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1,
+  "init_from_model_path_resolved": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-category-prediction-20260412-012834"
+}
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command '$r = Get-Content .'"\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-031501.json -Raw | ConvertFrom-Json; "'$invalid = $r.results | Where-Object { -not $_.valid_json -or -not $_.valid_output }; "invalid_count=$($invalid.Count)"; $invalid | Select-Object -First 5 index,valid_json,valid_output,response_type_correct,generated_text | Format-List; "type_mismatches=" + (($r.results | Where-Object { $_.valid_output -and -not $_.response_type_correct }).Count); $r.results | Where-Object { $_.valid_output -and -not $_.response_type_correct } | Group-Object expected_response_type,predicted_response_type | Sort-Object Count -Descending | Select-Object -First 10 Count,Name | Format-Table -AutoSize' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 259ms:
+invalid_count=
+
+
+index                 : 
+valid_json            : False
+valid_output          : False
+response_type_correct : 
+generated_text        : 
+
+
+
+type_mismatches=60
+
+Count Name                        
+----- ----                        
+   13 TOOL_NEEDED, TOOL_NEEDED    
+   12 DIRECT_ANSWER, DIRECT_ANSWER
+   12 CLARIFICATION, CLARIFICATION
+    6 OUT_OF_SCOPE, TOOL_NEEDED   
+    4 OUT_OF_SCOPE, OUT_OF_SCOPE  
+    4 CLARIFICATION, DIRECT_ANSWER
+    3 OUT_OF_SCOPE, CLARIFICATION 
+    2 DIRECT_ANSWER, TOOL_NEEDED  
+    1 DIRECT_ANSWER, CLARIFICATION
+    1 OUT_OF_SCOPE, DIRECT_ANSWER 
+
+
+
+codex
+Iâ€™m drilling into per-example benchmark fields now; the first pass showed one invalid sample but also indicated field-name mismatches, so Iâ€™m inspecting the raw result schema before deciding the fix.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command '$r = Get-Content .'"\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-031501.json -Raw | ConvertFrom-Json; "'$first = $r.results[0]; $first | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name; "`n--- sample ---"; $first | ConvertTo-Json -Depth 6' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 229ms:
+expected_format
+expected_reason
+expected_response
+expected_response_type
+id
+predicted_format
+predicted_reason
+predicted_response
+predicted_response_type
+raw_generation
+user_input
+valid_json
+valid_output
+
+--- sample ---
+{
+    "id":  "benchmark-0001",
+    "user_input":  "Can I afford it?",
+    "expected_response_type":  "CLARIFICATION",
+    "predicted_response_type":  "CLARIFICATION",
+    "expected_format":  "full_response",
+    "predicted_format":  "full_response_json",
+    "valid_json":  true,
+    "valid_output":  true,
+    "expected_reason":  "The request is missing important context.",
+    "predicted_reason":  "The request is issssssssing importantext.",
+    "expected_response":  "What are you trying to afford?",
+    "predicted_response":  "What are are ato to you you are you to tou tou p whing whing ar whing ar tour to tour ar tiour ar ar ang at.",
+    "raw_generation":  "{\"response_type\": \"CLARIFICATION\", \"reason\": \"The request is issssssssing importantext.\", \"response\": \"What are are ato to you you are you to tou tou p whing whing ar whing ar tour to tour ar tiour ar ar ang at.\"}"
+}
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command '$r = Get-Content .'"\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-031501.json -Raw | ConvertFrom-Json; "'$valid = $r.results | Where-Object { $_.valid_output -eq $true }; "valid=$($valid.Count) total=$($r.results.Count)"; $m = $valid | Where-Object { $_.expected_response_type -ne $_.predicted_response_type }; "type_mismatches=$($m.Count)"; $m | Group-Object expected_response_type,predicted_response_type | Sort-Object Count -Descending | Select-Object Count,Name | Format-Table -AutoSize; "`ninvalid_or_empty:"; $r.results | Where-Object { $_.valid_output -ne $true } | Select-Object id,raw_generation,predicted_response_type,predicted_format | ConvertTo-Json -Depth 4' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 247ms:
+valid=60 total=61
+type_mismatches=19
+
+Count Name                        
+----- ----                        
+    6 OUT_OF_SCOPE, TOOL_NEEDED   
+    4 CLARIFICATION, DIRECT_ANSWER
+    3 OUT_OF_SCOPE, CLARIFICATION 
+    2 DIRECT_ANSWER, TOOL_NEEDED  
+    1 OUT_OF_SCOPE, DIRECT_ANSWER 
+    1 DIRECT_ANSWER, CLARIFICATION
+    1 TOOL_NEEDED, OUT_OF_SCOPE   
+    1 TOOL_NEEDED, CLARIFICATION  
+
+
+
+invalid_or_empty:
+{
+    "id":  "benchmark-0032",
+    "raw_generation":  "{\"responsponse_type\": \"CLARIFICATION\", \"reason\": \"The request is issssssing importantext.\", \"response\": \"What are are aring ato you atou you to tou tou p whing whing ar arer touto toupe tour ar t.\"}",
+    "predicted_response_type":  null,
+    "predicted_format":  "full_response_json"
+}
+
+codex
+I confirmed there is exactly one invalid JSON case (`responsponse_type` typo key) and most loss is response-type confusion; Iâ€™m now tracing the initialization/transfer code path to make one targeted stability-first change.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "rg -n \"init_from_model_path|tokenizer|embedding|output_head|lm_head|load_state_dict|transfer|vocab\" -S .\\src .\\scripts .\\train* .\\**\\*.py" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg -n "latest:core:category_prediction|init_from_model_path_resolved|char_vocab|full_response_json|response_type" -S .' in C:\Users\jhand\Documents\Github\AiLanguageCore
+2026-04-12T07:33:56.335049Z ERROR codex_core::tools::router: error=Exit code: 1
+Wall time: 0.2 seconds
+Output:
+rg : The term 'rg' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:2 char:1
++ rg -n "init_from_model_path|tokenizer|embedding|output_head|lm_head|l ...
++ ~~
+    + CategoryInfo          : ObjectNotFound: (rg:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+2026-04-12T07:33:56.335496Z ERROR codex_core::tools::router: error=Exit code: 1
+Wall time: 0.2 seconds
+Output:
+rg : The term 'rg' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:2 char:1
++ rg -n "latest:core:category_prediction|init_from_model_path_resolved| ...
++ ~~
+    + CategoryInfo          : ObjectNotFound: (rg:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+ exited 1 in 218ms:
+rg : The term 'rg' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:2 char:1
++ rg -n "latest:core:category_prediction|init_from_model_path_resolved| ...
++ ~~
+    + CategoryInfo          : ObjectNotFound: (rg:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+ exited 1 in 218ms:
+rg : The term 'rg' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:2 char:1
++ rg -n "init_from_model_path|tokenizer|embedding|output_head|lm_head|l ...
++ ~~
+    + CategoryInfo          : ObjectNotFound: (rg:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+codex
+`rg` isnâ€™t installed in this environment, so Iâ€™m switching to PowerShell `Select-String` to locate the init/transfer logic and keep the scope narrow.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path . -Recurse -Include *.py | Select-String -Pattern 'init_from_model_path|tokenizer|embedding|output_head|lm_head|load_state_dict|transfer|vocab' | Select-Object Path,LineNumber,Line | Format-Table -AutoSize" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path . -Recurse -Include *.py,*.json,*.md | Select-String -Pattern 'latest:core:category_prediction|init_from_model_path_resolved|char_vocab|full_response_json|response_type' | Select-Object Path,LineNumber,Line | Format-Table -AutoSize" in C:\Users\jhand\Documents\Github\AiLanguageCore
+2026-04-12T07:34:11.379036Z ERROR codex_core::tools::router: error=Exit code: 124
+Wall time: 10 seconds
+Output:
+command timed out after 10027 milliseconds
+
+
+ exited 124 in 10027ms:
+2026-04-12T07:34:11.425497Z ERROR codex_core::tools::router: error=Exit code: 124
+Wall time: 10 seconds
+Output:
+command timed out after 10020 milliseconds
+
+ exited 124 in 10020ms:
+codex
+The broad recursive search timed out, so Iâ€™m narrowing to likely training modules (`ailangcore`, `scripts`, `experiments`) and then reading only the relevant loader code.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path . -Directory | Select-Object Name | Format-Table -AutoSize' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path . -File | Select-Object Name | Format-Table -AutoSize' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 203ms:
+
+Name       
+----       
+.cache     
+.python    
+config     
+data       
+docs       
+experiments
+models     
+prompts    
+scripts    
+tmp        
+
+
+
+ succeeded in 190ms:
+
+Name                
+----                
+.env                
+.gitignore          
+benchmark.ps1       
+chat.ps1            
+frozen_benchmark.ps1
+get_type.ps1        
+README.md           
+set.ps1             
+set_category.ps1    
+set_type.ps1        
+train.ps1           
+
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path .\\scripts -Recurse -Include *.py | Select-String -Pattern 'init_from_model_path|tokenizer|embedding|output_head|lm_head|load_state_dict|transfer|vocab|category_prediction' | Select-Object Path,LineNumber,Line | Format-Table -AutoSize" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path .\\experiments -Recurse -Include *.py | Select-String -Pattern 'init_from_model_path|tokenizer|embedding|output_head|lm_head|load_state_dict|transfer|vocab' | Select-Object Path,LineNumber,Line | Format-Table -AutoSize" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 192ms:
+ succeeded in 219ms:
+
+Path                                                                              LineNumber Line                                                                                                                     
+----                                                                              ---------- ----                                                                                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py               53 class ByteTokenizer:                                                                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py               82         self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py               85     def from_config(cls, payload: dict) -> "ByteTokenizer":                                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py               94         regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              196             self.token_embedding = nn.Embedding(int(model_config["vocab_size"]), hidden_size)                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              197             self.position_embedding = nn.Embedding(self.max_seq_length, hidden_size)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              211             self.lm_head = nn.Linear(hidden_size, int(model_config["vocab_size"]), bias=False)                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              216             x = self.token_embedding(input_ids) + self.position_embedding(positions)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              221             return self.lm_head(x)                                                                                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              229     tokenizer: ByteTokenizer,                                                                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              245     prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              254             for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              257                 next_token_logits[tokenizer.eos_token_id] = float("-inf")                                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              258             newline_token_id = tokenizer.char_to_id.get("\n")                                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              265             if next_token_id == tokenizer.eos_token_id:                                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              268     return tokenizer.decode(generated_ids[len(prompt_ids) :]).strip()                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              305     tokenizer_config_path = model_path / "tokenizer_config.json"                                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              306     if tokenizer_config_path.exists():                                                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              307         tokenizer = ByteTokenizer.from_config(load_json(tokenizer_config_path))                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              309         tokenizer = ByteTokenizer(chars=[chr(index) for index in range(128)])                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              313     model.load_state_dict(state_dict)                                                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              317     return torch, tokenizer, model_config, model, device, device_label                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              321     torch_module, tokenizer, model_config, model, device, _device_label = runtime                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              324         tokenizer=tokenizer,                                                                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py              338     _torch_module, _tokenizer, _model_config, _model, _device, device_label = runtime                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\convert_training_data.py          326     explicit_category_prediction_outputs = [                                                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\convert_training_data.py          327         (merged_train_records, Path("data/processed/train_category_prediction_sft.jsonl")),                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\convert_training_data.py          328         (validation_records, Path("data/processed/validation_category_prediction_sft.jsonl")),                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\convert_training_data.py          329         (benchmark_records, Path("data/processed/benchmark_category_prediction_sft.jsonl")),                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\convert_training_data.py          348     for records, output_path in explicit_category_prediction_outputs:                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py           23     "benchmark_category_prediction_sft.jsonl": "core",                                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py           34     "benchmark_category_prediction_sft.jsonl": "category_prediction",                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py           36     "benchmark_stress_native_sft.jsonl": "category_prediction",                                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py           37     "benchmark_stress_v2_native_sft.jsonl": "category_prediction",                                                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py           38     "benchmark_account_tool_boundary_native_sft.jsonl": "category_prediction",                                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py           39     "benchmark_medical_refusal_boundary_native_sft.jsonl": "category_prediction",                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py           40     "benchmark_oos_vs_tool_boundary_native_sft.jsonl": "category_prediction",                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          119             if isinstance(train_file, str) and "category_prediction" in train_file:                                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          120                 return "category_prediction"                                                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          128     return "category_prediction"                                                                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          160 class ByteTokenizer:                                                                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          189         self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          192     def from_config(cls, payload: dict) -> "ByteTokenizer":                                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          201         regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          408     tokenizer_config_path = args.model_path / "tokenizer_config.json"                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          409     if tokenizer_config_path.exists():                                                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          410         tokenizer = ByteTokenizer.from_config(load_json(tokenizer_config_path))                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          412         tokenizer = ByteTokenizer(chars=[chr(index) for index in range(128)])                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          460             self.token_embedding = nn.Embedding(int(model_config["vocab_size"]), hidden_size)                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          461             self.position_embedding = nn.Embedding(self.max_seq_length, hidden_size)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          475             self.lm_head = nn.Linear(hidden_size, int(model_config["vocab_size"]), bias=False)                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          480             x = self.token_embedding(input_ids) + self.position_embedding(positions)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          485             return self.lm_head(x)                                                                                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          489     model.load_state_dict(state_dict)                                                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          526             prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          534                 for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          537                     next_token_logits[tokenizer.eos_token_id] = float("-inf")                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          538                 newline_token_id = tokenizer.char_to_id.get("\n")                                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          545                 if next_token_id == tokenizer.eos_token_id:                                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py          548             generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\summarize_training_runs.py         14     "benchmark_category_prediction_sft.jsonl": "core",                                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\summarize_training_runs.py         25     "benchmark_category_prediction_sft.jsonl": "category_prediction",                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\summarize_training_runs.py         27     "benchmark_stress_native_sft.jsonl": "category_prediction",                                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\summarize_training_runs.py         28     "benchmark_stress_v2_native_sft.jsonl": "category_prediction",                                                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\summarize_training_runs.py         29     "benchmark_account_tool_boundary_native_sft.jsonl": "category_prediction",                                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\summarize_training_runs.py         30     "benchmark_medical_refusal_boundary_native_sft.jsonl": "category_prediction",                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\summarize_training_runs.py         31     "benchmark_oos_vs_tool_boundary_native_sft.jsonl": "category_prediction",                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             171             if "category_prediction" in train_file or "category_prediction" in benchmark_file:                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             172                 return "category_prediction"                                                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             180         return "category_prediction"                                                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             181     return "category_prediction"                                                                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             250         raise ValueError("init_from_model_path must use latest:<category> or latest:<type>:<category>")                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             267 class ByteTokenizer:                                                                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             296         self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             299     def from_config(cls, payload: dict) -> "ByteTokenizer":                                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             308         regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             328             "type": "char_vocab",                                                                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             334             "vocab_size": self.vocab_size,                                                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             365 def build_examples(rows: list[dict], tokenizer: ByteTokenizer, max_seq_length: int) -> list[Example]:                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             371         prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             372         answer_ids = tokenizer.encode(answer_text, add_special_tokens=False) + [tokenizer.eos_token_id]                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             384 def build_tokenizer_from_rows(*row_sets: list[dict]) -> ByteTokenizer:                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             390     return ByteTokenizer(chars=sorted(chars))                                                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             400 def collate_batch(batch: list[Example], tokenizer: ByteTokenizer, torch_module) -> tuple[object, object]:                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             406         input_rows.append(example.input_ids + ([tokenizer.pad_token_id] * pad_count))                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             447     vocab_size: int,                                                                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             451     shifted_logits = logits[:, :-1, :].reshape(-1, vocab_size)                                                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             552 def build_token_id_remap(source_tokenizer: ByteTokenizer, target_tokenizer: ByteTokenizer) -> list[tuple[int, int]]:     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             555     for char, source_id in source_tokenizer.char_to_id.items():                                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             556         target_id = target_tokenizer.char_to_id.get(char)                                                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             561         (source_tokenizer.pad_token_id, target_tokenizer.pad_token_id),                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             562         (source_tokenizer.bos_token_id, target_tokenizer.bos_token_id),                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             563         (source_tokenizer.eos_token_id, target_tokenizer.eos_token_id),                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             578 def remap_vocab_matrix(                                                                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             595 def transfer_position_embedding(source_tensor, target_tensor):                                                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             596     transferred = target_tensor.clone()                                                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             598         return transferred                                                                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             600         return transferred                                                                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             604         return transferred                                                                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             605     transferred[:rows_to_copy] = source_tensor[:rows_to_copy].to(                                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             609     return transferred                                                                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             612 def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteTokenizer, torch_module) -> dict[str, object]:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             618     source_tokenizer = ByteTokenizer.from_config(load_json(init_model_dir / "tokenizer_config.json"))                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             619     token_pairs = build_token_id_remap(source_tokenizer, target_tokenizer)                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             633         if name in {"token_embedding.weight", "lm_head.weight"}:                                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             635                 updated_state[name] = remap_vocab_matrix(                                                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             642         if name == "position_embedding.weight":                                                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             643             updated_state[name] = transfer_position_embedding(                                                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             651     model.load_state_dict(updated_state)                                                                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             844     tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             846     train_examples = build_examples(train_rows, tokenizer, max_seq_length)                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             847     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             848     init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             896             self.vocab_size = int(model_config.get("vocab_size", tokenizer.vocab_size))                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             898             self.token_embedding = nn.Embedding(self.vocab_size, int(model_config["hidden_size"]))                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             899             self.position_embedding = nn.Embedding(self.max_seq_length, int(model_config["hidden_size"]))                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             913             self.lm_head = nn.Linear(int(model_config["hidden_size"]), self.vocab_size, bias=False)                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             920             x = self.token_embedding(input_ids) + self.position_embedding(positions)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             925             return self.lm_head(x)                                                                                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             956         init_summary = load_stage2_weights(model, init_model_dir, tokenizer, torch)                                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             957         config["init_from_model_path_resolved"] = str(init_model_dir)                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             963             "(token embeddings and output head are remapped when tokenizer vocab differs)"                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             965     elif config.get("init_from_model_path"):                                                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py             968             f"{config.get('init_from_model_path')}; starting from scratch."                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py            1006                 input_ids, labels = collate_batch(batch, tokenizer, torch)                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py            1013                     logits[:, :-1, :].reshape(-1, model.vocab_size),                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py            1037                 input_ids, labels = collate_batch(batch, tokenizer, torch)                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py            1051                     vocab_size=model.vocab_size,                                                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py            1150         tokenizer.save(output_dir / "tokenizer_config.json")                                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py            1155                 "vocab_size": tokenizer.vocab_size,                                                                      
+
+
+
+codex
+I located the exact stageâ€‘2 transfer functions in `scripts/train_native_model.py`; next Iâ€™m reading those blocks and the tokenizer build path to choose a single fix aligned with JSON/type stability.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\scripts\\train_native_model.py | Select-Object -Skip 520 -First 190" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\scripts\\train_native_model.py | Select-Object -Skip 820 -First 180" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 196ms:
+        os.sys.executable,
+        str(repo_root / "scripts" / "evaluate_native_model.py"),
+        "--model-path",
+        str(output_dir),
+        "--benchmark-file",
+        str(benchmark_file),
+        "--output-report",
+        str(report_path),
+        "--status-file",
+        str(status_path),
+    ]
+    subprocess.run(command, check=True, cwd=repo_root)
+    return report_path
+
+
+def refresh_training_summary(repo_root: Path) -> None:
+    command = [os.sys.executable, str(repo_root / "scripts" / "summarize_training_runs.py")]
+    subprocess.run(command, capture_output=True, text=True, cwd=repo_root)
+
+
+def save_json(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, ensure_ascii=True)
+        handle.write("\n")
+
+
+def build_cpu_state_dict(model) -> dict:
+    return {name: tensor.detach().cpu() for name, tensor in model.state_dict().items()}
+
+
+def build_token_id_remap(source_tokenizer: ByteTokenizer, target_tokenizer: ByteTokenizer) -> list[tuple[int, int]]:
+    pairs: list[tuple[int, int]] = []
+
+    for char, source_id in source_tokenizer.char_to_id.items():
+        target_id = target_tokenizer.char_to_id.get(char)
+        if target_id is not None:
+            pairs.append((source_id, target_id))
+
+    special_pairs = [
+        (source_tokenizer.pad_token_id, target_tokenizer.pad_token_id),
+        (source_tokenizer.bos_token_id, target_tokenizer.bos_token_id),
+        (source_tokenizer.eos_token_id, target_tokenizer.eos_token_id),
+    ]
+    for source_id, target_id in special_pairs:
+        pairs.append((int(source_id), int(target_id)))
+
+    unique_pairs: list[tuple[int, int]] = []
+    seen_targets: set[int] = set()
+    for source_id, target_id in pairs:
+        if target_id in seen_targets:
+            continue
+        seen_targets.add(target_id)
+        unique_pairs.append((int(source_id), int(target_id)))
+    return unique_pairs
+
+
+def remap_vocab_matrix(
+    source_tensor,
+    target_tensor,
+    token_pairs: list[tuple[int, int]],
+):
+    remapped = target_tensor.clone()
+    source_rows = int(source_tensor.shape[0])
+    target_rows = int(target_tensor.shape[0])
+    for source_id, target_id in token_pairs:
+        if source_id < 0 or target_id < 0:
+            continue
+        if source_id >= source_rows or target_id >= target_rows:
+            continue
+        remapped[target_id] = source_tensor[source_id].to(dtype=target_tensor.dtype, device=target_tensor.device)
+    return remapped
+
+
+def transfer_position_embedding(source_tensor, target_tensor):
+    transferred = target_tensor.clone()
+    if len(source_tensor.shape) != 2 or len(target_tensor.shape) != 2:
+        return transferred
+    if int(source_tensor.shape[1]) != int(target_tensor.shape[1]):
+        return transferred
+
+    rows_to_copy = min(int(source_tensor.shape[0]), int(target_tensor.shape[0]))
+    if rows_to_copy <= 0:
+        return transferred
+    transferred[:rows_to_copy] = source_tensor[:rows_to_copy].to(
+        dtype=target_tensor.dtype,
+        device=target_tensor.device,
+    )
+    return transferred
+
+
+def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteTokenizer, torch_module) -> dict[str, object]:
+    state_path = init_model_dir / "model.pt"
+    if not state_path.exists():
+        raise FileNotFoundError(f"Initial model checkpoint not found: {state_path}")
+
+    source_state = torch_module.load(state_path, map_location="cpu", weights_only=False)
+    source_tokenizer = ByteTokenizer.from_config(load_json(init_model_dir / "tokenizer_config.json"))
+    token_pairs = build_token_id_remap(source_tokenizer, target_tokenizer)
+    target_state = model.state_dict()
+    updated_state = dict(target_state)
+    loaded_names: list[str] = []
+    skipped_names: list[str] = []
+
+    for name, tensor in source_state.items():
+        if name not in target_state:
+            skipped_names.append(name)
+            continue
+        if target_state[name].shape == tensor.shape:
+            updated_state[name] = tensor
+            loaded_names.append(name)
+            continue
+        if name in {"token_embedding.weight", "lm_head.weight"}:
+            if len(target_state[name].shape) == 2 and len(tensor.shape) == 2 and int(target_state[name].shape[1]) == int(tensor.shape[1]):
+                updated_state[name] = remap_vocab_matrix(
+                    source_tensor=tensor,
+                    target_tensor=target_state[name],
+                    token_pairs=token_pairs,
+                )
+                loaded_names.append(name)
+                continue
+        if name == "position_embedding.weight":
+            updated_state[name] = transfer_position_embedding(
+                source_tensor=tensor,
+                target_tensor=target_state[name],
+            )
+            loaded_names.append(name)
+            continue
+        skipped_names.append(name)
+
+    model.load_state_dict(updated_state)
+    return {
+        "loaded_count": len(loaded_names),
+        "skipped_count": len(skipped_names),
+        "loaded_names": loaded_names,
+        "skipped_names": skipped_names,
+    }
+
+
+class DirectMLAdamW:
+    def __init__(
+        self,
+        torch_module,
+        params,
+        lr: float,
+        weight_decay: float = 0.01,
+        betas: tuple[float, float] = (0.9, 0.999),
+        eps: float = 1e-8,
+    ) -> None:
+        self.torch = torch_module
+        self.params = [param for param in params if param.requires_grad]
+        self.lr = float(lr)
+        self.weight_decay = float(weight_decay)
+        self.beta1 = float(betas[0])
+        self.beta2 = float(betas[1])
+        self.eps = float(eps)
+        self.step_count = 0
+        self.state: dict[int, dict[str, object]] = {}
+
+    def zero_grad(self, set_to_none: bool = True) -> None:
+        for param in self.params:
+            if param.grad is None:
+                continue
+            if set_to_none:
+                param.grad = None
+            else:
+                param.grad.zero_()
+
+    def step(self) -> None:
+        self.step_count += 1
+        bias_correction1 = 1.0 - (self.beta1 ** self.step_count)
+        bias_correction2 = 1.0 - (self.beta2 ** self.step_count)
+
+        with self.torch.no_grad():
+            for param in self.params:
+                grad = param.grad
+                if grad is None:
+                    continue
+                if grad.is_sparse:
+                    raise RuntimeError("DirectMLAdamW does not support sparse gradients.")
+
+                state = self.state.get(id(param))
+                if state is None:
+                    state = {
+                        "exp_avg": self.torch.zeros_like(param),
+                        "exp_avg_sq": self.torch.zeros_like(param),
+                    }
+                    self.state[id(param)] = state
+
+                exp_avg = state["exp_avg"]
+
+ succeeded in 192ms:
+def main() -> int:
+    args = parse_args()
+    repo_root = Path(__file__).resolve().parent.parent
+    config_path = resolve_path(args.config, repo_root)
+    config = load_config(config_path)
+    if args.num_train_epochs is not None:
+        if args.num_train_epochs < 1:
+            raise ValueError("--num-train-epochs must be at least 1")
+        config["num_train_epochs"] = int(args.num_train_epochs)
+    configure_reproducibility(int(config.get("seed", 11)))
+
+    train_file = resolve_path(config["train_file"], repo_root)
+    validation_file = resolve_path(config["validation_file"], repo_root)
+    output_dir_base = resolve_path(config["output_dir"], repo_root)
+    benchmark_file = resolve_path(config.get("benchmark_file", "data/processed/benchmark_sft.jsonl"), repo_root)
+
+    import torch
+    import torch.nn.functional as F
+    from torch import nn
+
+    device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
+    train_rows = load_jsonl(train_file)
+    validation_rows = load_jsonl(validation_file)
+    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+    max_seq_length = int(config["max_seq_length"])
+    train_examples = build_examples(train_rows, tokenizer, max_seq_length)
+    validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
+    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+
+    class CausalSelfAttention(nn.Module):
+        def __init__(self, hidden_size: int, num_heads: int, dropout: float):
+            super().__init__()
+            if hidden_size % num_heads != 0:
+                raise ValueError("hidden_size must be divisible by num_heads")
+            self.hidden_size = hidden_size
+            self.num_heads = num_heads
+            self.head_dim = hidden_size // num_heads
+            self.qkv = nn.Linear(hidden_size, hidden_size * 3)
+            self.proj = nn.Linear(hidden_size, hidden_size)
+            self.dropout = nn.Dropout(dropout)
+
+        def forward(self, x):
+            batch_size, seq_len, hidden_size = x.shape
+            qkv = self.qkv(x)
+            q, k, v = qkv.chunk(3, dim=-1)
+            q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            dropout_p = self.dropout.p if self.training else 0.0
+            attn = F.scaled_dot_product_attention(q, k, v, is_causal=True, dropout_p=dropout_p)
+            attn = attn.transpose(1, 2).contiguous().view(batch_size, seq_len, hidden_size)
+            return self.proj(attn)
+
+    class Block(nn.Module):
+        def __init__(self, hidden_size: int, num_heads: int, mlp_ratio: float, dropout: float):
+            super().__init__()
+            mlp_hidden = int(hidden_size * mlp_ratio)
+            self.norm_1 = nn.LayerNorm(hidden_size)
+            self.attn = CausalSelfAttention(hidden_size, num_heads, dropout)
+            self.norm_2 = nn.LayerNorm(hidden_size)
+            self.mlp = nn.Sequential(
+                nn.Linear(hidden_size, mlp_hidden),
+                nn.GELU(),
+                nn.Linear(mlp_hidden, hidden_size),
+                nn.Dropout(dropout),
+            )
+
+        def forward(self, x):
+            x = x + self.attn(self.norm_1(x))
+            x = x + self.mlp(self.norm_2(x))
+            return x
+
+    class NativeTransformerLM(nn.Module):
+        def __init__(self, model_config: dict):
+            super().__init__()
+            self.vocab_size = int(model_config.get("vocab_size", tokenizer.vocab_size))
+            self.max_seq_length = int(model_config["max_seq_length"])
+            self.token_embedding = nn.Embedding(self.vocab_size, int(model_config["hidden_size"]))
+            self.position_embedding = nn.Embedding(self.max_seq_length, int(model_config["hidden_size"]))
+            self.dropout = nn.Dropout(float(model_config["dropout"]))
+            self.blocks = nn.ModuleList(
+                [
+                    Block(
+                        hidden_size=int(model_config["hidden_size"]),
+                        num_heads=int(model_config["num_heads"]),
+                        mlp_ratio=float(model_config["mlp_ratio"]),
+                        dropout=float(model_config["dropout"]),
+                    )
+                    for _ in range(int(model_config["num_layers"]))
+                ]
+            )
+            self.norm = nn.LayerNorm(int(model_config["hidden_size"]))
+            self.lm_head = nn.Linear(int(model_config["hidden_size"]), self.vocab_size, bias=False)
+
+        def forward(self, input_ids):
+            batch_size, seq_len = input_ids.shape
+            if seq_len > self.max_seq_length:
+                raise ValueError("sequence length exceeds model max_seq_length")
+            positions = torch.arange(0, seq_len, device=input_ids.device).unsqueeze(0).expand(batch_size, seq_len)
+            x = self.token_embedding(input_ids) + self.position_embedding(positions)
+            x = self.dropout(x)
+            for block in self.blocks:
+                x = block(x)
+            x = self.norm(x)
+            return self.lm_head(x)
+
+    total_batches_per_epoch = max(1, math.ceil(len(train_examples) / int(config["batch_size"])))
+    total_steps = total_batches_per_epoch * int(config["num_train_epochs"])
+
+    output_dir = make_run_output_dir(output_dir_base)
+    status_writer = TrainingStatusWriter(output_dir=output_dir, config=config)
+
+    print("Starting native model training")
+    print(f"Config: {config_path}")
+    print(f"Device: {device_label}")
+    print(f"Train file: {train_file}")
+    print(f"Validation file: {validation_file}")
+    print(f"Benchmark file: {benchmark_file}")
+    print(f"Output dir: {output_dir}")
+    print(
+        "Run settings: "
+        f"epochs={int(config['num_train_epochs'])}, "
+        f"batch_size={int(config['batch_size'])}, "
+        f"eval_batch_size={int(config['eval_batch_size'])}, "
+        f"max_seq_length={max_seq_length}"
+    )
+    print(
+        "Model settings: "
+        f"layers={int(config['num_layers'])}, "
+        f"hidden_size={int(config['hidden_size'])}, "
+        f"heads={int(config['num_heads'])}, "
+        f"dropout={float(config['dropout'])}"
+    )
+    model = NativeTransformerLM(config).to(device)
+    if init_model_dir is not None:
+        init_summary = load_stage2_weights(model, init_model_dir, tokenizer, torch)
+        config["init_from_model_path_resolved"] = str(init_model_dir)
+        print(f"Stage-2 initialization: {init_model_dir}")
+        print(
+            "Initialized matching weights: "
+            f"loaded={init_summary['loaded_count']}, "
+            f"skipped={init_summary['skipped_count']} "
+            "(token embeddings and output head are remapped when tokenizer vocab differs)"
+        )
+    elif config.get("init_from_model_path"):
+        print(
+            "Stage-2 initialization: no matching prior run found for "
+            f"{config.get('init_from_model_path')}; starting from scratch."
+        )
+    optimizer, optimizer_label = create_optimizer(torch, model, config, device_label)
+    print(f"Optimizer: {optimizer_label}")
+    print(
+        "Dataset sizes: "
+        f"train_rows={len(train_rows)}, "
+        f"validation_rows={len(validation_rows)}, "
+        f"train_examples={len(train_examples)}, "
+        f"validation_examples={len(validation_examples)}"
+    )
+    print(
+        "Progress calculation: "
+        f"total_steps = ceil(train_examples / batch_size) * num_train_epochs = "
+        f"{total_batches_per_epoch} * {int(config['num_train_epochs'])} = {total_steps}"
+    )
+    class_weights = compute_response_type_weights(
+        train_examples,
+        enabled=bool(config.get("use_class_balanced_loss", False)),
+        weight_power=float(config.get("class_weight_power", 1.0)),
+    )
+    if class_weights:
+        print(f"Class-balanced loss weights: {class_weights}")
+
+    status_writer.update(
+        status="ready_to_train",
+        train_examples=len(train_examples),
+        validation_examples=len(validation_examples),
+        device=device_label,
+        max_steps=total_steps,
+        benchmark_status=None,
+    )
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\scripts\\train_native_model.py | Select-Object -Skip 200 -First 130" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 190ms:
+        return "stress_v2"
+    if "-stress-" in run_name:
+        return "stress"
+    return "core"
+
+
+def find_latest_completed_run(repo_root: Path, type_name: str | None, category_name: str | None) -> Path:
+    runs_root = repo_root / "models" / "runs"
+    status_paths = sorted(
+        runs_root.rglob("training_status.json"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+    for status_path in status_paths:
+        try:
+            run_dir = status_path.parent
+            if not (run_dir / "model.pt").exists():
+                continue
+            status = load_json(status_path)
+            if int(status.get("global_step", 0)) <= 0:
+                continue
+            if type_name and infer_run_type(run_dir) != type_name:
+                continue
+            if category_name and infer_run_category(run_dir) != category_name:
+                continue
+            return run_dir
+        except Exception:
+            continue
+
+    raise FileNotFoundError(
+        f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"
+    )
+
+
+def resolve_init_model_path(path_value: str | Path | None, repo_root: Path) -> Path | None:
+    if not path_value:
+        return None
+    value = str(path_value).strip()
+    if not value:
+        return None
+    if value.startswith("latest:"):
+        parts = value.split(":")
+        try:
+            if len(parts) == 2:
+                return find_latest_completed_run(repo_root, None, parts[1])
+            if len(parts) == 3:
+                return find_latest_completed_run(repo_root, parts[1], parts[2])
+        except FileNotFoundError:
+            return None
+        raise ValueError("init_from_model_path must use latest:<category> or latest:<type>:<category>")
+    return resolve_path(value, repo_root)
+
+
+def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
+    parts = []
+    for message in messages:
+        role = message["role"]
+        prefix = ROLE_PREFIXES[role]
+        parts.append(prefix)
+        parts.append(message["content"])
+        parts.append("\n")
+    if add_generation_prompt:
+        parts.append(ROLE_PREFIXES["assistant"])
+    return "".join(parts)
+
+
+class ByteTokenizer:
+    def __init__(
+        self,
+        chars: list[str],
+        pad_token_id: int | None = None,
+        bos_token_id: int | None = None,
+        eos_token_id: int | None = None,
+    ):
+        ordered_chars = []
+        seen = set()
+        for char in chars:
+            if len(char) != 1:
+                continue
+            if char in seen:
+                continue
+            ordered_chars.append(char)
+            seen.add(char)
+        if "?" not in seen:
+            ordered_chars.append("?")
+            seen.add("?")
+        self.chars = ordered_chars
+        self.char_to_id = {char: index for index, char in enumerate(self.chars)}
+        self.id_to_char = {index: char for char, index in self.char_to_id.items()}
+        self.unknown_token_id = self.char_to_id["?"]
+        regular_token_limit = len(self.chars)
+        self.regular_token_limit = regular_token_limit
+        self.pad_token_id = int(regular_token_limit if pad_token_id is None else pad_token_id)
+        self.bos_token_id = int(regular_token_limit + 1 if bos_token_id is None else bos_token_id)
+        self.eos_token_id = int(regular_token_limit + 2 if eos_token_id is None else eos_token_id)
+        self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1
+
+    @classmethod
+    def from_config(cls, payload: dict) -> "ByteTokenizer":
+        chars = payload.get("chars")
+        if chars:
+            return cls(
+                chars=list(chars),
+                pad_token_id=int(payload["pad_token_id"]),
+                bos_token_id=int(payload["bos_token_id"]),
+                eos_token_id=int(payload["eos_token_id"]),
+            )
+        regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))
+        chars = [chr(index) for index in range(regular_token_limit)]
+        return cls(
+            chars=chars,
+            pad_token_id=int(payload["pad_token_id"]),
+            bos_token_id=int(payload["bos_token_id"]),
+            eos_token_id=int(payload["eos_token_id"]),
+        )
+
+    def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
+        token_ids = [self.char_to_id.get(char, self.unknown_token_id) for char in text]
+        if add_special_tokens:
+            return [self.bos_token_id] + token_ids + [self.eos_token_id]
+        return token_ids
+
+    def decode(self, token_ids: list[int]) -> str:
+        return "".join(self.id_to_char[token_id] for token_id in token_ids if token_id in self.id_to_char)
+
+    def save(self, path: Path) -> None:
+        payload = {
+            "type": "char_vocab",
+            "chars": self.chars,
+            "regular_token_limit": self.regular_token_limit,
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\scripts\\train_native_model.py | Select-Object -Skip 350 -First 70" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 181ms:
+    if len(full_input_ids) <= max_seq_length:
+        return full_input_ids, full_label_ids
+
+    if len(answer_ids) >= max_seq_length:
+        trimmed_answer = answer_ids[-max_seq_length:]
+        return trimmed_answer, trimmed_answer[:]
+
+    prompt_budget = max_seq_length - len(answer_ids)
+    trimmed_prompt = prompt_ids[-prompt_budget:] if prompt_budget > 0 else []
+    input_ids = trimmed_prompt + answer_ids
+    label_ids = ([-100] * len(trimmed_prompt)) + answer_ids
+    return input_ids, label_ids
+
+
+def build_examples(rows: list[dict], tokenizer: ByteTokenizer, max_seq_length: int) -> list[Example]:
+    examples = []
+    for row in rows:
+        prompt_text = render_messages(row["messages"][:2], add_generation_prompt=True)
+        answer_text = row["messages"][2]["content"]
+
+        prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
+        answer_ids = tokenizer.encode(answer_text, add_special_tokens=False) + [tokenizer.eos_token_id]
+        input_ids, label_ids = fit_prompt_and_answer(prompt_ids, answer_ids, max_seq_length)
+        examples.append(
+            Example(
+                input_ids=input_ids,
+                label_ids=label_ids,
+                response_type=answer_text,
+            )
+        )
+    return examples
+
+
+def build_tokenizer_from_rows(*row_sets: list[dict]) -> ByteTokenizer:
+    chars = set()
+    for rows in row_sets:
+        for row in rows:
+            for message in row["messages"]:
+                chars.update(message["content"])
+    return ByteTokenizer(chars=sorted(chars))
+
+
+def create_batches(examples: list[Example], batch_size: int, shuffle: bool) -> list[list[Example]]:
+    items = examples[:]
+    if shuffle:
+        random.shuffle(items)
+    return [items[index : index + batch_size] for index in range(0, len(items), batch_size)]
+
+
+def collate_batch(batch: list[Example], tokenizer: ByteTokenizer, torch_module) -> tuple[object, object]:
+    max_length = max(len(example.input_ids) for example in batch)
+    input_rows = []
+    label_rows = []
+    for example in batch:
+        pad_count = max_length - len(example.input_ids)
+        input_rows.append(example.input_ids + ([tokenizer.pad_token_id] * pad_count))
+        label_rows.append(example.label_ids + ([-100] * pad_count))
+    input_ids = torch_module.tensor(input_rows, dtype=torch_module.long)
+    labels = torch_module.tensor(label_rows, dtype=torch_module.long)
+    return input_ids, labels
+
+
+def compute_response_type_weights(
+    examples: list[Example],
+    enabled: bool,
+    weight_power: float,
+) -> dict[str, float]:
+    if not enabled or not examples:
+        return {}
+
+
+codex
+Iâ€™ve verified tokenizer is rebuilt from train/validation and stageâ€‘2 remaps token embeddings plus LM head; now Iâ€™m checking whether the source category model is truly compatible (vocab + architecture) to ensure transfer isnâ€™t destabilizing JSON fields.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-category-prediction-20260412-012834\\model_config.json -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-category-prediction-20260412-012834\\tokenizer_config.json -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-031501\\model_config.json -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 166ms:
+{
+  "model_type": "native_byte_transformer",
+  "vocab_size": 72,
+  "max_seq_length": 768,
+  "hidden_size": 512,
+  "num_layers": 10,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1
+}
+
+
+ succeeded in 153ms:
+{
+  "model_type": "native_byte_transformer",
+  "vocab_size": 76,
+  "max_seq_length": 640,
+  "hidden_size": 512,
+  "num_layers": 10,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1
+}
+
+
+ succeeded in 155ms:
+{
+  "type": "char_vocab",
+  "chars": [
+    " ",
+    "$",
+    "&",
+    "'",
+    ",",
+    "-",
+    ".",
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    ":",
+    "?",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "_",
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z"
+  ],
+  "regular_token_limit": 69,
+  "pad_token_id": 69,
+  "bos_token_id": 70,
+  "eos_token_id": 71,
+  "vocab_size": 72
+}
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem .\\config -Recurse -Include *.json | Select-String -Pattern 'init_from_model_path|full-response|full_response|category_prediction' | Select-Object Path,LineNumber,Line | Format-Table -AutoSize" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 192ms:
+
+Path                                                                        LineNumber Line                                                                                    
+----                                                                        ---------- ----                                                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\config\command_defaults.json          4                             "category":  "full_response"                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\config\command_defaults.json          9                                            "category":  "full_response"                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\config\command_defaults.json         13                                                "category":  "full_response"             
+C:\Users\jhand\Documents\Github\AiLanguageCore\config\command_defaults.json         17                                                       "category":  "category_prediction"
+C:\Users\jhand\Documents\Github\AiLanguageCore\config\command_defaults.json         21                                                "category":  "full_response"             
+C:\Users\jhand\Documents\Github\AiLanguageCore\config\command_defaults.json         25                                              "category":  "full_response"               
+
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\config\\command_defaults.json -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 149ms:
+{
+    "global_defaults":  {
+                            "type":  "core",
+                            "category":  "full_response"
+                        },
+    "command_defaults":  {
+                             "train":  {
+                                           "type":  "core",
+                                           "category":  "full_response"
+                                       },
+                             "benchmark":  {
+                                               "type":  "core",
+                                               "category":  "full_response"
+                                           },
+                             "frozen_benchmark":  {
+                                                      "type":  "stress_v2",
+                                                      "category":  "category_prediction"
+                                                  },
+                             "autotrain":  {
+                                               "type":  "core",
+                                               "category":  "full_response"
+                                           },
+                             "improve":  {
+                                             "type":  "core",
+                                             "category":  "full_response"
+                                         }
+                         },
+    "updated_at":  "2026-04-11T12:00:15.3970302-04:00"
+}
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem .\\config -File | Select-Object Name | Format-Table -AutoSize" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 171ms:
+
+Name                 
+----                 
+command_defaults.json
+
+
+
+codex
+Iâ€™ve validated source/target model compatibility: same hidden architecture, vocab expanded from 72 to 76 and remapped correctly. Iâ€™m now finding where the training defaults set `init_from_model_path` so we can make one precise fix there.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path . -Recurse -Include *.py,*.json,*.ps1,*.md | Select-String -Pattern 'init_from_model_path\\s*[:=]|latest:core:category_prediction|output_dir\\\"\\s*:\\s*\\\"models/runs/v1-native-byte-transformer-full-response' | Select-Object Path,LineNumber,Line | Format-Table -AutoSize" in C:\Users\jhand\Documents\Github\AiLanguageCore
+2026-04-12T07:35:09.815965Z ERROR codex_core::tools::router: error=Exit code: 124
+Wall time: 10 seconds
+Output:
+command timed out after 10016 milliseconds
+
+ exited 124 in 10016ms:
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\train.ps1 -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\set.ps1 -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem .\\scripts -File | Select-Object Name | Format-Table -AutoSize" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 162ms:
+param(
+    [Parameter(Position = 0)]
+    [string]$Type,
+    [Parameter(Position = 1)]
+    [string]$CategoryOrCommand,
+    [Parameter(Position = 2)]
+    [string]$CommandName
+)
+
+$ErrorActionPreference = 'Stop'
+
+$repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+. (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
+
+if (-not $Type) {
+    $globalSelection = Get-AiLanguageCoreDefaultSelection -RepoRoot $repoRoot
+    Write-Host "Global defaults: type=$($globalSelection.Type) | category=$($globalSelection.Category)"
+    Write-Host "Command defaults:"
+    foreach ($name in (Get-AiLanguageCoreDefaultCommandList)) {
+        $selection = Get-AiLanguageCoreDefaultSelection -RepoRoot $repoRoot -CommandName $name
+        Write-Host "  ${name}: type=$($selection.Type) | category=$($selection.Category)"
+    }
+    Write-Host "Trainable types: default (dynamic), core, stress, stress_v2"
+    Write-Host "Categories: default (dynamic), category_prediction, full_response"
+    Write-Host "Concrete types for set: core, stress, stress_v2"
+    Write-Host "Benchmark-only explicit types: account, medical, oos_tool"
+    Write-Host "Usage: set <type> [category] [train|benchmark|autotrain|improve]"
+    exit 0
+}
+
+$resolvedCategory = $null
+$resolvedCommand = $null
+if ($CategoryOrCommand) {
+    try {
+        $resolvedCommand = Resolve-AiLanguageCoreDefaultCommandName -CommandName $CategoryOrCommand
+    } catch {
+        $resolvedCategory = Resolve-AiLanguageCoreCategory -CategoryName $CategoryOrCommand
+    }
+}
+if ($CommandName) {
+    $resolvedCommand = Resolve-AiLanguageCoreDefaultCommandName -CommandName $CommandName
+}
+
+$selection = Set-AiLanguageCoreDefaultSelection -RepoRoot $repoRoot -TypeName $Type -CategoryName $resolvedCategory -CommandName $resolvedCommand
+if ($resolvedCommand) {
+    Write-Host "Defaults for '$resolvedCommand' set to: type=$($selection.Type) | category=$($selection.Category)"
+} else {
+    Write-Host "Global defaults set to: type=$($selection.Type) | category=$($selection.Category)"
+}
+
+
+ succeeded in 164ms:
+param(
+    [Parameter(Position = 0)]
+    [object]$TypeOrEpoch,
+    [Parameter(Position = 1)]
+    [object]$CategoryOrEpoch,
+    [Parameter(Position = 2)]
+    [int]$Epochs,
+    [string]$Category,
+    [string]$Config
+)
+
+$ErrorActionPreference = 'Stop'
+
+$repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$pythonPath = Join-Path $repoRoot '.python\python.exe'
+. (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
+
+$defaultSelection = Get-AiLanguageCoreDefaultSelection -RepoRoot $repoRoot -CommandName 'train'
+$Type = $defaultSelection.Type
+$ResolvedCategory = if ($Category) { Resolve-AiLanguageCoreCategory -CategoryName $Category } else { $defaultSelection.Category }
+$hasEpochOverride = $PSBoundParameters.ContainsKey('Epochs')
+if ($null -ne $TypeOrEpoch) {
+    $parsedEpoch = 0
+    if ($TypeOrEpoch -is [int] -or $TypeOrEpoch -is [long]) {
+        $Epochs = [int]$TypeOrEpoch
+        $hasEpochOverride = $true
+    } elseif ([int]::TryParse([string]$TypeOrEpoch, [ref]$parsedEpoch)) {
+        $Epochs = $parsedEpoch
+        $hasEpochOverride = $true
+    } else {
+        $Type = Resolve-AiLanguageCoreType -TypeName ([string]$TypeOrEpoch) -RequireTrainable
+        if (-not $PSBoundParameters.ContainsKey('Category')) {
+            $ResolvedCategory = Get-AiLanguageCorePreferredCategoryForType -TypeName $Type
+        }
+    }
+}
+
+if ($null -ne $CategoryOrEpoch) {
+    $parsedEpoch = 0
+    if ($CategoryOrEpoch -is [int] -or $CategoryOrEpoch -is [long]) {
+        $Epochs = [int]$CategoryOrEpoch
+        $hasEpochOverride = $true
+    } elseif ([int]::TryParse([string]$CategoryOrEpoch, [ref]$parsedEpoch)) {
+        $Epochs = [int]$parsedEpoch
+        $hasEpochOverride = $true
+    } else {
+        $ResolvedCategory = Resolve-AiLanguageCoreCategory -CategoryName ([string]$CategoryOrEpoch)
+    }
+}
+
+$selection = Resolve-AiLanguageCoreSelection -RepoRoot $repoRoot -CommandName 'train' -TypeName $Type -CategoryName $ResolvedCategory -RequireTrainable
+$Type = $selection.Type
+$ResolvedCategory = $selection.Category
+
+if (-not (Test-Path $pythonPath)) {
+    throw "Python runtime not found: $pythonPath"
+}
+
+$resolvedConfig = if ($PSBoundParameters.ContainsKey('Config')) {
+    $Config
+} else {
+    Resolve-AiLanguageCoreTrainingConfig -RepoRoot $repoRoot -TypeName $Type -CategoryName $ResolvedCategory
+}
+
+$configPath = if ([System.IO.Path]::IsPathRooted($resolvedConfig)) {
+    $resolvedConfig
+} else {
+    Join-Path $repoRoot $resolvedConfig
+}
+
+if (-not (Test-Path $configPath)) {
+    throw "Training config not found: $configPath"
+}
+
+Write-Host "Starting native training from $repoRoot"
+Write-Host "Config: $configPath"
+Write-Host "Type: $Type"
+Write-Host "Category: $ResolvedCategory"
+if ($hasEpochOverride) {
+    Write-Host "Epoch override: $Epochs"
+}
+
+Push-Location $repoRoot
+try {
+    if ($hasEpochOverride) {
+        & $pythonPath scripts\train_native_model.py --config $configPath --num-train-epochs $Epochs
+    } else {
+        & $pythonPath scripts\train_native_model.py --config $configPath
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Training failed with exit code $LASTEXITCODE"
+    }
+} finally {
+    Pop-Location
+}
+
+
+ succeeded in 191ms:
+
+Name                      
+----                      
+.gitkeep                  
+chat_native_model.py      
+command_type_helpers.ps1  
+convert_training_data.py  
+evaluate_native_model.py  
+generate_data.py          
+powershell_helpers.ps1    
+prepare_dataset.py        
+run_autotrain_loop.ps1    
+show_autotrain_status.ps1 
+show_training_status.ps1  
+summarize_training_runs.py
+train_native_model.py     
+validate_dataset.py       
+
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\scripts\\command_type_helpers.ps1 -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 153ms:
+function Get-AiLanguageCoreCommandTypeCatalog {
+    return @{
+        core = @{
+            aliases = @('core')
+            optimization_frozen = $false
+            categories = @{
+                category_prediction = @{
+                    trainable = $true
+                    config = 'models\configs\v1_native_byte_transformer_category_prediction_config.json'
+                    benchmark = 'data\processed\benchmark_category_prediction_sft.jsonl'
+                }
+                full_response = @{
+                    trainable = $true
+                    config = 'models\configs\v1_native_byte_transformer_config.json'
+                    benchmark = 'data\processed\benchmark_full_response_sft.jsonl'
+                }
+            }
+        }
+        stress = @{
+            aliases = @('stress')
+            optimization_frozen = $false
+            categories = @{
+                category_prediction = @{
+                    trainable = $true
+                    config = 'models\configs\v1_native_byte_transformer_stress_config.json'
+                    benchmark = 'data\processed\benchmark_stress_native_sft.jsonl'
+                }
+            }
+        }
+        stress_v2 = @{
+            aliases = @('stress_v2', 'stress-v2', 'stress2')
+            optimization_frozen = $true
+            categories = @{
+                category_prediction = @{
+                    trainable = $true
+                    config = 'models\configs\v1_native_byte_transformer_stress_v2_config.json'
+                    benchmark = 'data\processed\benchmark_stress_v2_native_sft.jsonl'
+                }
+            }
+        }
+        account = @{
+            aliases = @('account')
+            optimization_frozen = $true
+            categories = @{
+                category_prediction = @{
+                    trainable = $false
+                    benchmark = 'data\processed\benchmark_account_tool_boundary_native_sft.jsonl'
+                }
+            }
+        }
+        medical = @{
+            aliases = @('medical')
+            optimization_frozen = $true
+            categories = @{
+                category_prediction = @{
+                    trainable = $false
+                    benchmark = 'data\processed\benchmark_medical_refusal_boundary_native_sft.jsonl'
+                }
+            }
+        }
+        oos_tool = @{
+            aliases = @('oos_tool', 'oos-tool', 'oostool')
+            optimization_frozen = $true
+            categories = @{
+                category_prediction = @{
+                    trainable = $false
+                    benchmark = 'data\processed\benchmark_oos_vs_tool_boundary_native_sft.jsonl'
+                }
+            }
+        }
+    }
+}
+
+function Get-AiLanguageCoreDefaultSettingsPath {
+    param(
+        [string]$RepoRoot
+    )
+
+    return Join-Path $RepoRoot 'config\command_defaults.json'
+}
+
+function Get-AiLanguageCoreCanonicalType {
+    param(
+        [string]$TypeName
+    )
+
+    if (-not $TypeName) {
+        return $null
+    }
+
+    $normalized = $TypeName.Trim().ToLowerInvariant()
+    foreach ($entry in (Get-AiLanguageCoreCommandTypeCatalog).GetEnumerator()) {
+        if ($entry.Key -eq $normalized -or $entry.Value.aliases -contains $normalized) {
+            return $entry.Key
+        }
+    }
+
+    return $null
+}
+
+function Get-AiLanguageCoreCanonicalCategory {
+    param(
+        [string]$CategoryName
+    )
+
+    if (-not $CategoryName) {
+        return $null
+    }
+
+    $normalized = $CategoryName.Trim().ToLowerInvariant()
+    switch ($normalized) {
+        'category_prediction' { return 'category_prediction' }
+        'category-prediction' { return 'category_prediction' }
+        'prediction' { return 'category_prediction' }
+        'full_response' { return 'full_response' }
+        'full-response' { return 'full_response' }
+        'response' { return 'full_response' }
+        default { return $null }
+    }
+}
+
+function Get-AiLanguageCoreSupportedTypeList {
+    return @('default', 'core', 'stress', 'stress_v2', 'account', 'medical', 'oos_tool')
+}
+
+function Get-AiLanguageCoreSupportedCategoryList {
+    return @('default', 'category_prediction', 'full_response')
+}
+
+function Get-AiLanguageCoreTrainableTypeList {
+    return @('default', 'core', 'stress', 'stress_v2')
+}
+
+function Get-AiLanguageCoreDefaultCommandList {
+    return @('train', 'benchmark', 'frozen_benchmark', 'autotrain', 'improve')
+}
+
+function Resolve-AiLanguageCoreDefaultCommandName {
+    param(
+        [string]$CommandName
+    )
+
+    if (-not $CommandName) {
+        return $null
+    }
+
+    $normalized = $CommandName.Trim().ToLowerInvariant()
+    if ((Get-AiLanguageCoreDefaultCommandList) -contains $normalized) {
+        return $normalized
+    }
+
+    throw "Unknown command '$CommandName'. Valid commands: $((Get-AiLanguageCoreDefaultCommandList) -join ', ')."
+}
+
+function Resolve-AiLanguageCoreType {
+    param(
+        [string]$TypeName,
+        [switch]$RequireTrainable
+    )
+
+    $canonical = Get-AiLanguageCoreCanonicalType -TypeName $TypeName
+    if (-not $canonical) {
+        $valid = if ($RequireTrainable) {
+            (Get-AiLanguageCoreTrainableTypeList) -join ', '
+        } else {
+            (Get-AiLanguageCoreSupportedTypeList) -join ', '
+        }
+        throw "Unknown type '$TypeName'. Valid types: $valid."
+    }
+
+    if ($RequireTrainable) {
+        $catalogEntry = (Get-AiLanguageCoreCommandTypeCatalog)[$canonical]
+        $hasTrainableCategory = $false
+        foreach ($categoryEntry in $catalogEntry.categories.Values) {
+            if ($categoryEntry.trainable) {
+                $hasTrainableCategory = $true
+                break
+            }
+        }
+        if (-not $hasTrainableCategory) {
+            $valid = (Get-AiLanguageCoreTrainableTypeList) -join ', '
+            throw "Type '$TypeName' is benchmark-only. Trainable types: $valid."
+        }
+    }
+
+    return $canonical
+}
+
+function Resolve-AiLanguageCoreCategory {
+    param(
+        [string]$CategoryName
+    )
+
+    $canonical = Get-AiLanguageCoreCanonicalCategory -CategoryName $CategoryName
+    if (-not $canonical) {
+        throw "Unknown category '$CategoryName'. Valid categories: $((Get-AiLanguageCoreSupportedCategoryList) -join ', ')."
+    }
+    return $canonical
+}
+
+function Get-AiLanguageCorePreferredCategoryForType {
+    param(
+        [string]$TypeName
+    )
+
+    $canonicalType = Resolve-AiLanguageCoreType -TypeName $TypeName
+    if ($canonicalType -eq 'core') {
+        return 'full_response'
+    }
+    return 'category_prediction'
+}
+
+function Get-AiLanguageCoreCategoryEntry {
+    param(
+        [string]$TypeName,
+        [string]$CategoryName,
+        [switch]$RequireTrainable
+    )
+
+    $canonicalType = Resolve-AiLanguageCoreType -TypeName $TypeName -RequireTrainable:$RequireTrainable
+    $canonicalCategory = Resolve-AiLanguageCoreCategory -CategoryName $CategoryName
+    $typeEntry = (Get-AiLanguageCoreCommandTypeCatalog)[$canonicalType]
+    $categoryEntry = $typeEntry.categories[$canonicalCategory]
+    if (-not $categoryEntry) {
+        throw "Category '$canonicalCategory' is not supported for type '$canonicalType'."
+    }
+    if ($RequireTrainable -and -not $categoryEntry.trainable) {
+        throw "Type '$canonicalType' with category '$canonicalCategory' is benchmark-only and cannot be trained."
+    }
+    return $categoryEntry
+}
+
+function Get-AiLanguageCoreStoredDefaults {
+    param(
+        [string]$RepoRoot
+    )
+
+    $fallback = [ordered]@{
+        global = [ordered]@{
+            type = 'core'
+            category = 'full_response'
+        }
+        command_defaults = [ordered]@{
+            train = [ordered]@{ type = 'core'; category = 'full_response' }
+            benchmark = [ordered]@{ type = 'core'; category = 'full_response' }
+            frozen_benchmark = [ordered]@{ type = 'stress_v2'; category = 'category_prediction' }
+            autotrain = [ordered]@{ type = 'core'; category = 'full_response' }
+            improve = [ordered]@{ type = 'core'; category = 'full_response' }
+        }
+    }
+
+    $settingsPath = Get-AiLanguageCoreDefaultSettingsPath -RepoRoot $RepoRoot
+    if (-not (Test-Path $settingsPath)) {
+        return $fallback
+    }
+
+    try {
+        $raw = Get-Content $settingsPath -Raw | ConvertFrom-Json
+    } catch {
+        return $fallback
+    }
+
+    $globalType = if ($raw.global_defaults.type) { [string]$raw.global_defaults.type } elseif ($raw.default_type) { [string]$raw.default_type } else { $fallback.global.type }
+    if ($globalType -eq 'base') { $globalType = 'core' }
+    $globalType = Resolve-AiLanguageCoreType -TypeName $globalType -RequireTrainable
+
+    $globalCategory = if ($raw.global_defaults.category) { [string]$raw.global_defaults.category } elseif ($raw.default_category) { [string]$raw.default_category } else { $null }
+    if ($globalCategory) {
+        $globalCategory = Resolve-AiLanguageCoreCategory -CategoryName $globalCategory
+    } else {
+        $globalCategory = Get-AiLanguageCorePreferredCategoryForType -TypeName $globalType
+    }
+    $null = Get-AiLanguageCoreCategoryEntry -TypeName $globalType -CategoryName $globalCategory -RequireTrainable
+
+    $commandDefaults = [ordered]@{}
+    foreach ($name in (Get-AiLanguageCoreDefaultCommandList)) {
+        $saved = if ($raw.command_defaults) { $raw.command_defaults.$name } else { $null }
+        if ($saved -is [string]) {
+            $savedType = [string]$saved
+            if ($savedType -eq 'base') { $savedType = 'core' }
+            $savedType = Resolve-AiLanguageCoreType -TypeName $savedType -RequireTrainable:(($name -ne 'benchmark') -and ($name -ne 'frozen_benchmark'))
+            $savedCategory = Get-AiLanguageCorePreferredCategoryForType -TypeName $savedType
+        } elseif ($saved) {
+            $savedType = if ($saved.type) { [string]$saved.type } else { $globalType }
+            if ($savedType -eq 'base') { $savedType = 'core' }
+            $savedType = Resolve-AiLanguageCoreType -TypeName $savedType -RequireTrainable:(($name -ne 'benchmark') -and ($name -ne 'frozen_benchmark'))
+            $savedCategory = if ($saved.category) { Resolve-AiLanguageCoreCategory -CategoryName ([string]$saved.category) } else { Get-AiLanguageCorePreferredCategoryForType -TypeName $savedType }
+        } else {
+            $savedType = $fallback.command_defaults[$name].type
+            $savedCategory = $fallback.command_defaults[$name].category
+        }
+
+        try {
+            $null = Get-AiLanguageCoreCategoryEntry -TypeName $savedType -CategoryName $savedCategory -RequireTrainable:(($name -ne 'benchmark') -and ($name -ne 'frozen_benchmark'))
+        } catch {
+            $savedCategory = Get-AiLanguageCorePreferredCategoryForType -TypeName $savedType
+            $null = Get-AiLanguageCoreCategoryEntry -TypeName $savedType -CategoryName $savedCategory -RequireTrainable:(($name -ne 'benchmark') -and ($name -ne 'frozen_benchmark'))
+        }
+
+        $commandDefaults[$name] = [ordered]@{
+            type = $savedType
+            category = $savedCategory
+        }
+    }
+
+    return [ordered]@{
+        global = [ordered]@{
+            type = $globalType
+            category = $globalCategory
+        }
+        command_defaults = $commandDefaults
+    }
+}
+
+function Get-AiLanguageCoreDefaultSelection {
+    param(
+        [string]$RepoRoot,
+        [string]$CommandName
+    )
+
+    $defaults = Get-AiLanguageCoreStoredDefaults -RepoRoot $RepoRoot
+    $resolvedCommand = Resolve-AiLanguageCoreDefaultCommandName -CommandName $CommandName
+    if ($resolvedCommand) {
+        $commandSelection = $defaults.command_defaults[$resolvedCommand]
+        if ($commandSelection) {
+            return [pscustomobject]@{
+                Type = [string]$commandSelection.type
+                Category = [string]$commandSelection.category
+            }
+        }
+    }
+
+    return [pscustomobject]@{
+        Type = [string]$defaults.global.type
+        Category = [string]$defaults.global.category
+    }
+}
+
+function Get-AiLanguageCoreDefaultType {
+    param(
+        [string]$RepoRoot,
+        [string]$CommandName
+    )
+
+    return (Get-AiLanguageCoreDefaultSelection -RepoRoot $RepoRoot -CommandName $CommandName).Type
+}
+
+function Get-AiLanguageCoreDefaultCategory {
+    param(
+        [string]$RepoRoot,
+        [string]$CommandName
+    )
+
+    return (Get-AiLanguageCoreDefaultSelection -RepoRoot $RepoRoot -CommandName $CommandName).Category
+}
+
+function Resolve-AiLanguageCoreSelection {
+    param(
+        [string]$RepoRoot,
+        [string]$CommandName,
+        [string]$TypeName,
+        [string]$CategoryName,
+        [switch]$RequireTrainable
+    )
+
+    $defaultSelection = Get-AiLanguageCoreDefaultSelection -RepoRoot $RepoRoot -CommandName $CommandName
+    $effectiveType = if ($TypeName -and $TypeName.Trim().ToLowerInvariant() -ne 'default') {
+        Resolve-AiLanguageCoreType -TypeName $TypeName -RequireTrainable:$RequireTrainable
+    } else {
+        $defaultSelection.Type
+    }
+
+    $effectiveCategory = if ($CategoryName -and $CategoryName.Trim().ToLowerInvariant() -ne 'default') {
+        Resolve-AiLanguageCoreCategory -CategoryName $CategoryName
+    } elseif ($TypeName -and $TypeName.Trim().ToLowerInvariant() -ne 'default' -and -not $CategoryName) {
+        Get-AiLanguageCorePreferredCategoryForType -TypeName $effectiveType
+    } else {
+        $defaultSelection.Category
+    }
+
+    $null = Get-AiLanguageCoreCategoryEntry -TypeName $effectiveType -CategoryName $effectiveCategory -RequireTrainable:$RequireTrainable
+    return [pscustomobject]@{
+        Type = $effectiveType
+        Category = $effectiveCategory
+    }
+}
+
+function Set-AiLanguageCoreDefaultSelection {
+    param(
+        [string]$RepoRoot,
+        [string]$TypeName,
+        [string]$CategoryName,
+        [string]$CommandName
+    )
+
+    $normalizedType = if ($TypeName) { $TypeName.Trim().ToLowerInvariant() } else { '' }
+    if ($normalizedType -eq 'default') {
+        throw "Cannot set a command default to the symbolic type 'default'. Use a concrete type."
+    }
+
+    $resolvedCommand = Resolve-AiLanguageCoreDefaultCommandName -CommandName $CommandName
+    $requireTrainable = -not ($resolvedCommand -in @('benchmark', 'frozen_benchmark'))
+    $canonicalType = Resolve-AiLanguageCoreType -TypeName $TypeName -RequireTrainable:$requireTrainable
+    $canonicalCategory = if ($CategoryName) {
+        Resolve-AiLanguageCoreCategory -CategoryName $CategoryName
+    } else {
+        Get-AiLanguageCorePreferredCategoryForType -TypeName $canonicalType
+    }
+    $null = Get-AiLanguageCoreCategoryEntry -TypeName $canonicalType -CategoryName $canonicalCategory -RequireTrainable:$requireTrainable
+
+    if ($resolvedCommand -and $resolvedCommand -notin @('benchmark', 'frozen_benchmark') -and (Test-AiLanguageCoreTypeOptimizationFrozen -TypeName $canonicalType)) {
+        throw "Cannot save '$canonicalType' as the default for '$resolvedCommand' because it is frozen as a regression benchmark."
+    }
+    if (-not $resolvedCommand -and (Test-AiLanguageCoreTypeOptimizationFrozen -TypeName $canonicalType)) {
+        throw "Cannot save '$canonicalType' as the global default because it is frozen as a regression benchmark."
+    }
+
+    $settingsPath = Get-AiLanguageCoreDefaultSettingsPath -RepoRoot $RepoRoot
+    $settingsDir = Split-Path -Parent $settingsPath
+    if (-not (Test-Path $settingsDir)) {
+        New-Item -ItemType Directory -Force -Path $settingsDir | Out-Null
+    }
+
+    $defaults = Get-AiLanguageCoreStoredDefaults -RepoRoot $RepoRoot
+    if ($resolvedCommand) {
+        $defaults.command_defaults[$resolvedCommand] = [ordered]@{
+            type = $canonicalType
+            category = $canonicalCategory
+        }
+    } else {
+        $defaults.global = [ordered]@{
+            type = $canonicalType
+            category = $canonicalCategory
+        }
+        foreach ($name in (Get-AiLanguageCoreDefaultCommandList)) {
+            $defaults.command_defaults[$name] = [ordered]@{
+                type = $canonicalType
+                category = $canonicalCategory
+            }
+        }
+    }
+
+    $payload = [ordered]@{
+        global_defaults = [ordered]@{
+            type = $defaults.global.type
+            category = $defaults.global.category
+        }
+        command_defaults = $defaults.command_defaults
+        updated_at = (Get-Date).ToString('o')
+    }
+    $json = [string]($payload | ConvertTo-Json -Depth 6)
+    [System.IO.File]::WriteAllText($settingsPath, $json)
+
+    return [pscustomobject]@{
+        Type = $canonicalType
+        Category = $canonicalCategory
+    }
+}
+
+function Set-AiLanguageCoreDefaultTypeOnly {
+    param(
+        [string]$RepoRoot,
+        [string]$TypeName,
+        [string]$CommandName
+    )
+
+    $resolvedCommand = if ($CommandName) { Resolve-AiLanguageCoreDefaultCommandName -CommandName $CommandName } else { $null }
+    $currentSelection = Get-AiLanguageCoreDefaultSelection -RepoRoot $RepoRoot -CommandName $resolvedCommand
+    $requireTrainable = -not ($resolvedCommand -in @('benchmark', 'frozen_benchmark'))
+    $canonicalType = Resolve-AiLanguageCoreType -TypeName $TypeName -RequireTrainable:$requireTrainable
+    $targetCategory = $currentSelection.Category
+
+    try {
+        $null = Get-AiLanguageCoreCategoryEntry -TypeName $canonicalType -CategoryName $targetCategory -RequireTrainable:$requireTrainable
+    } catch {
+        $targetCategory = Get-AiLanguageCorePreferredCategoryForType -TypeName $canonicalType
+    }
+
+    return Set-AiLanguageCoreDefaultSelection -RepoRoot $RepoRoot -TypeName $canonicalType -CategoryName $targetCategory -CommandName $resolvedCommand
+}
+
+function Set-AiLanguageCoreDefaultCategoryOnly {
+    param(
+        [string]$RepoRoot,
+        [string]$CategoryName,
+        [string]$CommandName
+    )
+
+    $resolvedCommand = if ($CommandName) { Resolve-AiLanguageCoreDefaultCommandName -CommandName $CommandName } else { $null }
+    $currentSelection = Get-AiLanguageCoreDefaultSelection -RepoRoot $RepoRoot -CommandName $resolvedCommand
+    $canonicalCategory = Resolve-AiLanguageCoreCategory -CategoryName $CategoryName
+    $requireTrainable = -not ($resolvedCommand -in @('benchmark', 'frozen_benchmark'))
+    $null = Get-AiLanguageCoreCategoryEntry -TypeName $currentSelection.Type -CategoryName $canonicalCategory -RequireTrainable:$requireTrainable
+
+    return Set-AiLanguageCoreDefaultSelection -RepoRoot $RepoRoot -TypeName $currentSelection.Type -CategoryName $canonicalCategory -CommandName $resolvedCommand
+}
+
+function Resolve-AiLanguageCoreTrainingConfig {
+    param(
+        [string]$RepoRoot,
+        [string]$TypeName,
+        [string]$CategoryName
+    )
+
+    $entry = Get-AiLanguageCoreCategoryEntry -TypeName $TypeName -CategoryName $CategoryName -RequireTrainable
+    if (-not $entry.config) {
+        throw "No training config defined for type '$TypeName' category '$CategoryName'."
+    }
+    return Join-Path $RepoRoot $entry.config
+}
+
+function Test-AiLanguageCoreTypeOptimizationFrozen {
+    param(
+        [string]$TypeName
+    )
+
+    $canonical = Resolve-AiLanguageCoreType -TypeName $TypeName
+    $entry = (Get-AiLanguageCoreCommandTypeCatalog)[$canonical]
+    return [bool]$entry.optimization_frozen
+}
+
+function Assert-AiLanguageCoreTypeOptimizable {
+    param(
+        [string]$TypeName,
+        [string]$CommandName
+    )
+
+    $canonical = Resolve-AiLanguageCoreType -TypeName $TypeName
+    if (Test-AiLanguageCoreTypeOptimizationFrozen -TypeName $canonical) {
+        $commandText = if ($CommandName) { $CommandName } else { 'This command' }
+        throw "$commandText cannot target '$canonical' because it is frozen as a regression benchmark. Use 'benchmark $canonical category_prediction' to verify it, and switch train/autotrain/improve to an active type."
+    }
+}
+
+function Resolve-AiLanguageCoreBenchmarkFile {
+    param(
+        [string]$RepoRoot,
+        [string]$TypeName,
+        [string]$CategoryName
+    )
+
+    $entry = Get-AiLanguageCoreCategoryEntry -TypeName $TypeName -CategoryName $CategoryName
+    return Join-Path $RepoRoot $entry.benchmark
+}
+
+function Get-AiLanguageCoreFrozenCandidateSelections {
+    param(
+        [string]$CategoryName
+    )
+
+    $canonicalCategory = Resolve-AiLanguageCoreCategory -CategoryName $CategoryName
+    $results = @()
+    foreach ($typeName in @('stress_v2', 'account', 'medical', 'oos_tool', 'stress', 'core')) {
+        $typeEntry = (Get-AiLanguageCoreCommandTypeCatalog)[$typeName]
+        if (-not $typeEntry) {
+            continue
+        }
+        if (-not [bool]$typeEntry.optimization_frozen) {
+            continue
+        }
+        if ($typeEntry.categories[$canonicalCategory]) {
+            $results += [pscustomobject]@{
+                Type = $typeName
+                Category = $canonicalCategory
+            }
+        }
+    }
+    return $results
+}
+
+function Resolve-AiLanguageCoreFrozenBenchmarkSelection {
+    param(
+        [string]$RepoRoot,
+        [string]$CurrentTypeName,
+        [string]$CurrentCategoryName
+    )
+
+    $currentType = Resolve-AiLanguageCoreType -TypeName $CurrentTypeName
+    $currentCategory = Resolve-AiLanguageCoreCategory -CategoryName $CurrentCategoryName
+
+    if ((Test-AiLanguageCoreTypeOptimizationFrozen -TypeName $currentType)) {
+        try {
+            $null = Get-AiLanguageCoreCategoryEntry -TypeName $currentType -CategoryName $currentCategory
+            return [pscustomobject]@{
+                Type = $currentType
+                Category = $currentCategory
+                Source = 'current_selection'
+            }
+        } catch {
+        }
+    }
+
+    $categoryCandidates = Get-AiLanguageCoreFrozenCandidateSelections -CategoryName $currentCategory
+    if ($categoryCandidates.Count -gt 0) {
+        return [pscustomobject]@{
+            Type = $categoryCandidates[0].Type
+            Category = $categoryCandidates[0].Category
+            Source = 'category_fallback'
+        }
+    }
+
+    $savedFrozen = Get-AiLanguageCoreDefaultSelection -RepoRoot $RepoRoot -CommandName 'frozen_benchmark'
+    return [pscustomobject]@{
+        Type = $savedFrozen.Type
+        Category = $savedFrozen.Category
+        Source = 'saved_frozen_benchmark'
+    }
+}
+
+function Get-AiLanguageCoreRunType {
+    param(
+        [string]$RunDir
+    )
+
+    $trainingConfigPath = Join-Path $RunDir 'training_config.json'
+    if (Test-Path $trainingConfigPath) {
+        try {
+            $trainingConfig = Get-Content $trainingConfigPath -Raw | ConvertFrom-Json
+            if ($trainingConfig.output_dir -and [string]$trainingConfig.output_dir -match 'stress-v2') { return 'stress_v2' }
+            if ($trainingConfig.output_dir -and [string]$trainingConfig.output_dir -match 'stress') { return 'stress' }
+        } catch {
+        }
+    }
+
+    $runName = Split-Path -Leaf $RunDir
+    if ($runName -match '-stress-v2-') { return 'stress_v2' }
+    if ($runName -match '-stress-') { return 'stress' }
+    return 'core'
+}
+
+function Get-AiLanguageCoreRunCategory {
+    param(
+        [string]$RunDir
+    )
+
+    $trainingConfigPath = Join-Path $RunDir 'training_config.json'
+    if (Test-Path $trainingConfigPath) {
+        try {
+            $trainingConfig = Get-Content $trainingConfigPath -Raw | ConvertFrom-Json
+            if ($trainingConfig.train_file -and [string]$trainingConfig.train_file -match 'full_response') {
+                return 'full_response'
+            }
+            if ($trainingConfig.train_file -and [string]$trainingConfig.train_file -match 'category_prediction') {
+                return 'category_prediction'
+            }
+            if ($trainingConfig.benchmark_file -and [string]$trainingConfig.benchmark_file -match 'full_response') {
+                return 'full_response'
+            }
+        } catch {
+        }
+    }
+
+    $runName = Split-Path -Leaf $RunDir
+    if ($runName -match 'full-response') { return 'full_response' }
+    if ($runName -match 'category-prediction') { return 'category_prediction' }
+    return 'category_prediction'
+}
+
+function Get-AiLanguageCoreLatestCompletedRunPath {
+    param(
+        [string]$RepoRoot,
+        [string]$TypeName,
+        [string]$CategoryName
+    )
+
+    $canonicalType = if ($TypeName) { Resolve-AiLanguageCoreType -TypeName $TypeName } else { $null }
+    $canonicalCategory = if ($CategoryName) { Resolve-AiLanguageCoreCategory -CategoryName $CategoryName } else { $null }
+
+    $statusPath = Get-ChildItem -Path (Join-Path $RepoRoot 'models\runs') -Filter training_status.json -Recurse -File |
+        Sort-Object LastWriteTime -Descending |
+        Where-Object {
+            try {
+                $status = Get-Content $_.FullName -Raw | ConvertFrom-Json
+                $runDir = Split-Path -Parent $_.FullName
+                $runType = Get-AiLanguageCoreRunType -RunDir $runDir
+                $runCategory = Get-AiLanguageCoreRunCategory -RunDir $runDir
+                $typeMatches = (-not $canonicalType) -or ($runType -eq $canonicalType)
+                $categoryMatches = (-not $canonicalCategory) -or ($runCategory -eq $canonicalCategory)
+                $typeMatches -and $categoryMatches -and (Test-Path (Join-Path $runDir 'model.pt')) -and ($status.global_step -gt 0)
+            } catch {
+                $false
+            }
+        } |
+        Select-Object -First 1 -ExpandProperty FullName
+
+    if (-not $statusPath) {
+        if ($canonicalType -and $canonicalCategory) {
+            throw "Could not find a completed training run for type '$canonicalType' category '$canonicalCategory' under $(Join-Path $RepoRoot 'models\runs')"
+        }
+        throw "Could not find a completed training run under $(Join-Path $RepoRoot 'models\runs')"
+    }
+
+    return Split-Path -Parent $statusPath
+}
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\configs\\v1_native_byte_transformer_config.json -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\configs\\v1_native_byte_transformer_category_prediction_config.json -Raw" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 161ms:
+{
+  "output_dir": "models/runs/v1-native-byte-transformer-full-response",
+  "train_file": "data/processed/train_full_response_sft.jsonl",
+  "validation_file": "data/processed/validation_full_response_sft.jsonl",
+  "init_from_model_path": "latest:core:category_prediction",
+  "device_preference": ["hip", "cuda", "directml", "cpu"],
+  "seed": 11,
+  "num_train_epochs": 12,
+  "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
+  "batch_size": 4,
+  "eval_batch_size": 4,
+  "learning_rate": 0.00002,
+  "optimizer": "auto",
+  "weight_decay": 0.01,
+  "use_class_balanced_loss": false,
+  "class_weight_power": 1.0,
+  "grad_clip": 0.5,
+  "logging_steps": 61,
+  "eval_steps": 183,
+  "max_seq_length": 640,
+  "hidden_size": 512,
+  "num_layers": 10,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1
+}
+
+
+ succeeded in 160ms:
+{
+  "output_dir": "models/runs/v1-native-byte-transformer-category-prediction",
+  "train_file": "data/processed/train_category_prediction_sft.jsonl",
+  "validation_file": "data/processed/validation_category_prediction_sft.jsonl",
+  "benchmark_file": "data/processed/benchmark_category_prediction_sft.jsonl",
+  "device_preference": ["hip", "cuda", "directml", "cpu"],
+  "seed": 11,
+  "num_train_epochs": 50,
+  "batch_size": 4,
+  "eval_batch_size": 4,
+  "learning_rate": 0.00005,
+  "optimizer": "auto",
+  "weight_decay": 0.01,
+  "use_class_balanced_loss": false,
+  "class_weight_power": 1.0,
+  "grad_clip": 0.5,
+  "logging_steps": 61,
+  "eval_steps": 183,
+  "max_seq_length": 256,
+  "hidden_size": 512,
+  "num_layers": 10,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1
+}
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command ".\\.python\\python.exe .\\scripts\\summarize_training_runs.py | Select-Object -First 120" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 269ms:
+Category             Type       Run                                                             Date        Time      Status        Epoch  Steps  Train  Val  Runtime(s)  Step/s  Sample/s   TrainLoss         Bench  JSON    Accuracy
+-------------------  ---------  --------------------------------------------------------------  ----------  --------  ------------  -----  -----  -----  ---  ----------  ------  ---------  ----------------  -----  ------  --------
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-043740            2026-04-11  04:37:40  completed     30.0   5430   723    61   1289.1      4.212   16.826     0.0001            24     100.0%  100.0%  
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-041405            2026-04-11  04:14:05  completed     30.0   5400   719    61   1274.0      4.239   16.931     0.0002            24     95.8%   91.7%   
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-035057            2026-04-11  03:50:57  completed     30.0   5340   711    61   1256.4      4.250   16.977     0.0004            24     100.0%  95.8%   
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-032659            2026-04-11  03:26:59  completed     30.0   5340   711    61   1237.5      4.315   17.237     0.0001            24     100.0%  91.7%   
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-030458            2026-04-11  03:04:58  completed     30.0   5310   707    61   1204.3      4.409   17.612     0.0217            24     100.0%  95.8%   
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-024217            2026-04-11  02:42:17  completed     30.0   5280   703    61   1228.5      4.298   17.168     0.0001            24     100.0%  91.7%   
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-022206            2026-04-11  02:22:06  completed     10.0   1740   695    61   387.5       4.490   17.934     0.0258            24     95.8%   83.3%   
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-021131            2026-04-11  02:11:31  completed     10.0   1740   694    61   460.7       3.777   15.063     0.0049            24     100.0%  95.8%   
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-020616            2026-04-11  02:06:16  completed     10.0   1740   694    61   686.4       2.535   10.111     0.0012            24     95.8%   91.7%   
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-020311            2026-04-11  02:03:11  training      0.0    1      694    61   0.6         1.779   61723.004  4.4061            -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-020126            2026-04-11  02:01:26  training      0.2    28     694    61   7.1         3.947   4892.036   1.2700            -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-014902            2026-04-11  01:49:02  completed     10.0   1720   688    61   373.2       4.609   18.435     0.0067            24     100.0%  83.3%   
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-014743            2026-04-11  01:47:43  failed        0.2    33     688    61   4.7         5.931   1457.348   41060933632.0000  -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-014707            2026-04-11  01:47:07  failed        0.0    1      688    61   0.6         1.609   0.000      -                 -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-014659            2026-04-11  01:46:59  failed        0.0    1      688    61   0.7         1.511   0.000      -                 -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-014631            2026-04-11  01:46:31  failed        0.0    1      688    61   0.6         1.645   0.000      -                 -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-014338            2026-04-11  01:43:38  training      0.4    75     688    61   17.0        4.408   2021.796   1.1465            -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-002850            2026-04-11  00:28:50  training      0.2    28     688    61   7.5         3.727   4578.700   1.5485            -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-001449            2026-04-11  00:14:49  training      6.2    1075   688    61   251.5       4.275   136.798    0.0094            -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260411-001317            2026-04-11  00:13:17  training      0.9    150    688    61   36.1        4.153   952.342    1.2816            -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260410-235124            2026-04-10  23:51:24  training      9.4    1625   688    61   385.1       4.220   89.335     0.0411            -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260410-193512            2026-04-10  19:35:12  completed     50.0   8600   688    61   1975.2      4.354   17.416     0.0002            -      -       -       
+category_prediction  stress_v2  v1-native-byte-transformer-stress-v2-20260410-010938            2026-04-10  01:09:38  completed     50.0   8550   682    61   1928.6      4.433   17.682     0.0003            -      -       -       
+category_prediction  stress     v1-native-byte-transformer-stress-20260410-001955               2026-04-10  00:19:55  completed     50.0   8550   682    61   1896.4      4.509   17.982     0.0001            44     100.0%  100.0%  
+full_response        core       v1-native-byte-transformer-full-response-20260412-031501        2026-04-12  03:15:01  completed     12.0   2196   729    61   804.7       2.729   10.871     0.6446            61     98.4%   67.2%   
+full_response        core       v1-native-byte-transformer-full-response-20260412-025519        2026-04-12  02:55:19  completed     12.0   2196   729    61   797.1       2.755   10.975     0.6145            61     100.0%  78.7%   
+full_response        core       v1-native-byte-transformer-full-response-20260412-025409        2026-04-12  02:54:09  failed        0.0    33     729    61   2.3         0.436   3813.526   8.3697            -      -       -       
+full_response        core       v1-native-byte-transformer-full-response-20260412-023000        2026-04-12  02:30:00  completed     12.0   2196   729    61   891.1       2.464   9.817      0.6357            61     96.7%   68.9%   
+full_response        core       v1-native-byte-transformer-full-response-20260412-022931        2026-04-12  02:29:31  initializing  0.0    0      -      -    0.0         -       -          -                 -      -       -       
+full_response        core       v1-native-byte-transformer-full-response-20260412-020325        2026-04-12  02:03:25  completed     12.0   2196   729    61   888.2       2.472   9.849      0.7063            61     42.6%   18.0%   
+full_response        core       v1-native-byte-transformer-full-response-20260412-000823        2026-04-12  00:08:23  completed     50.0   9150   729    61   3501.4      2.613   10.410     0.1674            61     80.3%   73.8%   
+full_response        core       v1-native-byte-transformer-full-response-20260411-225017        2026-04-11  22:50:17  completed     60.0   10980  729    61   4193.1      2.619   10.432     0.1154            61     80.3%   83.6%   
+full_response        core       v1-native-byte-transformer-full-response-20260411-192836        2026-04-11  19:28:36  completed     100.0  18100  723    61   6986.7      2.591   10.348     0.0189            61     80.3%   90.2%   
+full_response        core       v1-native-byte-transformer-full-response-20260411-141522        2026-04-11  14:15:22  completed     30.0   5430   723    61   2182.4      2.488   9.939      0.4185            61     50.8%   45.9%   
+category_prediction  core       v1-native-byte-transformer-category-prediction-20260412-012834  2026-04-12  01:28:34  completed     50.0   9150   729    61   2013.0      4.545   18.107     0.0001            61     100.0%  100.0%  
+unknown              core       v1-native-byte-transformer-20260409-064838                      2026-04-09  06:48:38  completed     50.0   8450   674    61   2410.4      3.506   13.981     0.0001            61     100.0%  100.0%  
+unknown              core       v1-native-byte-transformer-20260409-061251                      2026-04-09  06:12:51  completed     50.0   8350   668    61   1911.6      4.368   17.472     0.0147            61     100.0%  100.0%  
+unknown              core       v1-native-byte-transformer-20260409-053839                      2026-04-09  05:38:39  completed     50.0   8350   668    61   1914.6      4.361   17.445     0.0000            61     100.0%  96.7%   
+unknown              core       v1-native-byte-transformer-20260409-050340                      2026-04-09  05:03:40  completed     50.0   8350   666    61   1923.3      4.341   17.314     0.0001            61     100.0%  98.4%   
+unknown              core       v1-native-byte-transformer-20260409-042931                      2026-04-09  04:29:31  completed     50.0   8300   662    61   1916.5      4.331   17.271     0.0000            61     100.0%  96.7%   
+unknown              core       v1-native-byte-transformer-20260409-035423                      2026-04-09  03:54:23  completed     50.0   8250   659    61   1926.0      4.283   17.108     0.0000            61     100.0%  95.1%   
+unknown              core       v1-native-byte-transformer-20260409-031956                      2026-04-09  03:19:56  completed     50.0   8200   653    61   1903.9      4.307   17.149     0.0000            61     100.0%  98.4%   
+unknown              core       v1-native-byte-transformer-20260409-024352                      2026-04-09  02:43:52  completed     50.0   8150   649    61   1888.7      4.315   17.181     0.0002            61     100.0%  100.0%  
+unknown              core       v1-native-byte-transformer-20260409-020931                      2026-04-09  02:09:31  completed     50.0   8100   646    61   1884.8      4.297   17.137     0.0003            61     100.0%  98.4%   
+unknown              core       v1-native-byte-transformer-20260409-013607                      2026-04-09  01:36:07  completed     50.0   8000   640    61   1867.0      4.285   17.140     0.0001            61     100.0%  100.0%  
+unknown              core       v1-native-byte-transformer-20260409-010347                      2026-04-09  01:03:47  completed     50.0   7950   636    61   1769.0      4.494   17.976     0.0001            61     100.0%  96.7%   
+unknown              core       v1-native-byte-transformer-20260409-003143                      2026-04-09  00:31:43  completed     50.0   7950   634    61   1780.1      4.466   17.808     0.0001            61     100.0%  96.7%   
+unknown              core       v1-native-byte-transformer-20260408-231927                      2026-04-08  23:19:27  completed     50.0   7900   630    61   1855.2      4.258   16.979     0.0000            61     100.0%  93.4%   
+unknown              core       v1-native-byte-transformer-20260408-222817                      2026-04-08  22:28:17  completed     50.0   7900   630    61   1727.0      4.574   18.240     0.0001            61     100.0%  95.1%   
+unknown              core       v1-native-byte-transformer-20260408-215455                      2026-04-08  21:54:55  completed     50.0   7850   625    61   1732.2      4.532   18.041     0.0000            61     100.0%  91.8%   
+unknown              core       v1-native-byte-transformer-20260408-205740                      2026-04-08  20:57:40  completed     30.0   4590   610    61   972.5       4.720   18.817     0.0001            61     100.0%  91.8%   
+unknown              core       v1-native-byte-transformer-20260408-171023                      2026-04-08  17:10:23  completed     30.0   4590   610    61   1020.2      4.499   17.938     0.0004            61     98.4%   90.2%   
+unknown              core       v1-native-byte-transformer-20260408-154229                      2026-04-08  15:42:29  completed     100.0  15200  608    61   3441.7      4.416   17.666     0.0000            61     100.0%  96.7%   
+unknown              core       v1-native-byte-transformer-20260408-151923                      2026-04-08  15:19:23  completed     6.0    912    608    61   213.1       4.279   17.116     0.0933            61     98.4%   65.6%   
+unknown              core       v1-native-byte-transformer-20260408-150732                      2026-04-08  15:07:32  completed     6.0    912    608    61   229.2       3.979   15.914     0.0936            61     98.4%   65.6%   
+unknown              core       v1-native-byte-transformer-20260408-143144                      2026-04-08  14:31:44  completed     30.0   4560   608    61   1001.4      4.554   18.215     0.0001            61     100.0%  96.7%   
+unknown              core       v1-native-byte-transformer-20260408-142440                      2026-04-08  14:24:40  completed     6.0    912    608    61   215.8       4.225   16.901     0.0937            61     98.4%   65.6%   
+unknown              core       v1-native-byte-transformer-20260408-113704                      2026-04-08  11:37:04  completed     6.0    876    584    61   212.1       4.131   16.524     0.1523            61     86.9%   60.7%   
+unknown              core       v1-native-byte-transformer-20260408-112921                      2026-04-08  11:29:21  completed     6.0    888    589    61   200.5       4.429   17.625     0.0475            61     100.0%  65.6%   
+unknown              core       v1-native-byte-transformer-20260408-112232                      2026-04-08  11:22:32  completed     6.0    888    589    61   199.7       4.447   17.699     0.0506            61     98.4%   68.9%   
+unknown              core       v1-native-byte-transformer-20260408-111602                      2026-04-08  11:16:02  completed     6.0    870    580    61   196.8       4.420   17.682     0.0417            61     100.0%  73.8%   
+unknown              core       v1-native-byte-transformer-20260408-105250                      2026-04-08  10:52:50  completed     6.0    864    573    61   207.8       4.158   16.546     0.0297            61     100.0%  75.4%   
+unknown              core       v1-native-byte-transformer-20260408-104354                      2026-04-08  10:43:54  completed     6.0    852    566    61   202.5       4.208   16.772     0.0144            61     100.0%  72.1%   
+unknown              core       v1-native-byte-transformer-20260408-103629                      2026-04-08  10:36:29  completed     6.0    846    562    60   199.9       4.231   16.865     0.1420            61     95.1%   78.7%   
+unknown              core       v1-native-byte-transformer-20260408-103015                      2026-04-08  10:30:15  completed     6.0    834    556    60   198.1       4.209   16.837     0.0234            61     86.9%   72.1%   
+unknown              core       v1-native-byte-transformer-20260408-102322                      2026-04-08  10:23:22  completed     6.0    870    580    60   206.5       4.213   16.852     0.0312            61     88.5%   67.2%   
+unknown              core       v1-native-byte-transformer-20260408-101636                      2026-04-08  10:16:36  completed     6.0    852    568    60   202.2       4.213   16.852     0.0904            61     100.0%  75.4%   
+unknown              core       v1-native-byte-transformer-20260408-100929                      2026-04-08  10:09:29  completed     6.0    834    554    59   199.1       4.189   16.696     0.0362            61     90.2%   68.9%   
+unknown              core       v1-native-byte-transformer-20260408-100229                      2026-04-08  10:02:29  completed     6.0    816    542    59   188.5       4.329   17.254     0.0429            61     93.4%   54.1%   
+unknown              core       v1-native-byte-transformer-20260408-095625                      2026-04-08  09:56:25  completed     6.0    804    535    58   182.8       4.398   17.559     0.0337            61     100.0%  55.7%   
+unknown              core       v1-native-byte-transformer-20260408-094822                      2026-04-08  09:48:22  completed     6.0    804    533    58   188.0       4.277   17.014     0.0096            61     96.7%   57.4%   
+unknown              core       v1-native-byte-transformer-20260408-004257                      2026-04-08  00:42:57  completed     6.0    804    533    58   208.9       3.848   15.306     0.0096            61     96.7%   57.4%   
+unknown              core       v1-native-byte-transformer-20260408-003604                      2026-04-08  00:36:04  completed     6.0    798    529    57   207.7       3.843   15.284     0.0339            61     100.0%  63.9%   
+unknown              core       v1-native-byte-transformer-20260408-002916                      2026-04-08  00:29:16  completed     6.0    804    533    57   219.1       3.669   14.595     0.0117            61     91.8%   52.5%   
+unknown              core       v1-native-byte-transformer-20260408-002124                      2026-04-08  00:21:24  completed     6.0    804    533    57   198.0       4.061   16.154     0.0117            61     91.8%   52.5%   
+unknown              core       v1-native-byte-transformer-20260408-001434                      2026-04-08  00:14:34  completed     6.0    786    523    56   195.5       4.021   16.055     0.0519            61     100.0%  57.4%   
+unknown              core       v1-native-byte-transformer-20260408-000823                      2026-04-08  00:08:23  completed     6.0    768    509    55   193.7       3.964   15.764     0.1835            61     95.1%   60.7%   
+unknown              core       v1-native-byte-transformer-20260408-000003                      2026-04-08  00:00:03  completed     6.0    750    498    54   192.8       3.890   15.498     0.2421            61     83.6%   54.1%   
+unknown              core       v1-native-byte-transformer-20260407-235525                      2026-04-07  23:55:25  completed     6.0    750    498    54   180.3       4.160   16.575     0.2422            61     83.6%   54.1%   
+unknown              core       v1-native-byte-transformer-20260407-234921                      2026-04-07  23:49:21  completed     6.0    750    498    54   183.0       4.097   16.323     0.2422            61     83.6%   54.1%   
+unknown              core       v1-native-byte-transformer-20260407-234034                      2026-04-07  23:40:34  completed     6.0    750    498    54   183.3       4.092   16.301     0.2421            61     83.6%   54.1%   
+unknown              core       v1-native-byte-transformer-20260407-232403                      2026-04-07  23:24:03  completed     6.0    750    498    54   179.4       4.180   16.651     0.2421            61     83.6%   54.1%   
+unknown              core       v1-native-byte-transformer-20260407-231552                      2026-04-07  23:15:52  completed     6.0    750    498    54   182.4       4.113   16.386     0.2421            61     83.6%   54.1%   
+unknown              core       v1-native-byte-transformer-20260407-230050                      2026-04-07  23:00:50  completed     6.0    726    482    52   175.8       4.130   16.452     0.0238            61     91.8%   42.6%   
+unknown              core       v1-native-byte-transformer-20260407-225130                      2026-04-07  22:51:30  completed     6.0    726    482    52   217.6       3.336   13.290     4.2861            61     0.0%    0.0%    
+unknown              core       v1-native-byte-transformer-20260407-224528                      2026-04-07  22:45:28  completed     6.0    726    482    52   172.3       4.213   16.782     0.0238            61     91.8%   42.6%   
+unknown              core       v1-native-byte-transformer-20260407-224123                      2026-04-07  22:41:23  completed     6.0    726    482    52   175.4       4.139   16.489     0.0239            61     91.8%   42.6%   
+unknown              core       v1-native-byte-transformer-20260407-222929                      2026-04-07  22:29:29  completed     6.0    684    455    48   166.1       4.119   16.439     0.2772            61     83.6%   42.6%   
+unknown              core       v1-native-byte-transformer-20260407-222417                      2026-04-07  22:24:17  completed     6.0    684    455    48   165.0       4.145   16.543     0.2773            61     83.6%   42.6%   
+unknown              core       v1-native-byte-transformer-20260407-221841                      2026-04-07  22:18:41  completed     6.0    684    455    48   249.0       2.747   10.965     0.2773            61     83.6%   42.6%   
+unknown              core       v1-native-byte-transformer-20260407-221625                      2026-04-07  22:16:25  completed     4.0    228    455    48   53.5        4.264   34.036     0.9460            61     21.3%   8.2%    
+unknown              core       v1-native-byte-transformer-20260407-221434                      2026-04-07  22:14:34  completed     4.0    116    455    48   27.9        4.152   65.146     1.5292            61     6.6%    4.9%    
+unknown              core       v1-native-byte-transformer-20260407-221150                      2026-04-07  22:11:50  completed     4.0    116    455    48   38.8        2.991   46.927     1.1214            61     26.2%   4.9%    
+unknown              core       v1-native-byte-transformer-20260407-215646                      2026-04-07  21:56:46  completed     4.0    116    455    48   230.9       0.502   7.882      2.3738            61     0.0%    0.0%    
+unknown              core       v1-native-byte-transformer-20260407-214307                      2026-04-07  21:43:07  completed     4.0    112    448    48   608.0       0.184   2.947      2.3449            61     0.0%    0.0%    
+unknown              core       v1-native-byte-transformer-20260407-202615                      2026-04-07  20:26:15  completed     12.0   336    448    48   886.2       0.379   6.066      nan               61     0.0%    0.0%    
+unknown              core       v1-native-byte-transformer-20260407-200837                      2026-04-07  20:08:37  completed     12.0   336    448    48   875.5       0.384   6.140      0.0002            61     0.0%    0.0%    
+
+Note: benchmark columns reflect the current saved report for each run.
+If you re-ran evaluation with a different benchmark file, the report may have been overwritten.
+CSV summary: experiments\training_runs_summary.csv
+
+codex
+Iâ€™m making one targeted config change: switch full-response stageâ€‘2 init to the latest full-response run so the next train continues from the most JSON-stable checkpoint instead of re-anchoring on category prediction every time.
+apply patch
+patch: completed
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\configs\v1_native_byte_transformer_config.json
+diff --git a/models/configs/v1_native_byte_transformer_config.json b/models/configs/v1_native_byte_transformer_config.json
+index e79100a57fe373fcb235dcc34e0f71ed2a786633..c9d38ef8fc139d91ddf720c56f8c35052ac86a3e
+--- a/models/configs/v1_native_byte_transformer_config.json
++++ b/models/configs/v1_native_byte_transformer_config.json
+@@ -2,7 +2,7 @@
+   "output_dir": "models/runs/v1-native-byte-transformer-full-response",
+   "train_file": "data/processed/train_full_response_sft.jsonl",
+   "validation_file": "data/processed/validation_full_response_sft.jsonl",
+-  "init_from_model_path": "latest:core:category_prediction",
++  "init_from_model_path": "latest:core:full_response",
+   "device_preference": ["hip", "cuda", "directml", "cpu"],
+   "seed": 11,
+   "num_train_epochs": 12,
+
+diff --git a/models/configs/v1_native_byte_transformer_config.json b/models/configs/v1_native_byte_transformer_config.json
+index e79100a57fe373fcb235dcc34e0f71ed2a786633..c9d38ef8fc139d91ddf720c56f8c35052ac86a3e
+--- a/models/configs/v1_native_byte_transformer_config.json
++++ b/models/configs/v1_native_byte_transformer_config.json
+@@ -2,7 +2,7 @@
+   "output_dir": "models/runs/v1-native-byte-transformer-full-response",
+   "train_file": "data/processed/train_full_response_sft.jsonl",
+   "validation_file": "data/processed/validation_full_response_sft.jsonl",
+-  "init_from_model_path": "latest:core:category_prediction",
++  "init_from_model_path": "latest:core:full_response",
+   "device_preference": ["hip", "cuda", "directml", "cpu"],
+   "seed": 11,
+   "num_train_epochs": 12,
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\configs\\v1_native_byte_transformer_config.json -Raw | ConvertFrom-Json | Select-Object init_from_model_path,output_dir,train_file | Format-List" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command ". .\\scripts\\command_type_helpers.ps1; Get-AiLanguageCoreLatestCompletedRunPath -RepoRoot (Resolve-Path .).Path -TypeName core -CategoryName full_response" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 219ms:
+
+
+init_from_model_path : latest:core:full_response
+output_dir           : models/runs/v1-native-byte-transformer-full-response
+train_file           : data/processed/train_full_response_sft.jsonl
+
+
+
+
+ succeeded in 313ms:
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-031501
+
+diff --git a/models/configs/v1_native_byte_transformer_config.json b/models/configs/v1_native_byte_transformer_config.json
+index e79100a57fe373fcb235dcc34e0f71ed2a786633..c9d38ef8fc139d91ddf720c56f8c35052ac86a3e
+--- a/models/configs/v1_native_byte_transformer_config.json
++++ b/models/configs/v1_native_byte_transformer_config.json
+@@ -2,7 +2,7 @@
+   "output_dir": "models/runs/v1-native-byte-transformer-full-response",
+   "train_file": "data/processed/train_full_response_sft.jsonl",
+   "validation_file": "data/processed/validation_full_response_sft.jsonl",
+-  "init_from_model_path": "latest:core:category_prediction",
++  "init_from_model_path": "latest:core:full_response",
+   "device_preference": ["hip", "cuda", "directml", "cpu"],
+   "seed": 11,
+   "num_train_epochs": 12,
+
+codex
+The config is updated and valid, and the resolver now points to `...full-response-20260412-031501` for the next run. Iâ€™ll provide a concise handoff with the exact file touched.
+codex
+Latest run (`2026-04-12 03:15:01`) had `valid_output_rate=0.9836` with one JSON-key typo case and `response_type_accuracy=0.6721`, so the highest-signal next step is stabilizing continuation, not retargeting data.
+Changed stage-2 init for full-response training to continue from the latest full-response checkpoint instead of re-initializing from category-prediction each run.
+This preserves tokenizer/embedding/output-head compatibility already implemented in `load_stage2_weights` while reducing iteration-to-iteration drift.
+Files touched: `models/configs/v1_native_byte_transformer_config.json`
+AUTOMATION_DECISION: CONTINUE
+diff --git a/models/configs/v1_native_byte_transformer_config.json b/models/configs/v1_native_byte_transformer_config.json
+index e79100a57fe373fcb235dcc34e0f71ed2a786633..c9d38ef8fc139d91ddf720c56f8c35052ac86a3e
+--- a/models/configs/v1_native_byte_transformer_config.json
++++ b/models/configs/v1_native_byte_transformer_config.json
+@@ -2,7 +2,7 @@
+   "output_dir": "models/runs/v1-native-byte-transformer-full-response",
+   "train_file": "data/processed/train_full_response_sft.jsonl",
+   "validation_file": "data/processed/validation_full_response_sft.jsonl",
+-  "init_from_model_path": "latest:core:category_prediction",
++  "init_from_model_path": "latest:core:full_response",
+   "device_preference": ["hip", "cuda", "directml", "cpu"],
+   "seed": 11,
+   "num_train_epochs": 12,
+
+tokens used
+41,790
