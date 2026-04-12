@@ -1,0 +1,5 @@
+Changed Stage-2 vocab transfer to avoid random initialization for tokenizer rows that don’t exist in the init checkpoint: `remap_vocab_matrix(...)` now seeds unmapped target rows from the source model’s unknown-token embedding, then applies normal token-id remaps.  
+This directly addresses tokenizer compatibility drift (`init_from_model_path` with different vocab) while prioritizing stable JSON/response_type behavior before wording improvements.  
+File touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)  
+`py_compile` passed for the updated script.  
+AUTOMATION_DECISION: CONTINUE

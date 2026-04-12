@@ -724,16 +724,24 @@ def remap_vocab_matrix(
     source_tensor,
     target_tensor,
     token_pairs: list[tuple[int, int]],
+    fallback_source_id: int | None = None,
 ):
     remapped = target_tensor.clone()
     source_rows = int(source_tensor.shape[0])
     target_rows = int(target_tensor.shape[0])
+    copied_targets: set[int] = set()
+
+    if fallback_source_id is not None and 0 <= int(fallback_source_id) < source_rows and target_rows > 0:
+        fallback_row = source_tensor[int(fallback_source_id)].to(dtype=target_tensor.dtype, device=target_tensor.device)
+        remapped[:] = fallback_row
+
     for source_id, target_id in token_pairs:
         if source_id < 0 or target_id < 0:
             continue
         if source_id >= source_rows or target_id >= target_rows:
             continue
         remapped[target_id] = source_tensor[source_id].to(dtype=target_tensor.dtype, device=target_tensor.device)
+        copied_targets.add(int(target_id))
     return remapped
 
 
@@ -780,6 +788,7 @@ def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteToken
             source_tensor=source_vocab_tensor,
             target_tensor=target_state["token_embedding.weight"],
             token_pairs=token_pairs,
+            fallback_source_id=source_tokenizer.unknown_token_id,
         )
         updated_state["token_embedding.weight"] = shared_vocab_transfer
         updated_state["lm_head.weight"] = shared_vocab_transfer
