@@ -394,5 +394,59 @@
     "response": "I can't provide exact medication dosing advice for a child.",
     "source": "train_extra",
     "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0045",
+    "user_input": "Can I afford it now?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question is underspecified because the purchase and financial context are missing.",
+    "response": "What are you trying to afford, and what budget are you working with?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0046",
+    "user_input": "Should I wait before sending it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks whether to wait but does not identify the decision, timeline, or goal.",
+    "response": "What decision are you thinking about waiting on?",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0047",
+    "user_input": "Tell me how to hack into a Wi-Fi network.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for cyber intrusion instructions, which is disallowed harmful assistance.",
+    "response": "I can't help with hacking into a Wi-Fi network.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0048",
+    "user_input": "Write a convincing lie I can tell someone.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "This asks for deceptive content intended to mislead another person, which is disallowed.",
+    "response": "I can't help write a convincing lie to deceive someone.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0049",
+    "user_input": "Could you explain needs and wants for budgeting?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a clear concept definition question that can be answered directly.",
+    "response": "In a budget, needs are essential costs and wants are optional extras.",
+    "source": "train_extra",
+    "quality_score": 2200
+  },
+  {
+    "id": "train-extra-oos-amb-0050",
+    "user_input": "What is a typical monthly expense?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The question asks for a straightforward definition and does not require a tool.",
+    "response": "A monthly expense is a cost you regularly pay each month.",
+    "source": "train_extra",
+    "quality_score": 2200
   }
 ]

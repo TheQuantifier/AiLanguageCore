@@ -1,0 +1,11 @@
+Applied one narrow, boundary-focused improvement for the next `core/full_response` train iteration.
+
+I analyzed the latest run/report and targeted the weak type boundaries (short ambiguous prompts vs direct answers, and harmful requests vs clarification/direct) by adding 6 near-boundary training examples to the OOS/ambiguity pack, then regenerated SFT train files so the next training run consumes them.
+
+Files changed:
+- [data/processed/train_oos_ambiguity_boundary_pack.json](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_oos_ambiguity_boundary_pack.json)
+- [data/processed/train_full_response_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_full_response_sft.jsonl)
+- [data/processed/train_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_sft.jsonl)
+- [data/processed/train_category_prediction_sft.jsonl](C:/Users/jhand/Documents/Github/AiLanguageCore/data/processed/train_category_prediction_sft.jsonl)
+
+AUTOMATION_DECISION: CONTINUE
