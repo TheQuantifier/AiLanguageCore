@@ -1,9 +1,9 @@
 {
-    "iteration_label":  "improve",
+    "iteration_label":  "001",
     "phase":  "decision",
-    "timestamp":  "2026-04-11 22:50:02",
+    "timestamp":  "2026-04-12 03:14:58",
     "note":  "Codex decision: CONTINUE",
-    "workflow":  "codex -\u003e decision",
+    "workflow":  "train -\u003e benchmark -\u003e codex -\u003e decision",
     "stage":  {
                   "current":  "decision",
                   "index":  5,
@@ -19,14 +19,14 @@
                                 "failed"
                             ]
               },
-    "training_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260411-192836\\training_status.json",
-    "benchmark_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260411-192836\\benchmark_status.json",
+    "training_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-025519\\training_status.json",
+    "benchmark_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-025519\\benchmark_status.json",
     "benchmark_size":  61,
     "nonempty_output_count":  61,
-    "valid_output_count":  49,
-    "correct_response_type_count":  55,
-    "items_per_sec":  0.20306879500486155,
-    "valid_output_rate":  0.80327868852459017,
-    "response_type_accuracy":  0.90163934426229519,
-    "benchmark_report":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260411-192836.json"
+    "valid_output_count":  61,
+    "correct_response_type_count":  48,
+    "items_per_sec":  0.2184841220604154,
+    "valid_output_rate":  1,
+    "response_type_accuracy":  0.78688524590163933,
+    "benchmark_report":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-025519.json"
 }

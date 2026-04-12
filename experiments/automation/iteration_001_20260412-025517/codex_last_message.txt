@@ -1,0 +1,5 @@
+Latest run is train-ready for another iteration: JSON/full-response validity is stable (`valid_output_rate=1.0`, `valid_json_rate=1.0`), with headroom only in response-type accuracy (`0.7869`).
+I made one narrow Stage-2 transfer improvement: when `init_from_model_path` has a different `max_seq_length`, `position_embedding.weight` is now partially copied by overlapping rows instead of being skipped.
+This preserves tokenizer/embedding/output-head stability while improving initialization quality for the next full-response train.
+Files touched: `scripts/train_native_model.py` (added `transfer_position_embedding(...)` and wired it into `load_stage2_weights(...)`).
+AUTOMATION_DECISION: CONTINUE

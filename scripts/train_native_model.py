@@ -159,6 +159,98 @@ def load_json(path: Path) -> dict:
         return json.load(handle)
 
 
+def infer_run_category(run_dir: Path) -> str:
+    training_config_path = run_dir / "training_config.json"
+    if training_config_path.exists():
+        try:
+            training_config = load_json(training_config_path)
+            train_file = str(training_config.get("train_file", ""))
+            benchmark_file = str(training_config.get("benchmark_file", ""))
+            if "full_response" in train_file or "full_response" in benchmark_file:
+                return "full_response"
+            if "category_prediction" in train_file or "category_prediction" in benchmark_file:
+                return "category_prediction"
+        except Exception:
+            pass
+
+    run_name = run_dir.name
+    if "full-response" in run_name:
+        return "full_response"
+    if "category-prediction" in run_name:
+        return "category_prediction"
+    return "category_prediction"
+
+
+def infer_run_type(run_dir: Path) -> str:
+    training_config_path = run_dir / "training_config.json"
+    if training_config_path.exists():
+        try:
+            training_config = load_json(training_config_path)
+            combined = " ".join(
+                str(training_config.get(key, "")) for key in ("train_file", "validation_file", "benchmark_file", "output_dir")
+            ).lower()
+            if "stress_v2" in combined or "stress-v2" in combined:
+                return "stress_v2"
+            if "stress" in combined:
+                return "stress"
+        except Exception:
+            pass
+
+    run_name = run_dir.name.lower()
+    if "-stress-v2-" in run_name:
+        return "stress_v2"
+    if "-stress-" in run_name:
+        return "stress"
+    return "core"
+
+
+def find_latest_completed_run(repo_root: Path, type_name: str | None, category_name: str | None) -> Path:
+    runs_root = repo_root / "models" / "runs"
+    status_paths = sorted(
+        runs_root.rglob("training_status.json"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+    for status_path in status_paths:
+        try:
+            run_dir = status_path.parent
+            if not (run_dir / "model.pt").exists():
+                continue
+            status = load_json(status_path)
+            if int(status.get("global_step", 0)) <= 0:
+                continue
+            if type_name and infer_run_type(run_dir) != type_name:
+                continue
+            if category_name and infer_run_category(run_dir) != category_name:
+                continue
+            return run_dir
+        except Exception:
+            continue
+
+    raise FileNotFoundError(
+        f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"
+    )
+
+
+def resolve_init_model_path(path_value: str | Path | None, repo_root: Path) -> Path | None:
+    if not path_value:
+        return None
+    value = str(path_value).strip()
+    if not value:
+        return None
+    if value.startswith("latest:"):
+        parts = value.split(":")
+        try:
+            if len(parts) == 2:
+                return find_latest_completed_run(repo_root, None, parts[1])
+            if len(parts) == 3:
+                return find_latest_completed_run(repo_root, parts[1], parts[2])
+        except FileNotFoundError:
+            return None
+        raise ValueError("init_from_model_path must use latest:<category> or latest:<type>:<category>")
+    return resolve_path(value, repo_root)
+
+
 def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
     parts = []
     for message in messages:
@@ -457,6 +549,114 @@ def build_cpu_state_dict(model) -> dict:
     return {name: tensor.detach().cpu() for name, tensor in model.state_dict().items()}
 
 
+def build_token_id_remap(source_tokenizer: ByteTokenizer, target_tokenizer: ByteTokenizer) -> list[tuple[int, int]]:
+    pairs: list[tuple[int, int]] = []
+
+    for char, source_id in source_tokenizer.char_to_id.items():
+        target_id = target_tokenizer.char_to_id.get(char)
+        if target_id is not None:
+            pairs.append((source_id, target_id))
+
+    special_pairs = [
+        (source_tokenizer.pad_token_id, target_tokenizer.pad_token_id),
+        (source_tokenizer.bos_token_id, target_tokenizer.bos_token_id),
+        (source_tokenizer.eos_token_id, target_tokenizer.eos_token_id),
+    ]
+    for source_id, target_id in special_pairs:
+        pairs.append((int(source_id), int(target_id)))
+
+    unique_pairs: list[tuple[int, int]] = []
+    seen_targets: set[int] = set()
+    for source_id, target_id in pairs:
+        if target_id in seen_targets:
+            continue
+        seen_targets.add(target_id)
+        unique_pairs.append((int(source_id), int(target_id)))
+    return unique_pairs
+
+
+def remap_vocab_matrix(
+    source_tensor,
+    target_tensor,
+    token_pairs: list[tuple[int, int]],
+):
+    remapped = target_tensor.clone()
+    source_rows = int(source_tensor.shape[0])
+    target_rows = int(target_tensor.shape[0])
+    for source_id, target_id in token_pairs:
+        if source_id < 0 or target_id < 0:
+            continue
+        if source_id >= source_rows or target_id >= target_rows:
+            continue
+        remapped[target_id] = source_tensor[source_id].to(dtype=target_tensor.dtype, device=target_tensor.device)
+    return remapped
+
+
+def transfer_position_embedding(source_tensor, target_tensor):
+    transferred = target_tensor.clone()
+    if len(source_tensor.shape) != 2 or len(target_tensor.shape) != 2:
+        return transferred
+    if int(source_tensor.shape[1]) != int(target_tensor.shape[1]):
+        return transferred
+
+    rows_to_copy = min(int(source_tensor.shape[0]), int(target_tensor.shape[0]))
+    if rows_to_copy <= 0:
+        return transferred
+    transferred[:rows_to_copy] = source_tensor[:rows_to_copy].to(
+        dtype=target_tensor.dtype,
+        device=target_tensor.device,
+    )
+    return transferred
+
+
+def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteTokenizer, torch_module) -> dict[str, object]:
+    state_path = init_model_dir / "model.pt"
+    if not state_path.exists():
+        raise FileNotFoundError(f"Initial model checkpoint not found: {state_path}")
+
+    source_state = torch_module.load(state_path, map_location="cpu", weights_only=False)
+    source_tokenizer = ByteTokenizer.from_config(load_json(init_model_dir / "tokenizer_config.json"))
+    token_pairs = build_token_id_remap(source_tokenizer, target_tokenizer)
+    target_state = model.state_dict()
+    updated_state = dict(target_state)
+    loaded_names: list[str] = []
+    skipped_names: list[str] = []
+
+    for name, tensor in source_state.items():
+        if name not in target_state:
+            skipped_names.append(name)
+            continue
+        if target_state[name].shape == tensor.shape:
+            updated_state[name] = tensor
+            loaded_names.append(name)
+            continue
+        if name in {"token_embedding.weight", "lm_head.weight"}:
+            if len(target_state[name].shape) == 2 and len(tensor.shape) == 2 and int(target_state[name].shape[1]) == int(tensor.shape[1]):
+                updated_state[name] = remap_vocab_matrix(
+                    source_tensor=tensor,
+                    target_tensor=target_state[name],
+                    token_pairs=token_pairs,
+                )
+                loaded_names.append(name)
+                continue
+        if name == "position_embedding.weight":
+            updated_state[name] = transfer_position_embedding(
+                source_tensor=tensor,
+                target_tensor=target_state[name],
+            )
+            loaded_names.append(name)
+            continue
+        skipped_names.append(name)
+
+    model.load_state_dict(updated_state)
+    return {
+        "loaded_count": len(loaded_names),
+        "skipped_count": len(skipped_names),
+        "loaded_names": loaded_names,
+        "skipped_names": skipped_names,
+    }
+
+
 class DirectMLAdamW:
     def __init__(
         self,
@@ -645,6 +845,7 @@ def main() -> int:
     max_seq_length = int(config["max_seq_length"])
     train_examples = build_examples(train_rows, tokenizer, max_seq_length)
     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
+    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
 
     class CausalSelfAttention(nn.Module):
         def __init__(self, hidden_size: int, num_heads: int, dropout: float):
@@ -751,6 +952,21 @@ def main() -> int:
         f"dropout={float(config['dropout'])}"
     )
     model = NativeTransformerLM(config).to(device)
+    if init_model_dir is not None:
+        init_summary = load_stage2_weights(model, init_model_dir, tokenizer, torch)
+        config["init_from_model_path_resolved"] = str(init_model_dir)
+        print(f"Stage-2 initialization: {init_model_dir}")
+        print(
+            "Initialized matching weights: "
+            f"loaded={init_summary['loaded_count']}, "
+            f"skipped={init_summary['skipped_count']} "
+            "(token embeddings and output head are remapped when tokenizer vocab differs)"
+        )
+    elif config.get("init_from_model_path"):
+        print(
+            "Stage-2 initialization: no matching prior run found for "
+            f"{config.get('init_from_model_path')}; starting from scratch."
+        )
     optimizer, optimizer_label = create_optimizer(torch, model, config, device_label)
     print(f"Optimizer: {optimizer_label}")
     print(

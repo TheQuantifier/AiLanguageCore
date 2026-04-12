@@ -1,0 +1,112 @@
+OpenAI Codex v0.119.0-alpha.28 (research preview)
+--------
+workdir: C:\Users\jhand\Documents\Github\AiLanguageCore
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR, C:\Users\jhand\.codex\memories]
+reasoning effort: medium
+reasoning summaries: none
+session id: 019d7fdf-cee6-7d70-a3de-cefb66ddcd19
+--------
+user
+Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.
+
+You are running inside the AiLanguageCore repository.
+The training command has just completed successfully.
+Inspect the latest native run under models/runs and its benchmark report under experiments.
+Make the next improvement directly in the repo so the next training iteration is the best next step.
+Current training type: core
+Current training category: full_response
+Current benchmark summary:
+- valid_output_rate: 0.80327868852459
+- response_type_accuracy: 0.836065573770492
+- benchmark_report: C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260411-225017.json
+
+Rules:
+- Work only on the next most important improvement.
+- Prioritize improving classification accuracy on the current weak boundaries over changing output formatting.
+- Avoid retrying class-balanced loss unless you have new evidence it is the right fix.
+- Keep changes narrow and comparable so the next training run is an informative experiment.
+- In your final response, summarize the change briefly and list the files changed, but do not print a full diff.
+- If training should continue after your change, end your final message with exactly: AUTOMATION_DECISION: CONTINUE
+- If the automation loop should stop, end your final message with exactly: AUTOMATION_DECISION: STOP
+
+codex
+I’m going to inspect the latest completed native run and the referenced benchmark report, identify the weakest classification boundary in `core/full_response`, then apply one narrow code/data change so the next training iteration is maximally informative. I’ll start by locating the latest run artifacts and config used for that run.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path models/runs -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 5 | Format-Table Name,LastWriteTime -AutoSize' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path experiments -File | Sort-Object LastWriteTime -Descending | Select-Object -First 20 | Format-Table Name,LastWriteTime -AutoSize' in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 211ms:
+
+Name                                                     LastWriteTime        
+----                                                     -------------        
+v1-native-byte-transformer-full-response-20260411-225017 4/12/2026 12:00:12 AM
+v1-native-byte-transformer-full-response-20260411-192836 4/11/2026 9:25:05 PM 
+v1-native-byte-transformer-full-response-20260411-141522 4/11/2026 2:51:47 PM 
+v1-native-byte-transformer-stress-v2-20260411-043740     4/11/2026 4:59:11 AM 
+v1-native-byte-transformer-stress-v2-20260411-041405     4/11/2026 4:35:21 AM 
+
+
+
+ succeeded in 211ms:
+
+Name                                                                           LastWriteTime        
+----                                                                           -------------        
+training_runs_summary.csv                                                      4/12/2026 12:04:32 AM
+benchmark_report-v1-native-byte-transformer-full-response-20260411-225017.json 4/12/2026 12:04:31 AM
+benchmark_report-v1-native-byte-transformer-full-response-20260411-192836.json 4/11/2026 9:30:06 PM 
+benchmark_report-v1-native-byte-transformer-full-response-20260411-141522.json 4/11/2026 2:56:46 PM 
+benchmark_report-v1-native-byte-transformer-stress-v2-20260411-043740.json     4/11/2026 4:59:18 AM 
+benchmark_report-v1-native-byte-transformer-stress-v2-20260411-041405.json     4/11/2026 4:35:29 AM 
+benchmark_report-v1-native-byte-transformer-stress-v2-20260411-035057.json     4/11/2026 4:12:04 AM 
+benchmark_report-v1-native-byte-transformer-stress-v2-20260411-032659.json     4/11/2026 3:47:45 AM 
+benchmark_report-v1-native-byte-transformer-stress-v2-20260411-030458.json     4/11/2026 3:25:11 AM 
+benchmark_report-v1-native-byte-transformer-stress-v2-20260411-024217.json     4/11/2026 3:02:55 AM 
+benchmark_report-v1-native-byte-transformer-stress-v2-20260411-022206.json     4/11/2026 2:28:42 AM 
+benchmark_report-v1-native-byte-transformer-stress-v2-20260411-021131.json     4/11/2026 2:19:21 AM 
+benchmark_report-v1-native-byte-transformer-stress-v2-20260411-020616.json     4/11/2026 2:17:56 AM 
+benchmark_report-v1-native-byte-transformer-stress-v2-20260411-014902.json     4/11/2026 1:55:24 AM 
+baselines.md                                                                   4/10/2026 1:03:55 AM 
+benchmark_report-v1-native-byte-transformer-stress-20260410-001955.json        4/10/2026 12:51:46 AM
+benchmark_report-v1-native-byte-transformer-20260409-064838.json               4/10/2026 12:17:20 AM
+benchmark_report-v1-native-byte-transformer-20260409-061251.json               4/9/2026 6:44:42 AM  
+benchmark_report-v1-native-byte-transformer-20260409-053839.json               4/9/2026 6:10:33 AM  
+benchmark_report-v1-native-byte-transformer-20260409-050340.json               4/9/2026 5:35:43 AM  
+
+
+
+codex
+I found the latest run and report; next I’m extracting per-class metrics and confusion details from that report to pinpoint the single highest-impact boundary to target.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command '$p='"'experiments/benchmark_report-v1-native-byte-transformer-full-response-20260411-225017.json'; "'$j=Get-Content $p -Raw | ConvertFrom-Json; $j | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command '$p='"'experiments/benchmark_report-v1-native-byte-transformer-full-response-20260411-225017.json'; "'$j=Get-Content $p -Raw | ConvertFrom-Json; if($j.summary){$j.summary | ConvertTo-Json -Depth 10}else{'"'<no summary>'}" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 215ms:
+<no summary>
+
+ succeeded in 216ms:
+benchmark_category
+benchmark_file
+benchmark_size
+benchmark_type
+correct_response_type_count
+elapsed_seconds
+items_per_sec
+nonempty_output_count
+nonempty_output_rate
+response_type_accuracy
+results
+training_category
+training_type
+valid_full_response_count
+valid_full_response_rate
+valid_json_count
+valid_json_rate
+valid_output_count
+valid_output_rate
+
+turn interrupted
+tokens used
+11,788

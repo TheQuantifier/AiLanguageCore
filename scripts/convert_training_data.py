@@ -9,7 +9,8 @@ LABEL_ONLY_SYSTEM_PROMPT = "Reply with exactly one label: DIRECT_ANSWER, CLARIFI
 FULL_RESPONSE_SYSTEM_PROMPT = (
     "Reply with valid JSON using exactly these keys: "
     "response_type, reason, response. "
-    "response_type must be one of DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."
+    "response_type must be one of DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE. "
+    "Keep reason and response to one short, well-formed sentence each."
 )
 NATIVE_FOCUSED_BENCHMARKS = [
     (
@@ -113,10 +114,85 @@ def build_label_assistant_target(record: dict) -> str:
 def build_full_response_assistant_target(record: dict) -> str:
     payload = {
         "response_type": str(record["response_type"]),
-        "reason": str(record["reason"]),
-        "response": str(record["response"]),
+        "reason": build_stage2_reason(record),
+        "response": build_stage2_response(record),
     }
     return json.dumps(payload, ensure_ascii=True)
+
+
+def ensure_terminal_punctuation(text: str, fallback_ending: str = ".") -> str:
+    candidate = str(text).strip()
+    if not candidate:
+        return candidate
+    if candidate[-1] not in ".?!":
+        candidate += fallback_ending
+    return candidate
+
+
+def collapse_whitespace(text: str) -> str:
+    return re.sub(r"\s+", " ", str(text).strip())
+
+
+def first_sentence(text: str) -> str:
+    candidate = collapse_whitespace(text)
+    if not candidate:
+        return ""
+    match = re.match(r"^(.+?[.?!])(?:\s|$)", candidate)
+    if match:
+        return match.group(1).strip()
+    return ensure_terminal_punctuation(candidate)
+
+
+def first_question_sentence(text: str) -> str:
+    candidate = collapse_whitespace(text)
+    if not candidate:
+        return ""
+    match = re.search(r"(.+?\?)", candidate)
+    if match:
+        return match.group(1).strip()
+    return ""
+
+
+def build_stage2_reason(record: dict) -> str:
+    response_type = str(record["response_type"])
+    if response_type == "DIRECT_ANSWER":
+        return "The request can be answered directly."
+    if response_type == "CLARIFICATION":
+        return "The request is missing important context."
+    if response_type == "TOOL_NEEDED":
+        return "The request needs current, external, or account-specific information."
+    if response_type == "OUT_OF_SCOPE":
+        return "The request is unsafe or not appropriate to help with."
+    return first_sentence(record["reason"])
+
+
+def build_stage2_response(record: dict) -> str:
+    response_type = str(record["response_type"])
+    original_response = str(record["response"])
+
+    if response_type == "DIRECT_ANSWER":
+        candidate = first_sentence(original_response)
+        return candidate if candidate else "This can be answered directly."
+
+    if response_type == "CLARIFICATION":
+        candidate = first_question_sentence(original_response)
+        if candidate:
+            return candidate
+        return "What specific item or situation are you asking about?"
+
+    if response_type == "TOOL_NEEDED":
+        lowered = collapse_whitespace(original_response).lower()
+        if "would need" in lowered:
+            return first_sentence(original_response)
+        return "I would need a tool or live data source to answer that."
+
+    if response_type == "OUT_OF_SCOPE":
+        lowered = collapse_whitespace(original_response).lower()
+        if lowered.startswith("i can't") or lowered.startswith("i cannot"):
+            return first_sentence(original_response)
+        return "I can't help with that."
+
+    return first_sentence(original_response)
 
 
 def normalize_user_input(text: str) -> str:

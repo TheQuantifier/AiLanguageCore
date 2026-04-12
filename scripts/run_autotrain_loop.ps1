@@ -18,7 +18,7 @@ param(
     [int]$SafetyCheckIntervalSeconds = 20,
     [int]$MaxSafetyWaitMinutes = 10,
     [int]$MaxCpuThreads = 0,
-    [switch]$LowerPriority = $true
+    [switch]$LowerPriority = $false
 )
 
 $ErrorActionPreference = 'Stop'
@@ -713,41 +713,44 @@ function Invoke-CodexImprovementPass {
     Write-Host ''
     Write-Host "=== Iteration ${IterationLabel}: Codex improvement pass ==="
 
-    $recoveryInstructions = ''
-    if ($BenchmarkMetrics.ValidOutputRate -lt $RecoveryThreshold) {
-        $recoveryInstructions = @"
+    $priorityLine = if ($selectedCategory -eq 'full_response') {
+        'Priority: preserve response_type stability and valid JSON before improving wording.'
+    } else {
+        'Priority: improve classification accuracy on the weakest boundaries.'
+    }
 
-Recovery mode:
-- The latest run fell below the minimum acceptable valid output rate threshold.
-- First restore or preserve output reliability before attempting more aggressive experiments.
-- Prefer reverting the most likely regression source or making the smallest stabilizing change.
-- Do not stack multiple speculative changes in one iteration.
-"@
+    $recoveryLine = if ($BenchmarkMetrics.ValidOutputRate -lt $RecoveryThreshold) {
+        'Recovery: restore output reliability first; make one small stabilizing change.'
+    } else {
+        ''
+    }
+
+    $stage2Line = if ($selectedCategory -eq 'full_response') {
+        'Stage-2: inspect init_from_model_path, tokenizer compatibility, and embedding/output-head transfer before changing data targets.'
+    } else {
+        ''
     }
 
     $codexPrompt = @"
 $Prompt
 
-You are running inside the AiLanguageCore repository.
-The training command has just completed successfully.
-Inspect the latest native run under models/runs and its benchmark report under experiments.
-Make the next improvement directly in the repo so the next training iteration is the best next step.
-Current training type: $selectedType
-Current training category: $selectedCategory
-Current benchmark summary:
-- valid_output_rate: $($BenchmarkMetrics.ValidOutputRate)
-- response_type_accuracy: $($BenchmarkMetrics.ResponseTypeAccuracy)
-- benchmark_report: $($BenchmarkMetrics.Path)
-
+Repo: AiLanguageCore
+Latest run just finished.
+Inspect the latest run in models/runs and benchmark report in experiments, then make the single best next change for another train.
+Type: $selectedType
+Category: $selectedCategory
+Metrics: valid_output_rate=$($BenchmarkMetrics.ValidOutputRate); response_type_accuracy=$($BenchmarkMetrics.ResponseTypeAccuracy)
+Report: $($BenchmarkMetrics.Path)
+$priorityLine
+$stage2Line
+$recoveryLine
 Rules:
-- Work only on the next most important improvement.
-- Prioritize improving classification accuracy on the current weak boundaries over changing output formatting.
-- Avoid retrying class-balanced loss unless you have new evidence it is the right fix.
-- Keep changes narrow and comparable so the next training run is an informative experiment.
-- In your final response, summarize the change briefly and list the files changed, but do not print a full diff.
-- If training should continue after your change, end your final message with exactly: AUTOMATION_DECISION: CONTINUE
-- If the automation loop should stop, end your final message with exactly: AUTOMATION_DECISION: STOP
-$recoveryInstructions
+- Make one narrow, high-signal change.
+- Avoid speculative multi-change refactors.
+- Avoid class-balanced loss unless benchmark evidence specifically supports it.
+- Keep your final response under 8 lines.
+- Final response must briefly state the change and files touched.
+- End with exactly one line: AUTOMATION_DECISION: CONTINUE or AUTOMATION_DECISION: STOP
 "@
 
     Push-Location $RepoRoot
