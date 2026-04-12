@@ -1,0 +1,5 @@
+Applied one stabilizing change to restore JSON reliability: benchmark generation now stops as soon as the partial output is a complete valid `{"response_type","reason","response"}` object, preventing trailing-token corruption after an otherwise-correct JSON response.
+This directly targets the observed failure mode (valid JSON prefix followed by garbage) while preserving response-type behavior.
+Files touched: [scripts/evaluate_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py).
+Validation run: `python -m py_compile scripts/evaluate_native_model.py` passed.
+AUTOMATION_DECISION: CONTINUE

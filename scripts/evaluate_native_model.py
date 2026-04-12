@@ -321,6 +321,29 @@ def parse_generated_payload(text: str) -> dict:
     }
 
 
+def is_complete_valid_full_response_json(text: str) -> bool:
+    candidate = text.strip()
+    if not candidate:
+        return False
+    try:
+        payload = json.loads(candidate)
+    except json.JSONDecodeError:
+        return False
+    if not isinstance(payload, dict):
+        return False
+    response_type = payload.get("response_type")
+    reason = payload.get("reason")
+    response = payload.get("response")
+    return (
+        isinstance(response_type, str)
+        and response_type in RESPONSE_TYPES
+        and isinstance(reason, str)
+        and reason.strip() != ""
+        and isinstance(response, str)
+        and response.strip() != ""
+    )
+
+
 def detect_device(torch_module) -> tuple[object, str]:
     hip_available = bool(getattr(torch_module.version, "hip", None)) and torch_module.cuda.is_available()
     if hip_available:
@@ -542,6 +565,9 @@ def main() -> int:
                 generated_ids.append(next_token_id)
                 next_token_tensor = torch.tensor([[next_token_id]], dtype=torch.long, device=device)
                 generated_tensor = torch.cat((generated_tensor, next_token_tensor), dim=1)
+                partial_generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])
+                if is_complete_valid_full_response_json(partial_generated_text):
+                    break
                 if next_token_id == tokenizer.eos_token_id:
                     break
 
