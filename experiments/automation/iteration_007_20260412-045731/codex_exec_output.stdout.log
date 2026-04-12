@@ -1,0 +1,5 @@
+Latest run `20260412-045733` regressed `valid_output_rate` to `0.983606557377049` (1 malformed/truncated JSON) while `response_type_accuracy` stayed `0.885245901639344`, so another training iteration is still appropriate.  
+Applied one narrow stage-2 change: `init_from_model_path=latest:...` now selects the best completed compatible run by benchmark stability (`valid_output_rate`, then `response_type_accuracy`, then `valid_json_rate`, then recency) instead of blindly choosing newest.  
+This now resolves to `v1-native-byte-transformer-full-response-20260412-043728` (the stable 1.0 valid-output checkpoint) for the next train.  
+Files touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)  
+AUTOMATION_DECISION: CONTINUE

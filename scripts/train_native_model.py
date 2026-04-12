@@ -159,6 +159,42 @@ def load_json(path: Path) -> dict:
         return json.load(handle)
 
 
+def safe_float(value: object, fallback: float = -1.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def load_run_benchmark_metrics(run_dir: Path, training_status: dict) -> dict[str, float]:
+    metrics = {
+        "valid_output_rate": -1.0,
+        "response_type_accuracy": -1.0,
+        "valid_json_rate": -1.0,
+    }
+    candidate_paths: list[Path] = []
+    benchmark_report = training_status.get("benchmark_report")
+    if isinstance(benchmark_report, str) and benchmark_report.strip():
+        candidate_paths.append(Path(benchmark_report))
+    candidate_paths.append(run_dir / "benchmark_status.json")
+
+    for path in candidate_paths:
+        try:
+            resolved = path if path.is_absolute() else (run_dir / path).resolve()
+            if not resolved.exists():
+                continue
+            payload = load_json(resolved)
+            metrics = {
+                "valid_output_rate": safe_float(payload.get("valid_output_rate"), -1.0),
+                "response_type_accuracy": safe_float(payload.get("response_type_accuracy"), -1.0),
+                "valid_json_rate": safe_float(payload.get("valid_json_rate"), -1.0),
+            }
+            break
+        except Exception:
+            continue
+    return metrics
+
+
 def infer_run_category(run_dir: Path) -> str:
     training_config_path = run_dir / "training_config.json"
     if training_config_path.exists():
@@ -211,6 +247,7 @@ def find_latest_completed_run(repo_root: Path, type_name: str | None, category_n
         key=lambda path: path.stat().st_mtime,
         reverse=True,
     )
+    candidates: list[tuple[tuple[float, float, float, float], Path]] = []
     for status_path in status_paths:
         try:
             run_dir = status_path.parent
@@ -225,9 +262,20 @@ def find_latest_completed_run(repo_root: Path, type_name: str | None, category_n
                 continue
             if category_name and infer_run_category(run_dir) != category_name:
                 continue
-            return run_dir
+            benchmark_metrics = load_run_benchmark_metrics(run_dir, status)
+            selection_score = (
+                benchmark_metrics["valid_output_rate"],
+                benchmark_metrics["response_type_accuracy"],
+                benchmark_metrics["valid_json_rate"],
+                float(status_path.stat().st_mtime),
+            )
+            candidates.append((selection_score, run_dir))
         except Exception:
             continue
+
+    if candidates:
+        candidates.sort(key=lambda item: item[0], reverse=True)
+        return candidates[0][1]
 
     raise FileNotFoundError(
         f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"

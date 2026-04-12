@@ -1,0 +1,3099 @@
+﻿Latest run `20260412-045733` regressed `valid_output_rate` to `0.983606557377049` (1 malformed/truncated JSON) while `response_type_accuracy` stayed `0.885245901639344`, so another training iteration is still appropriate.  
+Applied one narrow stage-2 change: `init_from_model_path=latest:...` now selects the best completed compatible run by benchmark stability (`valid_output_rate`, then `response_type_accuracy`, then `valid_json_rate`, then recency) instead of blindly choosing newest.  
+This now resolves to `v1-native-byte-transformer-full-response-20260412-043728` (the stable 1.0 valid-output checkpoint) for the next train.  
+Files touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)  
+AUTOMATION_DECISION: CONTINUE
+OpenAI Codex v0.119.0-alpha.28 (research preview)
+--------
+workdir: C:\Users\jhand\Documents\Github\AiLanguageCore
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR, C:\Users\jhand\.codex\memories]
+reasoning effort: medium
+reasoning summaries: none
+session id: 019d80f9-33d0-7f61-8c8e-53914d3b7c94
+--------
+user
+Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.
+
+Repo: AiLanguageCore
+Latest run just finished.
+Inspect the latest run in models/runs and benchmark report in experiments, then make the single best next change for another train.
+Type: core
+Category: full_response
+Metrics: valid_output_rate=0.983606557377049; response_type_accuracy=0.885245901639344
+Report: C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-045733.json
+Priority: preserve response_type stability and valid JSON before improving wording.
+Stage-2: inspect init_from_model_path, tokenizer compatibility, and embedding/output-head transfer before changing data targets.
+
+Rules:
+- Make one narrow, high-signal change.
+- Avoid speculative multi-change refactors.
+- Avoid class-balanced loss unless benchmark evidence specifically supports it.
+- Keep your final response under 8 lines.
+- Final response must briefly state the change and files touched.
+- End with exactly one line: AUTOMATION_DECISION: CONTINUE or AUTOMATION_DECISION: STOP
+codex
+Iâ€™m going to inspect the newest run artifacts under `models/runs` and the benchmark report you linked, then trace the stage-2 init path (`init_from_model_path`, tokenizer compatibility, embedding/output-head transfer) to make one targeted training change.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path .\\models\\runs | Sort-Object LastWriteTime -Descending | Select-Object -First 5 FullName,Name,LastWriteTime" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path .\\experiments | Sort-Object LastWriteTime -Descending | Select-Object -First 8 FullName,Name,LastWriteTime" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Item \"C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-045733.json\" | Select-Object FullName,Length,LastWriteTime" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 185ms:
+
+FullName                                                                                                                                  Length LastWriteTime       
+--------                                                                                                                                  ------ -------------       
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-045733.json  56512 4/12/2026 5:15:06 AM
+
+
+
+ succeeded in 201ms:
+
+FullName                                                                                                                                  Name                                                                           LastWriteTime       
+--------                                                                                                                                  ----                                                                           -------------       
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\training_runs_summary.csv                                                      training_runs_summary.csv                                                      4/12/2026 5:15:07 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-045733.json benchmark_report-v1-native-byte-transformer-full-response-20260412-045733.json 4/12/2026 5:15:06 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\automation                                                                     automation                                                                     4/12/2026 4:57:31 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-043728.json benchmark_report-v1-native-byte-transformer-full-response-20260412-043728.json 4/12/2026 4:55:14 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-041647.json benchmark_report-v1-native-byte-transformer-full-response-20260412-041647.json 4/12/2026 4:34:18 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-035709.json benchmark_report-v1-native-byte-transformer-full-response-20260412-035709.json 4/12/2026 4:14:30 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-033549.json benchmark_report-v1-native-byte-transformer-full-response-20260412-033549.json 4/12/2026 3:53:13 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260412-031501.json benchmark_report-v1-native-byte-transformer-full-response-20260412-031501.json 4/12/2026 3:33:15 AM
+
+
+
+ succeeded in 205ms:
+
+FullName                                                                                                            Name                                                     LastWriteTime       
+--------                                                                                                            ----                                                     -------------       
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-045733 v1-native-byte-transformer-full-response-20260412-045733 4/12/2026 5:10:53 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-043728 v1-native-byte-transformer-full-response-20260412-043728 4/12/2026 4:51:03 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-041647 v1-native-byte-transformer-full-response-20260412-041647 4/12/2026 4:30:09 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-035709 v1-native-byte-transformer-full-response-20260412-035709 4/12/2026 4:10:28 AM
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-033549 v1-native-byte-transformer-full-response-20260412-033549 4/12/2026 3:49:12 AM
+
+
+
+codex
+I found the latest completed run (`20260412-045733`) and matching report. Next Iâ€™ll extract failure patterns from that report and compare against the prior run to pick the highest-signal single fix.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json, pathlib
+p=pathlib.Path(r'experiments/benchmark_report-v1-native-byte-transformer-full-response-20260412-045733.json')
+obj=json.loads(p.read_text())
+print('keys',sorted(obj.keys()))
+for k in ['summary','metrics','aggregate','config','run','by_response_type','error_breakdown']:
+    if k in obj:
+        print('\\n##',k)
+        v=obj[k]
+        if isinstance(v,dict):
+            for kk,vv in v.items():
+                if isinstance(vv,(int,float,str,bool)):
+                    print(f'{kk}: {vv}')
+        else:
+            print(type(v).__name__)
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json, pathlib
+for name in ['20260412-043728','20260412-045733']:
+ p=pathlib.Path(f'experiments/benchmark_report-v1-native-byte-transformer-full-response-{name}.json')
+ o=json.loads(p.read_text())
+ s=o.get('summary',{})
+ print(name, 'valid_output_rate',s.get('valid_output_rate'),'response_type_accuracy',s.get('response_type_accuracy'),'exact_match',s.get('exact_match_rate'),'semantic',s.get('semantic_similarity'))
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-045733 -Recurse | Select-Object FullName" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 195ms:
+
+FullName                                                                                                                                 
+--------                                                                                                                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-045733\benchmark_status.json
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-045733\model.pt             
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-045733\model_config.json    
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-045733\tokenizer_config.json
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-045733\training_config.json 
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-045733\training_status.json 
+
+
+
+ succeeded in 277ms:
+20260412-043728 valid_output_rate None response_type_accuracy None exact_match None semantic None
+20260412-045733 valid_output_rate None response_type_accuracy None exact_match None semantic None
+
+ succeeded in 277ms:
+keys ['benchmark_category', 'benchmark_file', 'benchmark_size', 'benchmark_type', 'correct_response_type_count', 'elapsed_seconds', 'items_per_sec', 'nonempty_output_count', 'nonempty_output_rate', 'response_type_accuracy', 'results', 'training_category', 'training_type', 'valid_full_response_count', 'valid_full_response_rate', 'valid_json_count', 'valid_json_rate', 'valid_output_count', 'valid_output_rate']
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json, pathlib
+for name in ['20260412-043728','20260412-045733']:
+ p=pathlib.Path(f'experiments/benchmark_report-v1-native-byte-transformer-full-response-{name}.json')
+ o=json.loads(p.read_text())
+ print('\\n',name)
+ for k in ['valid_output_rate','valid_json_rate','valid_full_response_rate','response_type_accuracy','nonempty_output_rate','correct_response_type_count','valid_output_count','benchmark_size']:
+  print(k,o.get(k))
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json, pathlib, collections
+p=pathlib.Path('experiments/benchmark_report-v1-native-byte-transformer-full-response-20260412-045733.json')
+o=json.loads(p.read_text())
+results=o['results']
+print('results',len(results))
+# outcome counts
+c=collections.Counter()
+rt=collections.Counter()
+invalid_examples=[]
+wrong_type=[]
+for r in results:
+ c['valid_output' if r.get('valid_output') else 'invalid_output']+=1
+ c['valid_json' if r.get('valid_json') else 'invalid_json']+=1
+ c['valid_full' if r.get('valid_full_response') else 'invalid_full']+=1
+ if r.get('expected_response_type')"'!=r.get('"'actual_response_type'):
+  wrong_type.append(r)
+ rt[(r.get('expected_response_type'),r.get('actual_response_type'))]+=1
+ if not r.get('valid_output') and len(invalid_examples)<8:
+  invalid_examples.append(r)
+print('counts',c)
+print('type_mismatches',len(wrong_type))
+print('top_type_mismatch',rt.most_common(10))
+for i,r in enumerate(invalid_examples,1):
+ print('\\nINVALID',i,'id',r.get('id'),'exp',r.get('expected_response_type'),'act',r.get('actual_response_type'))
+ out=r.get('model_output','')
+ print(out[:240].replace('\\n','\\\\n'))
+for i,r in enumerate(wrong_type[:8],1):
+ print('\\nWRONGTYPE',i,'id',r.get('id'),'exp',r.get('expected_response_type'),'act',r.get('actual_response_type'),'valid_output',r.get('valid_output'))
+ print((r.get('model_output','')[:180]).replace('\\n','\\\\n'))
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 259ms:
+results 61
+counts Counter({'invalid_full': 61, 'valid_output': 60, 'valid_json': 60, 'invalid_output': 1, 'invalid_json': 1})
+type_mismatches 61
+top_type_mismatch [(('CLARIFICATION', None), 17), (('TOOL_NEEDED', None), 15), (('DIRECT_ANSWER', None), 15), (('OUT_OF_SCOPE', None), 14)]
+
+INVALID 1 id benchmark-0052 exp TOOL_NEEDED act None
+
+
+WRONGTYPE 1 id benchmark-0001 exp CLARIFICATION act None valid_output True
+
+
+WRONGTYPE 2 id benchmark-0002 exp CLARIFICATION act None valid_output True
+
+
+WRONGTYPE 3 id benchmark-0003 exp TOOL_NEEDED act None valid_output True
+
+
+WRONGTYPE 4 id benchmark-0004 exp TOOL_NEEDED act None valid_output True
+
+
+WRONGTYPE 5 id benchmark-0005 exp CLARIFICATION act None valid_output True
+
+
+WRONGTYPE 6 id benchmark-0006 exp OUT_OF_SCOPE act None valid_output True
+
+
+WRONGTYPE 7 id benchmark-0007 exp CLARIFICATION act None valid_output True
+
+
+WRONGTYPE 8 id benchmark-0008 exp CLARIFICATION act None valid_output True
+
+
+ succeeded in 261ms:
+
+ 20260412-043728
+valid_output_rate 1.0
+valid_json_rate 1.0
+valid_full_response_rate 1.0
+response_type_accuracy 0.8852459016393442
+nonempty_output_rate 1.0
+correct_response_type_count 54
+valid_output_count 61
+benchmark_size 61
+
+ 20260412-045733
+valid_output_rate 0.9836065573770492
+valid_json_rate 0.9836065573770492
+valid_full_response_rate 0.9836065573770492
+response_type_accuracy 0.8852459016393442
+nonempty_output_rate 1.0
+correct_response_type_count 54
+valid_output_count 60
+benchmark_size 61
+
+codex
+I found a regression from the previous run: `valid_output_rate` dropped from `1.0` to `0.9836` while `response_type_accuracy` stayed flat. Iâ€™m now drilling into per-item fields correctly to isolate the exact failure mode before changing code.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json, pathlib, pprint
+p=pathlib.Path('experiments/benchmark_report-v1-native-byte-transformer-full-response-20260412-045733.json')
+o=json.loads(p.read_text())
+r=o['results'][0]
+print(r.keys())
+for k,v in r.items():
+ if isinstance(v,(str,int,float,bool)) or v is None:
+  print(k,':',repr(v)[:180])
+ else:
+  print(k,':',type(v).__name__)
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 262ms:
+dict_keys(['id', 'user_input', 'expected_response_type', 'predicted_response_type', 'expected_format', 'predicted_format', 'valid_json', 'valid_output', 'expected_reason', 'predicted_reason', 'expected_response', 'predicted_response', 'raw_generation'])
+id : 'benchmark-0001'
+user_input : 'Can I afford it?'
+expected_response_type : 'CLARIFICATION'
+predicted_response_type : 'CLARIFICATION'
+expected_format : 'full_response'
+predicted_format : 'full_response_json'
+valid_json : True
+valid_output : True
+expected_reason : 'The request is missing important context.'
+predicted_reason : 'The request is missing important context.'
+expected_response : 'What are you trying to afford?'
+predicted_response : 'What are you thinking about buying?'
+raw_generation : '{"response_type": "CLARIFICATION", "reason": "The request is missing important context.", "response": "What are you thinking about buying?"}'
+
+codex
+Iâ€™ve confirmed the report schema and will now inspect the one invalid item plus the stage-2 initialization code path to apply a single fix that protects JSON/response-type stability in the next train.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg -n "init_from_model_path|tokenizer|embedding|output_head|lm_head|tie.*weight|vocab|resize" -S .' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json, pathlib
+p=pathlib.Path('experiments/benchmark_report-v1-native-byte-transformer-full-response-20260412-045733.json')
+o=json.loads(p.read_text())
+for r in o['results']:
+ if not r.get('valid_output'):
+  print('id',r['id'])
+  for k in ['expected_response_type','predicted_response_type','valid_json','valid_output','predicted_format','raw_generation']:
+   print(k,':',r.get(k))
+  break
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json, pathlib
+for name in ['20260412-043728','20260412-045733']:
+ p=pathlib.Path(f'models/runs/v1-native-byte-transformer-full-response-{name}/training_config.json')
+ o=json.loads(p.read_text())
+ print('\\n',name)
+ for k in ['init_from_model_path','tokenizer_path','dataset_path','freeze_embeddings','learning_rate','batch_size','epochs','sequence_length']:
+  if k in o: print(k,o[k])
+ # show any keys with init/tokenizer/transfer
+ for k,v in o.items():
+  lk=k.lower()
+  if 'init' in lk or 'token' in lk or 'vocab' in lk or 'embed' in lk or 'head' in lk or 'transfer' in lk:
+   if k not in ['init_from_model_path','tokenizer_path']:
+    print(k,v)
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+2026-04-12T09:15:58.139756Z ERROR codex_core::tools::router: error=Exit code: 1
+Wall time: 0.2 seconds
+Output:
+rg : The term 'rg' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:2 char:1
++ rg -n "init_from_model_path|tokenizer|embedding|output_head|lm_head|t ...
++ ~~
+    + CategoryInfo          : ObjectNotFound: (rg:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+ exited 1 in 219ms:
+rg : The term 'rg' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:2 char:1
++ rg -n "init_from_model_path|tokenizer|embedding|output_head|lm_head|t ...
++ ~~
+    + CategoryInfo          : ObjectNotFound: (rg:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+ succeeded in 261ms:
+id benchmark-0052
+expected_response_type : TOOL_NEEDED
+predicted_response_type : TOOL_NEEDED
+valid_json : False
+valid_output : False
+predicted_format : label_only_text
+raw_generation : {"response_type": "TOOL_NEEDED", "reason": "The request needs current, external, or account-specific information.", "response": "I would need a reat live data to apprerict tovin and ruringe that ner rat to $}
+
+ succeeded in 239ms:
+
+ 20260412-043728
+init_from_model_path latest:core:full_response
+learning_rate 2e-05
+batch_size 4
+num_heads 8
+init_from_model_path_resolved C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-041647
+
+ 20260412-045733
+init_from_model_path latest:core:full_response
+learning_rate 2e-05
+batch_size 4
+num_heads 8
+init_from_model_path_resolved C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-043728
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Recurse -File | Select-String -Pattern "init_from_model_path|tokenizer|embedding|output_head|lm_head|tie|vocab|transfer" -SimpleMatch | Select-Object Path,LineNumber,Line | Format-Table -AutoSize' in C:\Users\jhand\Documents\Github\AiLanguageCore
+2026-04-12T09:16:11.115508Z ERROR codex_core::tools::router: error=Exit code: 124
+Wall time: 10 seconds
+Output:
+command timed out after 10013 milliseconds
+
+ exited 124 in 10013ms:
+codex
+I isolated the failure: one sample emitted truncated JSON text despite correct response type, which matches your â€œpreserve valid JSON firstâ€ priority. Iâ€™m now scanning only training/inference code paths (not whole repo) to find the smallest fix tied to stage-2 initialization behavior.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'Get-ChildItem -Path . -Directory | Select-Object Name,FullName' in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path .\\src -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 200 FullName" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path .\\scripts -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 200 FullName" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 200ms:
+
+Name        FullName                                                  
+----        --------                                                  
+.cache      C:\Users\jhand\Documents\Github\AiLanguageCore\.cache     
+.python     C:\Users\jhand\Documents\Github\AiLanguageCore\.python    
+config      C:\Users\jhand\Documents\Github\AiLanguageCore\config     
+data        C:\Users\jhand\Documents\Github\AiLanguageCore\data       
+docs        C:\Users\jhand\Documents\Github\AiLanguageCore\docs       
+experiments C:\Users\jhand\Documents\Github\AiLanguageCore\experiments
+models      C:\Users\jhand\Documents\Github\AiLanguageCore\models     
+prompts     C:\Users\jhand\Documents\Github\AiLanguageCore\prompts    
+scripts     C:\Users\jhand\Documents\Github\AiLanguageCore\scripts    
+tmp         C:\Users\jhand\Documents\Github\AiLanguageCore\tmp        
+
+
+
+ succeeded in 198ms:
+
+FullName                                                                                                  
+--------                                                                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\.gitkeep                                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\command_type_helpers.ps1                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\convert_training_data.py                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\generate_data.py                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\powershell_helpers.ps1                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\prepare_dataset.py                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\run_autotrain_loop.ps1                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\show_autotrain_status.ps1                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\show_training_status.ps1                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\summarize_training_runs.py                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\validate_dataset.py                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\chat_native_model.cpython-312.pyc      
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\convert_training_data.cpython-312.pyc  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\evaluate_benchmark.cpython-312.pyc     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\evaluate_native_model.cpython-312.pyc  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\generate_data.cpython-312.pyc          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\prepare_dataset.cpython-312.pyc        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\summarize_training_runs.cpython-312.pyc
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\train_lora.cpython-312.pyc             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\train_native_model.cpython-312.pyc     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\__pycache__\validate_dataset.cpython-312.pyc       
+
+
+
+ succeeded in 3051ms:
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -Path .\\scripts -Filter *.py | Select-String -Pattern \"init_from_model_path|tokenizer|embedding|output_head|lm_head|tie|vocab|transfer|load_state_dict|strict\" | Select-Object Path,LineNumber,Line" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 219ms:
+
+Path                                                                            LineNumber Line                                                                                                                     
+----                                                                            ---------- ----                                                                                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py             53 class ByteTokenizer:                                                                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py             82         self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py             85     def from_config(cls, payload: dict) -> "ByteTokenizer":                                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py             94         regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            196             self.token_embedding = nn.Embedding(int(model_config["vocab_size"]), hidden_size)                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            197             self.position_embedding = nn.Embedding(self.max_seq_length, hidden_size)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            211             self.lm_head = nn.Linear(hidden_size, int(model_config["vocab_size"]), bias=False)                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            216             x = self.token_embedding(input_ids) + self.position_embedding(positions)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            221             return self.lm_head(x)                                                                                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            229     tokenizer: ByteTokenizer,                                                                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            245     prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            254             for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            257                 next_token_logits[tokenizer.eos_token_id] = float("-inf")                                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            258             newline_token_id = tokenizer.char_to_id.get("\n")                                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            265             if next_token_id == tokenizer.eos_token_id:                                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            268     return tokenizer.decode(generated_ids[len(prompt_ids) :]).strip()                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            305     tokenizer_config_path = model_path / "tokenizer_config.json"                                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            306     if tokenizer_config_path.exists():                                                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            307         tokenizer = ByteTokenizer.from_config(load_json(tokenizer_config_path))                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            309         tokenizer = ByteTokenizer(chars=[chr(index) for index in range(128)])                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            313     model.load_state_dict(state_dict)                                                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            317     return torch, tokenizer, model_config, model, device, device_label                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            321     torch_module, tokenizer, model_config, model, device, _device_label = runtime                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            324         tokenizer=tokenizer,                                                                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\chat_native_model.py            338     _torch_module, _tokenizer, _model_config, _model, _device, device_label = runtime                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        160 class ByteTokenizer:                                                                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        189         self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        192     def from_config(cls, payload: dict) -> "ByteTokenizer":                                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        201         regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        408     tokenizer_config_path = args.model_path / "tokenizer_config.json"                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        409     if tokenizer_config_path.exists():                                                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        410         tokenizer = ByteTokenizer.from_config(load_json(tokenizer_config_path))                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        412         tokenizer = ByteTokenizer(chars=[chr(index) for index in range(128)])                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        460             self.token_embedding = nn.Embedding(int(model_config["vocab_size"]), hidden_size)                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        461             self.position_embedding = nn.Embedding(self.max_seq_length, hidden_size)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        475             self.lm_head = nn.Linear(hidden_size, int(model_config["vocab_size"]), bias=False)                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        480             x = self.token_embedding(input_ids) + self.position_embedding(positions)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        485             return self.lm_head(x)                                                                                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        489     model.load_state_dict(state_dict)                                                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        526             prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        534                 for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        537                     next_token_logits[tokenizer.eos_token_id] = float("-inf")                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        538                 newline_token_id = tokenizer.char_to_id.get("\n")                                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        545                 if next_token_id == tokenizer.eos_token_id:                                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\evaluate_native_model.py        548             generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           252         raise ValueError("init_from_model_path must use latest:<category> or latest:<type>:<category>")                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           269 class ByteTokenizer:                                                                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           298         self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           301     def from_config(cls, payload: dict) -> "ByteTokenizer":                                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           310         regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           330             "type": "char_vocab",                                                                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           336             "vocab_size": self.vocab_size,                                                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           367 def build_examples(rows: list[dict], tokenizer: ByteTokenizer, max_seq_length: int) -> list[Example]:                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           373         prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           374         answer_ids = tokenizer.encode(answer_text, add_special_tokens=False) + [tokenizer.eos_token_id]                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           386 def build_tokenizer_from_rows(*row_sets: list[dict]) -> ByteTokenizer:                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           392     return ByteTokenizer(chars=sorted(chars))                                                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           402 def collate_batch(batch: list[Example], tokenizer: ByteTokenizer, torch_module) -> tuple[object, object]:                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           408         input_rows.append(example.input_ids + ([tokenizer.pad_token_id] * pad_count))                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           449     vocab_size: int,                                                                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           453     shifted_logits = logits[:, :-1, :].reshape(-1, vocab_size)                                                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           556 def build_token_id_remap(source_tokenizer: ByteTokenizer, target_tokenizer: ByteTokenizer) -> list[tuple[int, int]]:     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           559     for char, source_id in source_tokenizer.char_to_id.items():                                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           560         target_id = target_tokenizer.char_to_id.get(char)                                                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           565         (source_tokenizer.pad_token_id, target_tokenizer.pad_token_id),                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           566         (source_tokenizer.bos_token_id, target_tokenizer.bos_token_id),                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           567         (source_tokenizer.eos_token_id, target_tokenizer.eos_token_id),                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           582 def remap_vocab_matrix(                                                                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           599 def transfer_position_embedding(source_tensor, target_tensor):                                                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           600     transferred = target_tensor.clone()                                                                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           602         return transferred                                                                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           604         return transferred                                                                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           608         return transferred                                                                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           609     transferred[:rows_to_copy] = source_tensor[:rows_to_copy].to(                                                        
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           613     return transferred                                                                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           616 def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteTokenizer, torch_module) -> dict[str, object]:
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           622     source_tokenizer = ByteTokenizer.from_config(load_json(init_model_dir / "tokenizer_config.json"))                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           623     token_pairs = build_token_id_remap(source_tokenizer, target_tokenizer)                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           633         if name in {"token_embedding.weight", "lm_head.weight"}:                                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           635                 updated_state[name] = remap_vocab_matrix(                                                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           646         if name == "position_embedding.weight":                                                                          
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           647             updated_state[name] = transfer_position_embedding(                                                           
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           655     model.load_state_dict(updated_state)                                                                                 
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           848     tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)                                                   
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           850     train_examples = build_examples(train_rows, tokenizer, max_seq_length)                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           851     validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           852     init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           900             self.vocab_size = int(model_config.get("vocab_size", tokenizer.vocab_size))                                  
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           902             self.token_embedding = nn.Embedding(self.vocab_size, int(model_config["hidden_size"]))                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           903             self.position_embedding = nn.Embedding(self.max_seq_length, int(model_config["hidden_size"]))                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           917             self.lm_head = nn.Linear(int(model_config["hidden_size"]), self.vocab_size, bias=False)                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           918             self.lm_head.weight = self.token_embedding.weight                                                            
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           925             x = self.token_embedding(input_ids) + self.position_embedding(positions)                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           930             return self.lm_head(x)                                                                                       
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           961         init_summary = load_stage2_weights(model, init_model_dir, tokenizer, torch)                                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           962         config["init_from_model_path_resolved"] = str(init_model_dir)                                                    
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           968             "(token embeddings and output head are remapped when tokenizer vocab differs)"                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           970     elif config.get("init_from_model_path"):                                                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py           973             f"{config.get('init_from_model_path')}; starting from scratch."                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py          1011                 input_ids, labels = collate_batch(batch, tokenizer, torch)                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py          1018                     logits[:, :-1, :].reshape(-1, model.vocab_size),                                                     
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py          1042                 input_ids, labels = collate_batch(batch, tokenizer, torch)                                               
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py          1056                     vocab_size=model.vocab_size,                                                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py          1155         tokenizer.save(output_dir / "tokenizer_config.json")                                                             
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py          1160                 "vocab_size": tokenizer.vocab_size,                                                                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\validate_dataset.py              44         "--strict-extra-fields",                                                                                         
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\validate_dataset.py              60     record: object, index: int, strict_extra_fields: bool                                                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\validate_dataset.py              71     if strict_extra_fields:                                                                                              
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\validate_dataset.py             140 def validate_dataset(path: Path, strict_extra_fields: bool) -> int:                                                      
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\validate_dataset.py             154         record_errors, new_warnings = validate_record(record, index, strict_extra_fields)                                
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\validate_dataset.py             211         result = validate_dataset(path, args.strict_extra_fields)                                                        
+
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-045733\\training_status.json" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-045733\\training_config.json" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-045733\\model_config.json" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 163ms:
+{
+  "output_dir": "models/runs/v1-native-byte-transformer-full-response",
+  "train_file": "data/processed/train_full_response_sft.jsonl",
+  "validation_file": "data/processed/validation_full_response_sft.jsonl",
+  "init_from_model_path": "latest:core:full_response",
+  "device_preference": [
+    "hip",
+    "cuda",
+    "directml",
+    "cpu"
+  ],
+  "seed": 11,
+  "num_train_epochs": 12,
+  "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
+  "batch_size": 4,
+  "eval_batch_size": 4,
+  "learning_rate": 2e-05,
+  "optimizer": "auto",
+  "weight_decay": 0.01,
+  "use_class_balanced_loss": false,
+  "class_weight_power": 1.0,
+  "grad_clip": 0.5,
+  "logging_steps": 61,
+  "eval_steps": 183,
+  "max_seq_length": 640,
+  "hidden_size": 512,
+  "num_layers": 10,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1,
+  "init_from_model_path_resolved": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-043728"
+}
+
+ succeeded in 165ms:
+{
+  "status": "completed",
+  "started_at": "2026-04-12T08:57:33.110791+00:00",
+  "updated_at": "2026-04-12T09:15:07.301030+00:00",
+  "completed_at": "2026-04-12T09:15:07.301030+00:00",
+  "pid": 36916,
+  "output_dir": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-045733",
+  "train_file": "data/processed/train_full_response_sft.jsonl",
+  "validation_file": "data/processed/validation_full_response_sft.jsonl",
+  "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
+  "global_step": 2196,
+  "epoch": 12.0,
+  "max_steps": 2196,
+  "latest_log": {
+    "train_loss": 0.1671949326992035,
+    "validation_loss": 0.7215247922576964,
+    "epoch": 12.0,
+    "train_runtime": 797.995717599988,
+    "train_steps_per_second": 2.7518944670587704,
+    "train_samples_per_second": 10.962464844184938
+  },
+  "error": null,
+  "traceback": null,
+  "train_examples": 729,
+  "validation_examples": 61,
+  "device": "directml:1:AMD Radeon RX 6700 XT",
+  "benchmark_status": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-045733\\benchmark_status.json",
+  "best_validation_loss": 0.7215247922576964,
+  "benchmark_report": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-045733.json"
+}
+
+ succeeded in 159ms:
+{
+  "model_type": "native_byte_transformer",
+  "vocab_size": 76,
+  "max_seq_length": 640,
+  "hidden_size": 512,
+  "num_layers": 10,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1
+}
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-045733\\benchmark_status.json" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\scripts\\evaluate_native_model.py -TotalCount 260" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\scripts\\train_native_model.py -TotalCount 760" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 155ms:
+{
+  "status": "completed",
+  "model_path": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-045733",
+  "benchmark_file": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\data\\processed\\benchmark_full_response_sft.jsonl",
+  "output_report": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-045733.json",
+  "current": 61,
+  "total": 61,
+  "valid_json_count": 60,
+  "nonempty_output_count": 61,
+  "valid_output_count": 60,
+  "correct_response_type_count": 54,
+  "valid_full_response_count": 60,
+  "items_per_sec": 0.24081482543324315,
+  "valid_output_rate": 0.9836065573770492,
+  "valid_json_rate": 0.9836065573770492,
+  "response_type_accuracy": 0.8852459016393442
+}
+
+ succeeded in 164ms:
+import argparse
+import json
+from pathlib import Path
+import sys
+import time
+
+
+ROLE_PREFIXES = {
+    "system": "<|system|>\n",
+    "user": "<|user|>\n",
+    "assistant": "<|assistant|>\n",
+}
+
+RESPONSE_TYPES = [
+    "DIRECT_ANSWER",
+    "CLARIFICATION",
+    "TOOL_NEEDED",
+    "OUT_OF_SCOPE",
+]
+
+BENCHMARK_FILE_TO_TYPE = {
+    "benchmark_sft.jsonl": "core",
+    "benchmark_category_prediction_sft.jsonl": "core",
+    "benchmark_full_response_sft.jsonl": "core",
+    "benchmark_stress_native_sft.jsonl": "stress",
+    "benchmark_stress_v2_native_sft.jsonl": "stress_v2",
+    "benchmark_account_tool_boundary_native_sft.jsonl": "account",
+    "benchmark_medical_refusal_boundary_native_sft.jsonl": "medical",
+    "benchmark_oos_vs_tool_boundary_native_sft.jsonl": "oos_tool",
+}
+
+BENCHMARK_FILE_TO_CATEGORY = {
+    "benchmark_sft.jsonl": "full_response",
+    "benchmark_category_prediction_sft.jsonl": "category_prediction",
+    "benchmark_full_response_sft.jsonl": "full_response",
+    "benchmark_stress_native_sft.jsonl": "category_prediction",
+    "benchmark_stress_v2_native_sft.jsonl": "category_prediction",
+    "benchmark_account_tool_boundary_native_sft.jsonl": "category_prediction",
+    "benchmark_medical_refusal_boundary_native_sft.jsonl": "category_prediction",
+    "benchmark_oos_vs_tool_boundary_native_sft.jsonl": "category_prediction",
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Evaluate a native byte-level transformer model against a benchmark set."
+    )
+    parser.add_argument("--model-path", type=Path, required=True, help="Path to the saved native model run directory.")
+    parser.add_argument(
+        "--benchmark-file",
+        type=Path,
+        default=Path("data/processed/benchmark_sft.jsonl"),
+        help="Benchmark SFT JSONL file.",
+    )
+    parser.add_argument(
+        "--output-report",
+        type=Path,
+        default=Path("experiments/benchmark_report.json"),
+        help="Output benchmark report path.",
+    )
+    parser.add_argument(
+        "--status-file",
+        type=Path,
+        default=None,
+        help="Optional JSON file to update with live benchmark progress.",
+    )
+    parser.add_argument("--max-new-tokens", type=int, default=256, help="Maximum generated tokens.")
+    parser.add_argument(
+        "--min-new-tokens",
+        type=int,
+        default=16,
+        help="Minimum number of tokens to generate before EOS is allowed.",
+    )
+    return parser.parse_args()
+
+
+def resolve_output_report_path(model_path: Path, output_report: Path) -> Path:
+    if output_report != Path("experiments/benchmark_report.json"):
+        return output_report
+    return output_report.parent / f"benchmark_report-{model_path.name}.json"
+
+
+def load_json(path: Path) -> dict:
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def infer_type_from_benchmark_file(path: Path) -> str:
+    return BENCHMARK_FILE_TO_TYPE.get(path.name, "custom")
+
+
+def infer_category_from_benchmark_file(path: Path) -> str:
+    return BENCHMARK_FILE_TO_CATEGORY.get(path.name, "custom")
+
+
+def infer_training_type_from_model_path(model_path: Path) -> str:
+    training_config_path = model_path / "training_config.json"
+    if training_config_path.exists():
+        try:
+            training_config = load_json(training_config_path)
+            benchmark_file = training_config.get("benchmark_file")
+            if isinstance(benchmark_file, str) and benchmark_file.strip():
+                return infer_type_from_benchmark_file(Path(benchmark_file))
+        except Exception:
+            pass
+    if "-stress-" in model_path.name:
+        return "stress"
+    return "core"
+
+
+def infer_training_category_from_model_path(model_path: Path) -> str:
+    training_config_path = model_path / "training_config.json"
+    if training_config_path.exists():
+        try:
+            training_config = load_json(training_config_path)
+            train_file = training_config.get("train_file")
+            if isinstance(train_file, str) and "full_response" in train_file:
+                return "full_response"
+            if isinstance(train_file, str) and "category_prediction" in train_file:
+                return "category_prediction"
+            benchmark_file = training_config.get("benchmark_file")
+            if isinstance(benchmark_file, str) and benchmark_file.strip():
+                return infer_category_from_benchmark_file(Path(benchmark_file))
+        except Exception:
+            pass
+    if "full-response" in model_path.name:
+        return "full_response"
+    return "category_prediction"
+
+
+def load_jsonl(path: Path) -> list[dict]:
+    rows = []
+    with path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            if line.strip():
+                rows.append(json.loads(line))
+    return rows
+
+
+def write_status(path: Path | None, payload: dict) -> None:
+    if path is None:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, ensure_ascii=True)
+        handle.write("\n")
+
+
+def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
+    parts = []
+    for message in messages:
+        parts.append(ROLE_PREFIXES[message["role"]])
+        parts.append(message["content"])
+        parts.append("\n")
+    if add_generation_prompt:
+        parts.append(ROLE_PREFIXES["assistant"])
+    return "".join(parts)
+
+
+class ByteTokenizer:
+    def __init__(
+        self,
+        chars: list[str],
+        pad_token_id: int | None = None,
+        bos_token_id: int | None = None,
+        eos_token_id: int | None = None,
+    ):
+        ordered_chars = []
+        seen = set()
+        for char in chars:
+            if len(char) != 1:
+                continue
+            if char in seen:
+                continue
+            ordered_chars.append(char)
+            seen.add(char)
+        if "?" not in seen:
+            ordered_chars.append("?")
+            seen.add("?")
+        self.chars = ordered_chars
+        self.char_to_id = {char: index for index, char in enumerate(self.chars)}
+        self.id_to_char = {index: char for char, index in self.char_to_id.items()}
+        self.unknown_token_id = self.char_to_id["?"]
+        regular_token_limit = len(self.chars)
+        self.regular_token_limit = regular_token_limit
+        self.pad_token_id = int(regular_token_limit if pad_token_id is None else pad_token_id)
+        self.bos_token_id = int(regular_token_limit + 1 if bos_token_id is None else bos_token_id)
+        self.eos_token_id = int(regular_token_limit + 2 if eos_token_id is None else eos_token_id)
+        self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1
+
+    @classmethod
+    def from_config(cls, payload: dict) -> "ByteTokenizer":
+        chars = payload.get("chars")
+        if chars:
+            return cls(
+                chars=list(chars),
+                pad_token_id=int(payload["pad_token_id"]),
+                bos_token_id=int(payload["bos_token_id"]),
+                eos_token_id=int(payload["eos_token_id"]),
+            )
+        regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))
+        chars = [chr(index) for index in range(regular_token_limit)]
+        return cls(
+            chars=chars,
+            pad_token_id=int(payload["pad_token_id"]),
+            bos_token_id=int(payload["bos_token_id"]),
+            eos_token_id=int(payload["eos_token_id"]),
+        )
+
+    def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
+        token_ids = [self.char_to_id.get(char, self.unknown_token_id) for char in text]
+        if add_special_tokens:
+            return [self.bos_token_id] + token_ids + [self.eos_token_id]
+        return token_ids
+
+    def decode(self, token_ids: list[int]) -> str:
+        return "".join(self.id_to_char[token_id] for token_id in token_ids if token_id in self.id_to_char)
+
+
+def extract_response_type(text: str) -> str | None:
+    stripped = text.strip()
+    if stripped in RESPONSE_TYPES:
+        return stripped
+    for response_type in RESPONSE_TYPES:
+        if response_type in stripped:
+            return response_type
+    return None
+
+
+def parse_expected_payload(text: str) -> dict:
+    stripped = text.strip()
+    try:
+        payload = json.loads(stripped)
+    except json.JSONDecodeError:
+        return {
+            "format": "label_only",
+            "response_type": extract_response_type(stripped),
+            "reason": None,
+            "response": None,
+            "raw": stripped,
+        }
+
+    if not isinstance(payload, dict):
+        return {
+            "format": "unknown_json",
+            "response_type": None,
+            "reason": None,
+            "response": None,
+            "raw": stripped,
+        }
+
+    response_type = payload.get("response_type")
+    reason = payload.get("reason")
+    response = payload.get("response")
+    return {
+        "format": "full_response",
+        "response_type": response_type if isinstance(response_type, str) else None,
+        "reason": reason if isinstance(reason, str) else None,
+        "response": response if isinstance(response, str) else None,
+        "raw": stripped,
+
+ succeeded in 191ms:
+import argparse
+import gc
+import json
+import math
+import os
+import random
+import subprocess
+import sys
+import time
+import traceback
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+ROLE_PREFIXES = {
+    "system": "<|system|>\n",
+    "user": "<|user|>\n",
+    "assistant": "<|assistant|>\n",
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Train a small decoder-only transformer from scratch on the project SFT data."
+    )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path("models/configs/v1_native_byte_transformer_config.json"),
+        help="Path to the native model training config.",
+    )
+    parser.add_argument(
+        "--num-train-epochs",
+        type=int,
+        default=None,
+        help="Optional override for config num_train_epochs.",
+    )
+    return parser.parse_args()
+
+
+def load_config(path: Path) -> dict:
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def resolve_path(path_value: str | Path, base_dir: Path) -> Path:
+    path = Path(path_value)
+    if path.is_absolute():
+        return path
+    return (base_dir / path).resolve()
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def compute_training_metrics(
+    started_at: float,
+    global_step: int,
+    train_examples: int,
+    num_train_epochs: int,
+) -> tuple[float, float, float]:
+    elapsed_seconds = max(0.0, time.perf_counter() - started_at)
+    steps_per_second = (global_step / elapsed_seconds) if elapsed_seconds > 0 else 0.0
+    total_seen_samples = train_examples * num_train_epochs
+    samples_per_second = (total_seen_samples / elapsed_seconds) if elapsed_seconds > 0 else 0.0
+    return elapsed_seconds, steps_per_second, samples_per_second
+
+
+def make_run_output_dir(base_output_dir: Path) -> Path:
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    candidate = base_output_dir.parent / f"{base_output_dir.name}-{timestamp}"
+    suffix = 1
+    while candidate.exists():
+        candidate = base_output_dir.parent / f"{base_output_dir.name}-{timestamp}-{suffix}"
+        suffix += 1
+    return candidate
+
+
+def configure_reproducibility(seed: int) -> None:
+    random.seed(seed)
+    try:
+        import torch
+    except ImportError:
+        return
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def detect_device(torch_module, device_preference: list[str]) -> tuple[object, str]:
+    if not device_preference:
+        device_preference = ["hip", "cuda", "directml", "cpu"]
+
+    hip_available = bool(getattr(torch_module.version, "hip", None)) and torch_module.cuda.is_available()
+    cuda_available = torch_module.cuda.is_available() and not hip_available
+
+    def load_directml():
+        try:
+            import torch_directml  # type: ignore
+        except ImportError:
+            return None
+        if not torch_directml.is_available():
+            return None
+        return torch_directml
+
+    def score_directml_name(name: str) -> tuple[int, int]:
+        cleaned = name.replace("\x00", "").strip().lower()
+        score = 0
+        if "nvidia" in cleaned or "geforce" in cleaned or "rtx" in cleaned:
+            score += 50
+        if "amd" in cleaned or "radeon" in cleaned:
+            score += 40
+        if "rx " in cleaned or cleaned.endswith(" rx") or "radeon rx" in cleaned:
+            score += 20
+        if "graphics" in cleaned and "rx" not in cleaned and "rtx" not in cleaned:
+            score -= 25
+        if "intel" in cleaned:
+            score -= 30
+        return score, len(cleaned)
+
+    for item in device_preference:
+        normalized = str(item).lower()
+        if normalized == "hip" and hip_available:
+            return torch_module.device("cuda"), "hip"
+        if normalized == "cuda" and cuda_available:
+            return torch_module.device("cuda"), "cuda"
+        if normalized == "directml":
+            torch_directml = load_directml()
+            if torch_directml is None:
+                continue
+            device_count = int(torch_directml.device_count())
+            if device_count < 1:
+                continue
+            best_index = max(
+                range(device_count),
+                key=lambda index: score_directml_name(str(torch_directml.device_name(index))),
+            )
+            device_name = str(torch_directml.device_name(best_index)).replace("\x00", "").strip()
+            return torch_directml.device(best_index), f"directml:{best_index}:{device_name}"
+        if normalized == "cpu":
+            return torch_module.device("cpu"), "cpu"
+
+    return torch_module.device("cpu"), "cpu"
+
+
+def load_jsonl(path: Path) -> list[dict]:
+    rows = []
+    with path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            if line.strip():
+                rows.append(json.loads(line))
+    return rows
+
+
+def load_json(path: Path) -> dict:
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def infer_run_category(run_dir: Path) -> str:
+    training_config_path = run_dir / "training_config.json"
+    if training_config_path.exists():
+        try:
+            training_config = load_json(training_config_path)
+            train_file = str(training_config.get("train_file", ""))
+            benchmark_file = str(training_config.get("benchmark_file", ""))
+            if "full_response" in train_file or "full_response" in benchmark_file:
+                return "full_response"
+            if "category_prediction" in train_file or "category_prediction" in benchmark_file:
+                return "category_prediction"
+        except Exception:
+            pass
+
+    run_name = run_dir.name
+    if "full-response" in run_name:
+        return "full_response"
+    if "category-prediction" in run_name:
+        return "category_prediction"
+    return "category_prediction"
+
+
+def infer_run_type(run_dir: Path) -> str:
+    training_config_path = run_dir / "training_config.json"
+    if training_config_path.exists():
+        try:
+            training_config = load_json(training_config_path)
+            combined = " ".join(
+                str(training_config.get(key, "")) for key in ("train_file", "validation_file", "benchmark_file", "output_dir")
+            ).lower()
+            if "stress_v2" in combined or "stress-v2" in combined:
+                return "stress_v2"
+            if "stress" in combined:
+                return "stress"
+        except Exception:
+            pass
+
+    run_name = run_dir.name.lower()
+    if "-stress-v2-" in run_name:
+        return "stress_v2"
+    if "-stress-" in run_name:
+        return "stress"
+    return "core"
+
+
+def find_latest_completed_run(repo_root: Path, type_name: str | None, category_name: str | None) -> Path:
+    runs_root = repo_root / "models" / "runs"
+    status_paths = sorted(
+        runs_root.rglob("training_status.json"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+    for status_path in status_paths:
+        try:
+            run_dir = status_path.parent
+            if not (run_dir / "model.pt").exists():
+                continue
+            status = load_json(status_path)
+            if str(status.get("status", "")).lower() != "completed":
+                continue
+            if int(status.get("global_step", 0)) <= 0:
+                continue
+            if type_name and infer_run_type(run_dir) != type_name:
+                continue
+            if category_name and infer_run_category(run_dir) != category_name:
+                continue
+            return run_dir
+        except Exception:
+            continue
+
+    raise FileNotFoundError(
+        f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"
+    )
+
+
+def resolve_init_model_path(path_value: str | Path | None, repo_root: Path) -> Path | None:
+    if not path_value:
+        return None
+    value = str(path_value).strip()
+    if not value:
+        return None
+    if value.startswith("latest:"):
+        parts = value.split(":")
+        try:
+            if len(parts) == 2:
+                return find_latest_completed_run(repo_root, None, parts[1])
+            if len(parts) == 3:
+                return find_latest_completed_run(repo_root, parts[1], parts[2])
+        except FileNotFoundError:
+            return None
+        raise ValueError("init_from_model_path must use latest:<category> or latest:<type>:<category>")
+    return resolve_path(value, repo_root)
+
+
+def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
+    parts = []
+    for message in messages:
+        role = message["role"]
+        prefix = ROLE_PREFIXES[role]
+        parts.append(prefix)
+        parts.append(message["content"])
+        parts.append("\n")
+    if add_generation_prompt:
+        parts.append(ROLE_PREFIXES["assistant"])
+    return "".join(parts)
+
+
+class ByteTokenizer:
+    def __init__(
+        self,
+        chars: list[str],
+        pad_token_id: int | None = None,
+        bos_token_id: int | None = None,
+        eos_token_id: int | None = None,
+    ):
+        ordered_chars = []
+        seen = set()
+        for char in chars:
+            if len(char) != 1:
+                continue
+            if char in seen:
+                continue
+            ordered_chars.append(char)
+            seen.add(char)
+        if "?" not in seen:
+            ordered_chars.append("?")
+            seen.add("?")
+        self.chars = ordered_chars
+        self.char_to_id = {char: index for index, char in enumerate(self.chars)}
+        self.id_to_char = {index: char for char, index in self.char_to_id.items()}
+        self.unknown_token_id = self.char_to_id["?"]
+        regular_token_limit = len(self.chars)
+        self.regular_token_limit = regular_token_limit
+        self.pad_token_id = int(regular_token_limit if pad_token_id is None else pad_token_id)
+        self.bos_token_id = int(regular_token_limit + 1 if bos_token_id is None else bos_token_id)
+        self.eos_token_id = int(regular_token_limit + 2 if eos_token_id is None else eos_token_id)
+        self.vocab_size = max(regular_token_limit, self.pad_token_id, self.bos_token_id, self.eos_token_id) + 1
+
+    @classmethod
+    def from_config(cls, payload: dict) -> "ByteTokenizer":
+        chars = payload.get("chars")
+        if chars:
+            return cls(
+                chars=list(chars),
+                pad_token_id=int(payload["pad_token_id"]),
+                bos_token_id=int(payload["bos_token_id"]),
+                eos_token_id=int(payload["eos_token_id"]),
+            )
+        regular_token_limit = int(payload.get("regular_token_limit", payload.get("vocab_size", 131) - 3))
+        chars = [chr(index) for index in range(regular_token_limit)]
+        return cls(
+            chars=chars,
+            pad_token_id=int(payload["pad_token_id"]),
+            bos_token_id=int(payload["bos_token_id"]),
+            eos_token_id=int(payload["eos_token_id"]),
+        )
+
+    def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
+        token_ids = [self.char_to_id.get(char, self.unknown_token_id) for char in text]
+        if add_special_tokens:
+            return [self.bos_token_id] + token_ids + [self.eos_token_id]
+        return token_ids
+
+    def decode(self, token_ids: list[int]) -> str:
+        return "".join(self.id_to_char[token_id] for token_id in token_ids if token_id in self.id_to_char)
+
+    def save(self, path: Path) -> None:
+        payload = {
+            "type": "char_vocab",
+            "chars": self.chars,
+            "regular_token_limit": self.regular_token_limit,
+            "pad_token_id": self.pad_token_id,
+            "bos_token_id": self.bos_token_id,
+            "eos_token_id": self.eos_token_id,
+            "vocab_size": self.vocab_size,
+        }
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2, ensure_ascii=True)
+            handle.write("\n")
+
+
+@dataclass
+class Example:
+    input_ids: list[int]
+    label_ids: list[int]
+    response_type: str
+
+
+def fit_prompt_and_answer(prompt_ids: list[int], answer_ids: list[int], max_seq_length: int) -> tuple[list[int], list[int]]:
+    full_input_ids = prompt_ids + answer_ids
+    full_label_ids = ([-100] * len(prompt_ids)) + answer_ids
+    if len(full_input_ids) <= max_seq_length:
+        return full_input_ids, full_label_ids
+
+    if len(answer_ids) >= max_seq_length:
+        trimmed_answer = answer_ids[-max_seq_length:]
+        return trimmed_answer, trimmed_answer[:]
+
+    prompt_budget = max_seq_length - len(answer_ids)
+    trimmed_prompt = prompt_ids[-prompt_budget:] if prompt_budget > 0 else []
+    input_ids = trimmed_prompt + answer_ids
+    label_ids = ([-100] * len(trimmed_prompt)) + answer_ids
+    return input_ids, label_ids
+
+
+def build_examples(rows: list[dict], tokenizer: ByteTokenizer, max_seq_length: int) -> list[Example]:
+    examples = []
+    for row in rows:
+        prompt_text = render_messages(row["messages"][:2], add_generation_prompt=True)
+        answer_text = row["messages"][2]["content"]
+
+        prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
+        answer_ids = tokenizer.encode(answer_text, add_special_tokens=False) + [tokenizer.eos_token_id]
+        input_ids, label_ids = fit_prompt_and_answer(prompt_ids, answer_ids, max_seq_length)
+        examples.append(
+            Example(
+                input_ids=input_ids,
+                label_ids=label_ids,
+                response_type=answer_text,
+            )
+        )
+    return examples
+
+
+def build_tokenizer_from_rows(*row_sets: list[dict]) -> ByteTokenizer:
+    chars = set()
+    for rows in row_sets:
+        for row in rows:
+            for message in row["messages"]:
+                chars.update(message["content"])
+    return ByteTokenizer(chars=sorted(chars))
+
+
+def create_batches(examples: list[Example], batch_size: int, shuffle: bool) -> list[list[Example]]:
+    items = examples[:]
+    if shuffle:
+        random.shuffle(items)
+    return [items[index : index + batch_size] for index in range(0, len(items), batch_size)]
+
+
+def collate_batch(batch: list[Example], tokenizer: ByteTokenizer, torch_module) -> tuple[object, object]:
+    max_length = max(len(example.input_ids) for example in batch)
+    input_rows = []
+    label_rows = []
+    for example in batch:
+        pad_count = max_length - len(example.input_ids)
+        input_rows.append(example.input_ids + ([tokenizer.pad_token_id] * pad_count))
+        label_rows.append(example.label_ids + ([-100] * pad_count))
+    input_ids = torch_module.tensor(input_rows, dtype=torch_module.long)
+    labels = torch_module.tensor(label_rows, dtype=torch_module.long)
+    return input_ids, labels
+
+
+def compute_response_type_weights(
+    examples: list[Example],
+    enabled: bool,
+    weight_power: float,
+) -> dict[str, float]:
+    if not enabled or not examples:
+        return {}
+
+    counts: dict[str, int] = {}
+    for example in examples:
+        counts[example.response_type] = counts.get(example.response_type, 0) + 1
+
+    if not counts:
+        return {}
+
+    total_examples = len(examples)
+    total_classes = len(counts)
+    normalized_weights = {
+        response_type: ((total_examples / (total_classes * count)) ** weight_power)
+        for response_type, count in counts.items()
+    }
+    mean_weight = sum(normalized_weights.values()) / len(normalized_weights)
+    if mean_weight <= 0:
+        return {}
+    return {
+        response_type: (weight / mean_weight)
+        for response_type, weight in normalized_weights.items()
+    }
+
+
+def compute_batch_loss(
+    logits,
+    labels,
+    batch: list[Example],
+    vocab_size: int,
+    class_weights: dict[str, float],
+    torch_module,
+) -> object:
+    shifted_logits = logits[:, :-1, :].reshape(-1, vocab_size)
+    shifted_labels = labels[:, 1:].reshape(-1)
+    if not class_weights:
+        return torch_module.nn.functional.cross_entropy(
+            shifted_logits,
+            shifted_labels,
+            ignore_index=-100,
+        )
+
+    token_losses = torch_module.nn.functional.cross_entropy(
+        shifted_logits,
+        shifted_labels,
+        ignore_index=-100,
+        reduction="none",
+    ).view(labels.shape[0], labels.shape[1] - 1)
+    valid_mask = (labels[:, 1:] != -100).to(token_losses.dtype)
+    token_counts = valid_mask.sum(dim=1).clamp_min(1.0)
+    example_losses = (token_losses * valid_mask).sum(dim=1) / token_counts
+    weight_values = [
+        float(class_weights.get(example.response_type, 1.0))
+        for example in batch
+    ]
+    example_weights = torch_module.tensor(weight_values, dtype=example_losses.dtype, device=example_losses.device)
+    return (example_losses * example_weights).sum() / example_weights.sum().clamp_min(1.0)
+
+
+class TrainingStatusWriter:
+    def __init__(self, output_dir: Path, config: dict):
+        self.output_dir = output_dir
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.path = self.output_dir / "training_status.json"
+        self.state = {
+            "status": "initializing",
+            "started_at": utc_now_iso(),
+            "updated_at": utc_now_iso(),
+            "completed_at": None,
+            "pid": os.getpid(),
+            "output_dir": str(output_dir),
+            "train_file": config["train_file"],
+            "validation_file": config["validation_file"],
+            "benchmark_file": config.get("benchmark_file", "data/processed/benchmark_sft.jsonl"),
+            "global_step": 0,
+            "epoch": 0.0,
+            "max_steps": None,
+            "latest_log": {},
+            "error": None,
+            "traceback": None,
+        }
+        self.write()
+
+    def update(self, **kwargs) -> None:
+        self.state.update(kwargs)
+        self.state["updated_at"] = utc_now_iso()
+        self.write()
+
+    def write(self) -> None:
+        with self.path.open("w", encoding="utf-8") as handle:
+            json.dump(self.state, handle, indent=2, ensure_ascii=True)
+            handle.write("\n")
+
+
+def run_post_training_benchmark(repo_root: Path, output_dir: Path) -> Path:
+    report_path = repo_root / "experiments" / f"benchmark_report-{output_dir.name}.json"
+    status_path = output_dir / "benchmark_status.json"
+    training_config = load_json(output_dir / "training_config.json")
+    benchmark_file = resolve_path(
+        training_config.get("benchmark_file", "data/processed/benchmark_sft.jsonl"),
+        repo_root,
+    )
+    command = [
+        os.sys.executable,
+        str(repo_root / "scripts" / "evaluate_native_model.py"),
+        "--model-path",
+        str(output_dir),
+        "--benchmark-file",
+        str(benchmark_file),
+        "--output-report",
+        str(report_path),
+        "--status-file",
+        str(status_path),
+        "--max-new-tokens",
+        "384",
+    ]
+    subprocess.run(command, check=True, cwd=repo_root)
+    return report_path
+
+
+def refresh_training_summary(repo_root: Path) -> None:
+    command = [os.sys.executable, str(repo_root / "scripts" / "summarize_training_runs.py")]
+    subprocess.run(command, capture_output=True, text=True, cwd=repo_root)
+
+
+def save_json(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, ensure_ascii=True)
+        handle.write("\n")
+
+
+def build_cpu_state_dict(model) -> dict:
+    return {name: tensor.detach().cpu() for name, tensor in model.state_dict().items()}
+
+
+def build_token_id_remap(source_tokenizer: ByteTokenizer, target_tokenizer: ByteTokenizer) -> list[tuple[int, int]]:
+    pairs: list[tuple[int, int]] = []
+
+    for char, source_id in source_tokenizer.char_to_id.items():
+        target_id = target_tokenizer.char_to_id.get(char)
+        if target_id is not None:
+            pairs.append((source_id, target_id))
+
+    special_pairs = [
+        (source_tokenizer.pad_token_id, target_tokenizer.pad_token_id),
+        (source_tokenizer.bos_token_id, target_tokenizer.bos_token_id),
+        (source_tokenizer.eos_token_id, target_tokenizer.eos_token_id),
+    ]
+    for source_id, target_id in special_pairs:
+        pairs.append((int(source_id), int(target_id)))
+
+    unique_pairs: list[tuple[int, int]] = []
+    seen_targets: set[int] = set()
+    for source_id, target_id in pairs:
+        if target_id in seen_targets:
+            continue
+        seen_targets.add(target_id)
+        unique_pairs.append((int(source_id), int(target_id)))
+    return unique_pairs
+
+
+def remap_vocab_matrix(
+    source_tensor,
+    target_tensor,
+    token_pairs: list[tuple[int, int]],
+):
+    remapped = target_tensor.clone()
+    source_rows = int(source_tensor.shape[0])
+    target_rows = int(target_tensor.shape[0])
+    for source_id, target_id in token_pairs:
+        if source_id < 0 or target_id < 0:
+            continue
+        if source_id >= source_rows or target_id >= target_rows:
+            continue
+        remapped[target_id] = source_tensor[source_id].to(dtype=target_tensor.dtype, device=target_tensor.device)
+    return remapped
+
+
+def transfer_position_embedding(source_tensor, target_tensor):
+    transferred = target_tensor.clone()
+    if len(source_tensor.shape) != 2 or len(target_tensor.shape) != 2:
+        return transferred
+    if int(source_tensor.shape[1]) != int(target_tensor.shape[1]):
+        return transferred
+
+    rows_to_copy = min(int(source_tensor.shape[0]), int(target_tensor.shape[0]))
+    if rows_to_copy <= 0:
+        return transferred
+    transferred[:rows_to_copy] = source_tensor[:rows_to_copy].to(
+        dtype=target_tensor.dtype,
+        device=target_tensor.device,
+    )
+    return transferred
+
+
+def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteTokenizer, torch_module) -> dict[str, object]:
+    state_path = init_model_dir / "model.pt"
+    if not state_path.exists():
+        raise FileNotFoundError(f"Initial model checkpoint not found: {state_path}")
+
+    source_state = torch_module.load(state_path, map_location="cpu", weights_only=False)
+    source_tokenizer = ByteTokenizer.from_config(load_json(init_model_dir / "tokenizer_config.json"))
+    token_pairs = build_token_id_remap(source_tokenizer, target_tokenizer)
+    target_state = model.state_dict()
+    updated_state = dict(target_state)
+    loaded_names: list[str] = []
+    skipped_names: list[str] = []
+
+    for name, tensor in source_state.items():
+        if name not in target_state:
+            skipped_names.append(name)
+            continue
+        if name in {"token_embedding.weight", "lm_head.weight"}:
+            if len(target_state[name].shape) == 2 and len(tensor.shape) == 2 and int(target_state[name].shape[1]) == int(tensor.shape[1]):
+                updated_state[name] = remap_vocab_matrix(
+                    source_tensor=tensor,
+                    target_tensor=target_state[name],
+                    token_pairs=token_pairs,
+                )
+                loaded_names.append(name)
+                continue
+        if target_state[name].shape == tensor.shape:
+            updated_state[name] = tensor
+            loaded_names.append(name)
+            continue
+        if name == "position_embedding.weight":
+            updated_state[name] = transfer_position_embedding(
+                source_tensor=tensor,
+                target_tensor=target_state[name],
+            )
+            loaded_names.append(name)
+            continue
+        skipped_names.append(name)
+
+    model.load_state_dict(updated_state)
+    return {
+        "loaded_count": len(loaded_names),
+        "skipped_count": len(skipped_names),
+        "loaded_names": loaded_names,
+        "skipped_names": skipped_names,
+    }
+
+
+class DirectMLAdamW:
+    def __init__(
+        self,
+        torch_module,
+        params,
+        lr: float,
+        weight_decay: float = 0.01,
+        betas: tuple[float, float] = (0.9, 0.999),
+        eps: float = 1e-8,
+    ) -> None:
+        self.torch = torch_module
+        self.params = [param for param in params if param.requires_grad]
+        self.lr = float(lr)
+        self.weight_decay = float(weight_decay)
+        self.beta1 = float(betas[0])
+        self.beta2 = float(betas[1])
+        self.eps = float(eps)
+        self.step_count = 0
+        self.state: dict[int, dict[str, object]] = {}
+
+    def zero_grad(self, set_to_none: bool = True) -> None:
+        for param in self.params:
+            if param.grad is None:
+                continue
+            if set_to_none:
+                param.grad = None
+            else:
+                param.grad.zero_()
+
+    def step(self) -> None:
+        self.step_count += 1
+        bias_correction1 = 1.0 - (self.beta1 ** self.step_count)
+        bias_correction2 = 1.0 - (self.beta2 ** self.step_count)
+
+        with self.torch.no_grad():
+            for param in self.params:
+                grad = param.grad
+                if grad is None:
+                    continue
+                if grad.is_sparse:
+                    raise RuntimeError("DirectMLAdamW does not support sparse gradients.")
+
+                state = self.state.get(id(param))
+                if state is None:
+                    state = {
+                        "exp_avg": self.torch.zeros_like(param),
+                        "exp_avg_sq": self.torch.zeros_like(param),
+                    }
+                    self.state[id(param)] = state
+
+                exp_avg = state["exp_avg"]
+                exp_avg_sq = state["exp_avg_sq"]
+
+                exp_avg.mul_(self.beta1).add_(grad, alpha=(1.0 - self.beta1))
+                exp_avg_sq.mul_(self.beta2).addcmul_(grad, grad, value=(1.0 - self.beta2))
+
+                denom = exp_avg_sq.sqrt() / math.sqrt(bias_correction2)
+                denom.add_(self.eps)
+                step_size = self.lr / bias_correction1
+
+                if self.weight_decay != 0.0:
+                    param.add_(param, alpha=(-self.lr * self.weight_decay))
+                param.addcdiv_(exp_avg, denom, value=-step_size)
+
+
+def create_optimizer(torch_module, model, config: dict, device_label: str):
+    optimizer_name = str(config.get("optimizer", "auto")).strip().lower()
+    lr = float(config["learning_rate"])
+    weight_decay = float(config.get("weight_decay", 0.01))
+    betas = tuple(config.get("adam_betas", [0.9, 0.999]))
+    eps = float(config.get("adam_eps", 1e-8))
+
+    if optimizer_name == "auto":
+        optimizer_name = "adamw"
+
+    if optimizer_name == "adamw_dml_safe":
+        optimizer = DirectMLAdamW(
+            torch_module,
+            model.parameters(),
+            lr=lr,
+            weight_decay=weight_decay,
+            betas=(float(betas[0]), float(betas[1])),
+            eps=eps,
+        )
+        return optimizer, "adamw_dml_safe"
+
+    if optimizer_name == "adamw":
+        optimizer = torch_module.optim.AdamW(
+            model.parameters(),
+            lr=lr,
+            weight_decay=weight_decay,
+            foreach=False,
+        )
+        return optimizer, "adamw"
+
+    raise ValueError("Unsupported optimizer. Expected one of: auto, adamw, adamw_dml_safe.")
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\scripts\\evaluate_native_model.py | Select-Object -Skip 240 -First 420" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 197ms:
+        }
+
+    if not isinstance(payload, dict):
+        return {
+            "format": "unknown_json",
+            "response_type": None,
+            "reason": None,
+            "response": None,
+            "raw": stripped,
+        }
+
+    response_type = payload.get("response_type")
+    reason = payload.get("reason")
+    response = payload.get("response")
+    return {
+        "format": "full_response",
+        "response_type": response_type if isinstance(response_type, str) else None,
+        "reason": reason if isinstance(reason, str) else None,
+        "response": response if isinstance(response, str) else None,
+        "raw": stripped,
+    }
+
+
+def parse_generated_payload(text: str) -> dict:
+    stripped = text.strip()
+    if stripped == "":
+        return {
+            "format": "empty",
+            "valid_json": False,
+            "valid_output": False,
+            "response_type": None,
+            "reason": None,
+            "response": None,
+            "raw": text,
+        }
+
+    try:
+        payload = json.loads(stripped)
+    except json.JSONDecodeError:
+        predicted_type = extract_response_type(stripped)
+        return {
+            "format": "label_only_text",
+            "valid_json": False,
+            "valid_output": predicted_type in RESPONSE_TYPES,
+            "response_type": predicted_type,
+            "reason": None,
+            "response": None,
+            "raw": text,
+        }
+
+    if not isinstance(payload, dict):
+        return {
+            "format": "json_non_object",
+            "valid_json": False,
+            "valid_output": False,
+            "response_type": None,
+            "reason": None,
+            "response": None,
+            "raw": text,
+        }
+
+    response_type = payload.get("response_type")
+    reason = payload.get("reason")
+    response = payload.get("response")
+    valid_json = (
+        isinstance(response_type, str)
+        and response_type in RESPONSE_TYPES
+        and isinstance(reason, str)
+        and reason.strip() != ""
+        and isinstance(response, str)
+        and response.strip() != ""
+    )
+    return {
+        "format": "full_response_json",
+        "valid_json": valid_json,
+        "valid_output": valid_json,
+        "response_type": response_type if isinstance(response_type, str) else None,
+        "reason": reason if isinstance(reason, str) else None,
+        "response": response if isinstance(response, str) else None,
+        "raw": text,
+    }
+
+
+def detect_device(torch_module) -> tuple[object, str]:
+    hip_available = bool(getattr(torch_module.version, "hip", None)) and torch_module.cuda.is_available()
+    if hip_available:
+        return torch_module.device("cuda"), "hip"
+    if torch_module.cuda.is_available():
+        return torch_module.device("cuda"), "cuda"
+    try:
+        import torch_directml  # type: ignore
+    except ImportError:
+        torch_directml = None
+    if torch_directml is not None and torch_directml.is_available() and int(torch_directml.device_count()) > 0:
+        def score_directml_name(name: str) -> tuple[int, int]:
+            cleaned = name.replace("\x00", "").strip().lower()
+            score = 0
+            if "nvidia" in cleaned or "geforce" in cleaned or "rtx" in cleaned:
+                score += 50
+            if "amd" in cleaned or "radeon" in cleaned:
+                score += 40
+            if "rx " in cleaned or cleaned.endswith(" rx") or "radeon rx" in cleaned:
+                score += 20
+            if "graphics" in cleaned and "rx" not in cleaned and "rtx" not in cleaned:
+                score -= 25
+            if "intel" in cleaned:
+                score -= 30
+            return score, len(cleaned)
+
+        best_index = max(
+            range(int(torch_directml.device_count())),
+            key=lambda index: score_directml_name(str(torch_directml.device_name(index))),
+        )
+        device_name = str(torch_directml.device_name(best_index)).replace("\x00", "").strip()
+        return torch_directml.device(best_index), f"directml:{best_index}:{device_name}"
+    return torch_module.device("cpu"), "cpu"
+
+
+def render_progress_bar(current: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        total = 1
+    ratio = max(0.0, min(1.0, current / total))
+    filled = int(width * ratio)
+    if filled >= width:
+        bar = "=" * width
+    elif filled <= 0:
+        bar = "-" * width
+    else:
+        bar = ("=" * max(0, filled - 1)) + ">" + ("-" * (width - filled))
+    return f"[{bar}] {current}/{total} ({ratio * 100:5.1f}%)"
+
+
+def print_progress(
+    current: int,
+    total: int,
+    nonempty_output: int,
+    valid_output: int,
+    correct_response_type: int,
+    valid_full_response: int,
+    elapsed: float,
+) -> None:
+    rate = current / elapsed if elapsed > 0 else 0.0
+    line = (
+        f"{render_progress_bar(current, total)} | "
+        f"nonempty_output={nonempty_output} | "
+        f"valid_output={valid_output} | "
+        f"correct_type={correct_response_type} | "
+        f"valid_full={valid_full_response} | "
+        f"items_per_sec={rate:.2f}"
+    )
+    sys.stdout.write("\r" + line + " " * 8)
+    sys.stdout.flush()
+
+
+def main() -> int:
+    args = parse_args()
+    output_report = resolve_output_report_path(args.model_path, args.output_report)
+    benchmark_type = infer_type_from_benchmark_file(args.benchmark_file)
+    training_type = infer_training_type_from_model_path(args.model_path)
+    benchmark_category = infer_category_from_benchmark_file(args.benchmark_file)
+    training_category = infer_training_category_from_model_path(args.model_path)
+
+    import torch
+    import torch.nn.functional as F  # noqa: F401
+    from torch import nn
+
+    device, _device_label = detect_device(torch)
+    tokenizer_config_path = args.model_path / "tokenizer_config.json"
+    if tokenizer_config_path.exists():
+        tokenizer = ByteTokenizer.from_config(load_json(tokenizer_config_path))
+    else:
+        tokenizer = ByteTokenizer(chars=[chr(index) for index in range(128)])
+    model_config = load_json(args.model_path / "model_config.json")
+
+    class CausalSelfAttention(nn.Module):
+        def __init__(self, hidden_size: int, num_heads: int, dropout: float):
+            super().__init__()
+            self.hidden_size = hidden_size
+            self.num_heads = num_heads
+            self.head_dim = hidden_size // num_heads
+            self.qkv = nn.Linear(hidden_size, hidden_size * 3)
+            self.proj = nn.Linear(hidden_size, hidden_size)
+            self.dropout = nn.Dropout(dropout)
+
+        def forward(self, x):
+            batch_size, seq_len, hidden_size = x.shape
+            qkv = self.qkv(x)
+            q, k, v = qkv.chunk(3, dim=-1)
+            q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            attn = torch.nn.functional.scaled_dot_product_attention(q, k, v, is_causal=True, dropout_p=0.0)
+            attn = attn.transpose(1, 2).contiguous().view(batch_size, seq_len, hidden_size)
+            return self.proj(attn)
+
+    class Block(nn.Module):
+        def __init__(self, hidden_size: int, num_heads: int, mlp_ratio: float, dropout: float):
+            super().__init__()
+            mlp_hidden = int(hidden_size * mlp_ratio)
+            self.norm_1 = nn.LayerNorm(hidden_size)
+            self.attn = CausalSelfAttention(hidden_size, num_heads, dropout)
+            self.norm_2 = nn.LayerNorm(hidden_size)
+            self.mlp = nn.Sequential(
+                nn.Linear(hidden_size, mlp_hidden),
+                nn.GELU(),
+                nn.Linear(mlp_hidden, hidden_size),
+                nn.Dropout(dropout),
+            )
+
+        def forward(self, x):
+            x = x + self.attn(self.norm_1(x))
+            x = x + self.mlp(self.norm_2(x))
+            return x
+
+    class NativeTransformerLM(nn.Module):
+        def __init__(self):
+            super().__init__()
+            hidden_size = int(model_config["hidden_size"])
+            self.max_seq_length = int(model_config["max_seq_length"])
+            self.token_embedding = nn.Embedding(int(model_config["vocab_size"]), hidden_size)
+            self.position_embedding = nn.Embedding(self.max_seq_length, hidden_size)
+            self.dropout = nn.Dropout(float(model_config["dropout"]))
+            self.blocks = nn.ModuleList(
+                [
+                    Block(
+                        hidden_size=hidden_size,
+                        num_heads=int(model_config["num_heads"]),
+                        mlp_ratio=float(model_config["mlp_ratio"]),
+                        dropout=float(model_config["dropout"]),
+                    )
+                    for _ in range(int(model_config["num_layers"]))
+                ]
+            )
+            self.norm = nn.LayerNorm(hidden_size)
+            self.lm_head = nn.Linear(hidden_size, int(model_config["vocab_size"]), bias=False)
+
+        def forward(self, input_ids):
+            batch_size, seq_len = input_ids.shape
+            positions = torch.arange(0, seq_len, device=input_ids.device).unsqueeze(0).expand(batch_size, seq_len)
+            x = self.token_embedding(input_ids) + self.position_embedding(positions)
+            x = self.dropout(x)
+            for block in self.blocks:
+                x = block(x)
+            x = self.norm(x)
+            return self.lm_head(x)
+
+    model = NativeTransformerLM()
+    state_dict = torch.load(args.model_path / "model.pt", map_location="cpu", weights_only=False)
+    model.load_state_dict(state_dict)
+    model = model.to(device)
+    model.eval()
+
+    benchmark_rows = load_jsonl(args.benchmark_file)
+    results = []
+    correct_response_type = 0
+    nonempty_output = 0
+    valid_output = 0
+    valid_json = 0
+    valid_full_response = 0
+    started_at = time.perf_counter()
+    status_file = args.status_file.resolve() if args.status_file else None
+
+    write_status(
+        status_file,
+        {
+            "status": "running",
+            "model_path": str(args.model_path.resolve()),
+            "benchmark_file": str(args.benchmark_file.resolve()),
+            "output_report": str(output_report.resolve()),
+            "current": 0,
+            "total": len(benchmark_rows),
+            "nonempty_output_count": 0,
+            "valid_json_count": 0,
+            "valid_output_count": 0,
+            "correct_response_type_count": 0,
+            "valid_full_response_count": 0,
+            "items_per_sec": 0.0,
+        },
+    )
+
+    print(f"Evaluating {len(benchmark_rows)} benchmark items from {args.benchmark_file}")
+
+    with torch.no_grad():
+        for index, row in enumerate(benchmark_rows, start=1):
+            prompt_text = render_messages(row["messages"][:2], add_generation_prompt=True)
+            prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
+            generated_ids = prompt_ids[:]
+            generated_tensor = torch.tensor([prompt_ids], dtype=torch.long, device=device)
+
+            for generated_token_count in range(args.max_new_tokens):
+                current_tensor = generated_tensor[:, -int(model_config["max_seq_length"]) :]
+                logits = model(current_tensor)
+                next_token_logits = logits[0, -1].clone()
+                for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:
+                    next_token_logits[token_id] = float("-inf")
+                if generated_token_count < int(args.min_new_tokens):
+                    next_token_logits[tokenizer.eos_token_id] = float("-inf")
+                newline_token_id = tokenizer.char_to_id.get("\n")
+                if newline_token_id is not None and generated_token_count < 8:
+                    next_token_logits[newline_token_id] = float("-inf")
+                next_token_id = int(torch.argmax(next_token_logits).item())
+                generated_ids.append(next_token_id)
+                next_token_tensor = torch.tensor([[next_token_id]], dtype=torch.long, device=device)
+                generated_tensor = torch.cat((generated_tensor, next_token_tensor), dim=1)
+                if next_token_id == tokenizer.eos_token_id:
+                    break
+
+            generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])
+            if generated_text != "":
+                nonempty_output += 1
+            parsed_generated = parse_generated_payload(generated_text)
+            parsed_expected = parse_expected_payload(row["messages"][2]["content"])
+            predicted_type = parsed_generated["response_type"]
+            expected_type = parsed_expected["response_type"]
+            expected_format = parsed_expected["format"]
+            is_valid_json = False
+            if expected_format == "full_response":
+                is_valid_json = bool(parsed_generated["format"] == "full_response_json" and parsed_generated["valid_json"])
+            elif expected_format == "label_only":
+                is_valid_json = predicted_type in RESPONSE_TYPES
+            is_valid_output = is_valid_json
+            if is_valid_json:
+                valid_json += 1
+            if is_valid_output:
+                valid_output += 1
+            if parsed_generated["format"] == "full_response_json" and parsed_generated["valid_json"]:
+                valid_full_response += 1
+            if predicted_type == expected_type:
+                correct_response_type += 1
+            results.append(
+                {
+                    "id": row["id"],
+                    "user_input": row["messages"][1]["content"],
+                    "expected_response_type": expected_type,
+                    "predicted_response_type": predicted_type,
+                    "expected_format": expected_format,
+                    "predicted_format": parsed_generated["format"],
+                    "valid_json": is_valid_json,
+                    "valid_output": is_valid_output,
+                    "expected_reason": parsed_expected["reason"],
+                    "predicted_reason": parsed_generated["reason"],
+                    "expected_response": parsed_expected["response"],
+                    "predicted_response": parsed_generated["response"],
+                    "raw_generation": generated_text,
+                }
+            )
+            print_progress(
+                current=index,
+                total=len(benchmark_rows),
+                nonempty_output=nonempty_output,
+                valid_output=valid_output,
+                correct_response_type=correct_response_type,
+                valid_full_response=valid_full_response,
+                elapsed=time.perf_counter() - started_at,
+            )
+            elapsed = time.perf_counter() - started_at
+            write_status(
+                status_file,
+                {
+                    "status": "running",
+                    "model_path": str(args.model_path.resolve()),
+                    "benchmark_file": str(args.benchmark_file.resolve()),
+                    "output_report": str(output_report.resolve()),
+                    "current": index,
+                    "total": len(benchmark_rows),
+                    "valid_json_count": valid_json,
+                    "nonempty_output_count": nonempty_output,
+                    "valid_output_count": valid_output,
+                    "correct_response_type_count": correct_response_type,
+                    "valid_full_response_count": valid_full_response,
+                    "items_per_sec": (index / elapsed) if elapsed > 0 else 0.0,
+                },
+            )
+
+    elapsed_seconds = time.perf_counter() - started_at
+    report = {
+        "training_type": training_type,
+        "training_category": training_category,
+        "benchmark_type": benchmark_type,
+        "benchmark_category": benchmark_category,
+        "benchmark_file": str(args.benchmark_file.resolve()),
+        "benchmark_size": len(benchmark_rows),
+        "nonempty_output_count": nonempty_output,
+        "nonempty_output_rate": nonempty_output / len(benchmark_rows) if benchmark_rows else 0.0,
+        "valid_json_count": valid_json,
+        "valid_json_rate": valid_json / len(benchmark_rows) if benchmark_rows else 0.0,
+        "valid_output_count": valid_output,
+        "valid_output_rate": valid_output / len(benchmark_rows) if benchmark_rows else 0.0,
+        "valid_full_response_count": valid_full_response,
+        "valid_full_response_rate": valid_full_response / len(benchmark_rows) if benchmark_rows else 0.0,
+        "correct_response_type_count": correct_response_type,
+        "response_type_accuracy": correct_response_type / len(benchmark_rows) if benchmark_rows else 0.0,
+        "elapsed_seconds": elapsed_seconds,
+        "items_per_sec": (len(benchmark_rows) / elapsed_seconds) if benchmark_rows and elapsed_seconds > 0 else 0.0,
+        "results": results,
+    }
+    output_report.parent.mkdir(parents=True, exist_ok=True)
+    with output_report.open("w", encoding="utf-8") as handle:
+        json.dump(report, handle, indent=2, ensure_ascii=True)
+        handle.write("\n")
+    write_status(
+        status_file,
+        {
+            "status": "completed",
+            "model_path": str(args.model_path.resolve()),
+            "benchmark_file": str(args.benchmark_file.resolve()),
+            "output_report": str(output_report.resolve()),
+            "current": len(benchmark_rows),
+            "total": len(benchmark_rows),
+            "valid_json_count": valid_json,
+            "nonempty_output_count": nonempty_output,
+            "valid_output_count": valid_output,
+            "correct_response_type_count": correct_response_type,
+            "valid_full_response_count": valid_full_response,
+            "items_per_sec": report["items_per_sec"],
+            "valid_output_rate": report["valid_output_rate"],
+            "valid_json_rate": report["valid_json_rate"],
+            "response_type_accuracy": report["response_type_accuracy"],
+        },
+    )
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json, pathlib
+run='v1-native-byte-transformer-full-response-20260412-045733'
+cfg=json.loads(pathlib.Path(f'models/runs/{run}/training_config.json').read_text())
+src=pathlib.Path(cfg['init_from_model_path_resolved'])
+tgt=pathlib.Path(f'models/runs/{run}')
+s_tok=json.loads((src/'tokenizer_config.json').read_text())
+t_tok=json.loads((tgt/'tokenizer_config.json').read_text())
+print('source',src.name,'target',tgt.name)
+print('vocab src/tgt',s_tok['vocab_size'],t_tok['vocab_size'])
+print('chars equal',s_tok.get('chars')==t_tok.get('chars'))
+print('special ids src',s_tok['pad_token_id'],s_tok['bos_token_id'],s_tok['eos_token_id'])
+print('special ids tgt',t_tok['pad_token_id'],t_tok['bos_token_id'],t_tok['eos_token_id'])
+# overlap
+s_chars=set(s_tok['chars']); t_chars=set(t_tok['chars'])
+print('char overlap',len(s_chars&t_chars),'/',len(t_chars),'target coverage',len(s_chars&t_chars)/len(t_chars))
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 247ms:
+source v1-native-byte-transformer-full-response-20260412-043728 target v1-native-byte-transformer-full-response-20260412-045733
+vocab src/tgt 76 76
+chars equal True
+special ids src 73 74 75
+special ids tgt 73 74 75
+char overlap 73 / 73 target coverage 1.0
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\scripts\\train_native_model.py | Select-Object -Skip 820 -First 220" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 205ms:
+    sys.stdout.write(details_line.ljust(clear_width))
+    sys.stdout.flush()
+
+
+def main() -> int:
+    args = parse_args()
+    repo_root = Path(__file__).resolve().parent.parent
+    config_path = resolve_path(args.config, repo_root)
+    config = load_config(config_path)
+    if args.num_train_epochs is not None:
+        if args.num_train_epochs < 1:
+            raise ValueError("--num-train-epochs must be at least 1")
+        config["num_train_epochs"] = int(args.num_train_epochs)
+    configure_reproducibility(int(config.get("seed", 11)))
+
+    train_file = resolve_path(config["train_file"], repo_root)
+    validation_file = resolve_path(config["validation_file"], repo_root)
+    output_dir_base = resolve_path(config["output_dir"], repo_root)
+    benchmark_file = resolve_path(config.get("benchmark_file", "data/processed/benchmark_sft.jsonl"), repo_root)
+
+    import torch
+    import torch.nn.functional as F
+    from torch import nn
+
+    device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
+    train_rows = load_jsonl(train_file)
+    validation_rows = load_jsonl(validation_file)
+    tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
+    max_seq_length = int(config["max_seq_length"])
+    train_examples = build_examples(train_rows, tokenizer, max_seq_length)
+    validation_examples = build_examples(validation_rows, tokenizer, max_seq_length)
+    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+
+    class CausalSelfAttention(nn.Module):
+        def __init__(self, hidden_size: int, num_heads: int, dropout: float):
+            super().__init__()
+            if hidden_size % num_heads != 0:
+                raise ValueError("hidden_size must be divisible by num_heads")
+            self.hidden_size = hidden_size
+            self.num_heads = num_heads
+            self.head_dim = hidden_size // num_heads
+            self.qkv = nn.Linear(hidden_size, hidden_size * 3)
+            self.proj = nn.Linear(hidden_size, hidden_size)
+            self.dropout = nn.Dropout(dropout)
+
+        def forward(self, x):
+            batch_size, seq_len, hidden_size = x.shape
+            qkv = self.qkv(x)
+            q, k, v = qkv.chunk(3, dim=-1)
+            q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            dropout_p = self.dropout.p if self.training else 0.0
+            attn = F.scaled_dot_product_attention(q, k, v, is_causal=True, dropout_p=dropout_p)
+            attn = attn.transpose(1, 2).contiguous().view(batch_size, seq_len, hidden_size)
+            return self.proj(attn)
+
+    class Block(nn.Module):
+        def __init__(self, hidden_size: int, num_heads: int, mlp_ratio: float, dropout: float):
+            super().__init__()
+            mlp_hidden = int(hidden_size * mlp_ratio)
+            self.norm_1 = nn.LayerNorm(hidden_size)
+            self.attn = CausalSelfAttention(hidden_size, num_heads, dropout)
+            self.norm_2 = nn.LayerNorm(hidden_size)
+            self.mlp = nn.Sequential(
+                nn.Linear(hidden_size, mlp_hidden),
+                nn.GELU(),
+                nn.Linear(mlp_hidden, hidden_size),
+                nn.Dropout(dropout),
+            )
+
+        def forward(self, x):
+            x = x + self.attn(self.norm_1(x))
+            x = x + self.mlp(self.norm_2(x))
+            return x
+
+    class NativeTransformerLM(nn.Module):
+        def __init__(self, model_config: dict):
+            super().__init__()
+            self.vocab_size = int(model_config.get("vocab_size", tokenizer.vocab_size))
+            self.max_seq_length = int(model_config["max_seq_length"])
+            self.token_embedding = nn.Embedding(self.vocab_size, int(model_config["hidden_size"]))
+            self.position_embedding = nn.Embedding(self.max_seq_length, int(model_config["hidden_size"]))
+            self.dropout = nn.Dropout(float(model_config["dropout"]))
+            self.blocks = nn.ModuleList(
+                [
+                    Block(
+                        hidden_size=int(model_config["hidden_size"]),
+                        num_heads=int(model_config["num_heads"]),
+                        mlp_ratio=float(model_config["mlp_ratio"]),
+                        dropout=float(model_config["dropout"]),
+                    )
+                    for _ in range(int(model_config["num_layers"]))
+                ]
+            )
+            self.norm = nn.LayerNorm(int(model_config["hidden_size"]))
+            self.lm_head = nn.Linear(int(model_config["hidden_size"]), self.vocab_size, bias=False)
+            self.lm_head.weight = self.token_embedding.weight
+
+        def forward(self, input_ids):
+            batch_size, seq_len = input_ids.shape
+            if seq_len > self.max_seq_length:
+                raise ValueError("sequence length exceeds model max_seq_length")
+            positions = torch.arange(0, seq_len, device=input_ids.device).unsqueeze(0).expand(batch_size, seq_len)
+            x = self.token_embedding(input_ids) + self.position_embedding(positions)
+            x = self.dropout(x)
+            for block in self.blocks:
+                x = block(x)
+            x = self.norm(x)
+            return self.lm_head(x)
+
+    total_batches_per_epoch = max(1, math.ceil(len(train_examples) / int(config["batch_size"])))
+    total_steps = total_batches_per_epoch * int(config["num_train_epochs"])
+
+    output_dir = make_run_output_dir(output_dir_base)
+    status_writer = TrainingStatusWriter(output_dir=output_dir, config=config)
+
+    print("Starting native model training")
+    print(f"Config: {config_path}")
+    print(f"Device: {device_label}")
+    print(f"Train file: {train_file}")
+    print(f"Validation file: {validation_file}")
+    print(f"Benchmark file: {benchmark_file}")
+    print(f"Output dir: {output_dir}")
+    print(
+        "Run settings: "
+        f"epochs={int(config['num_train_epochs'])}, "
+        f"batch_size={int(config['batch_size'])}, "
+        f"eval_batch_size={int(config['eval_batch_size'])}, "
+        f"max_seq_length={max_seq_length}"
+    )
+    print(
+        "Model settings: "
+        f"layers={int(config['num_layers'])}, "
+        f"hidden_size={int(config['hidden_size'])}, "
+        f"heads={int(config['num_heads'])}, "
+        f"dropout={float(config['dropout'])}"
+    )
+    model = NativeTransformerLM(config).to(device)
+    if init_model_dir is not None:
+        init_summary = load_stage2_weights(model, init_model_dir, tokenizer, torch)
+        config["init_from_model_path_resolved"] = str(init_model_dir)
+        print(f"Stage-2 initialization: {init_model_dir}")
+        print(
+            "Initialized matching weights: "
+            f"loaded={init_summary['loaded_count']}, "
+            f"skipped={init_summary['skipped_count']} "
+            "(token embeddings and output head are remapped when tokenizer vocab differs)"
+        )
+    elif config.get("init_from_model_path"):
+        print(
+            "Stage-2 initialization: no matching prior run found for "
+            f"{config.get('init_from_model_path')}; starting from scratch."
+        )
+    optimizer, optimizer_label = create_optimizer(torch, model, config, device_label)
+    print(f"Optimizer: {optimizer_label}")
+    print(
+        "Dataset sizes: "
+        f"train_rows={len(train_rows)}, "
+        f"validation_rows={len(validation_rows)}, "
+        f"train_examples={len(train_examples)}, "
+        f"validation_examples={len(validation_examples)}"
+    )
+    print(
+        "Progress calculation: "
+        f"total_steps = ceil(train_examples / batch_size) * num_train_epochs = "
+        f"{total_batches_per_epoch} * {int(config['num_train_epochs'])} = {total_steps}"
+    )
+    class_weights = compute_response_type_weights(
+        train_examples,
+        enabled=bool(config.get("use_class_balanced_loss", False)),
+        weight_power=float(config.get("class_weight_power", 1.0)),
+    )
+    if class_weights:
+        print(f"Class-balanced loss weights: {class_weights}")
+
+    status_writer.update(
+        status="ready_to_train",
+        train_examples=len(train_examples),
+        validation_examples=len(validation_examples),
+        device=device_label,
+        max_steps=total_steps,
+        benchmark_status=None,
+    )
+
+    def evaluate_loss(examples: list[Example]) -> float:
+        model.eval()
+        losses = []
+        with torch.no_grad():
+            for batch in create_batches(examples, int(config["eval_batch_size"]), shuffle=False):
+                input_ids, labels = collate_batch(batch, tokenizer, torch)
+                input_ids = input_ids.to(device)
+                labels = labels.to(device)
+                logits = model(input_ids)
+                if not torch.isfinite(logits).all():
+                    raise RuntimeError("Non-finite logits encountered during validation.")
+                loss = F.cross_entropy(
+                    logits[:, :-1, :].reshape(-1, model.vocab_size),
+                    labels[:, 1:].reshape(-1),
+                    ignore_index=-100,
+                )
+                if not torch.isfinite(loss):
+                    raise RuntimeError("Non-finite validation loss encountered.")
+                losses.append(float(loss.item()))
+                del logits
+                del loss
+                del input_ids
+                del labels
+        model.train()
+        gc.collect()
+        return sum(losses) / len(losses) if losses else 0.0
+
+    global_step = 0
+    best_validation_loss = float("inf")
+    training_started_at = time.perf_counter()
+    try:
+        model.train()
+        for epoch_index in range(int(config["num_train_epochs"])):
+            epoch_batches = create_batches(train_examples, int(config["batch_size"]), shuffle=True)
+            for batch_offset, batch in enumerate(epoch_batches, start=1):
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import torch, json, pathlib
+src=pathlib.Path('models/runs/v1-native-byte-transformer-full-response-20260412-043728/model.pt')
+tgt=pathlib.Path('models/runs/v1-native-byte-transformer-full-response-20260412-045733/model.pt')
+s=torch.load(src,map_location='cpu',weights_only=False)
+t=torch.load(tgt,map_location='cpu',weights_only=False)
+print('src keys',len(s),'tgt keys',len(t))
+missing=[k for k in s if k not in t]
+print('missing',len(missing))
+shape_mismatch=[k for k in s if k in t and tuple(s[k].shape)"'!=tuple(t[k].shape)]
+print('"'shape_mismatch',len(shape_mismatch),shape_mismatch[:5])
+# compare eos row index from tokenizer
+cfg=json.loads(pathlib.Path('models/runs/v1-native-byte-transformer-full-response-20260412-045733/tokenizer_config.json').read_text())
+eos=cfg['eos_token_id']
+print('eos',eos,'src eos norm',float(s['token_embedding.weight'][eos].norm()),'tgt eos norm',float(t['token_embedding.weight'][eos].norm()))
+print('src/tgt cosine eos',float(torch.nn.functional.cosine_similarity(s['token_embedding.weight'][eos],t['token_embedding.weight'][eos],dim=0)))
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+2026-04-12T09:17:28.838819Z ERROR codex_core::tools::router: error=Exit code: 1
+Wall time: 0.2 seconds
+Output:
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ModuleNotFoundError: No module named 'torch'
+
+ exited 1 in 232ms:
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ModuleNotFoundError: No module named 'torch'
+
+codex
+I confirmed tokenizer/vocab stayed identical across the two latest runs, so the one bad output is likely not data-schema drift. Iâ€™m checking training history now to choose a single stage-2 stability fix rather than a broader tuning change.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\experiments\\training_runs_summary.csv | Select-Object -Last 12" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 188ms:
+unknown,core,v1-native-byte-transformer-20260407-224528,2026-04-07,22:45:28,completed,6.0,726,482,52,172.326368,4.212936235039782,16.78210963048905,0.023834818974137306,61,0.9180327868852459,0.4262295081967213,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-224528.json
+unknown,core,v1-native-byte-transformer-20260407-224123,2026-04-07,22:41:23,completed,6.0,726,482,52,175.392363,4.139290831038066,16.48874529388717,0.023851001635193825,61,0.9180327868852459,0.4262295081967213,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-224123.json
+unknown,core,v1-native-byte-transformer-20260407-222929,2026-04-07,22:29:29,completed,6.0,684,455,48,166.067814,4.118799323750959,16.43906747637444,0.2772495746612549,61,0.8360655737704918,0.4262295081967213,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-222929.json
+unknown,core,v1-native-byte-transformer-20260407-222417,2026-04-07,22:24:17,completed,6.0,684,455,48,165.021719,4.144908949833446,16.54327694889665,0.2772514820098877,61,0.8360655737704918,0.4262295081967213,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-222417.json
+unknown,core,v1-native-byte-transformer-20260407-221841,2026-04-07,22:18:41,completed,6.0,684,455,48,248.973674,2.747278413058242,10.965014718785088,0.27725642919540405,61,0.8360655737704918,0.4262295081967213,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-221841.json
+unknown,core,v1-native-byte-transformer-20260407-221625,2026-04-07,22:16:25,completed,4.0,228,455,48,53.473337,4.263807212929315,34.03565406811997,0.9460027813911438,61,0.21311475409836064,0.08196721311475409,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-221625.json
+unknown,core,v1-native-byte-transformer-20260407-221434,2026-04-07,22:14:34,completed,4.0,116,455,48,27.937036,4.152194241364761,65.14649585589538,1.529248595237732,61,0.06557377049180328,0.04918032786885246,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-221434.json
+unknown,core,v1-native-byte-transformer-20260407-221150,2026-04-07,22:11:50,completed,4.0,116,455,48,38.783879,2.9909334236526472,46.92671406075705,1.1213998794555664,61,0.26229508196721313,0.04918032786885246,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-221150.json
+unknown,core,v1-native-byte-transformer-20260407-215646,2026-04-07,21:56:46,completed,4.0,116,455,48,230.902302,0.502376975003047,7.8821215043581505,2.373774290084839,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-215646.json
+unknown,core,v1-native-byte-transformer-20260407-214307,2026-04-07,21:43:07,completed,4.0,112,448,48,608.016427,0.18420554943328857,2.947288790932617,2.344865083694458,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-214307.json
+unknown,core,v1-native-byte-transformer-20260407-202615,2026-04-07,20:26:15,completed,12.0,336,448,48,886.2184,0.3791390474402247,6.066224759043595,nan,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-202615.json
+unknown,core,v1-native-byte-transformer-20260407-200837,2026-04-07,20:08:37,completed,12.0,336,448,48,875.510872,0.38377593099723384,6.140414895955741,0.00015385229198727757,61,0.0,0.0,C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-20260407-200837.json
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Import-Csv .\\experiments\\training_runs_summary.csv | Sort-Object run_name -Descending | Select-Object -First 8 run_name,status,valid_output_rate,response_type_accuracy,best_validation_loss,benchmark_report" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 185ms:
+
+
+run_name               : 
+status                 : completed
+valid_output_rate      : 
+response_type_accuracy : 0.7213114754098361
+best_validation_loss   : 
+benchmark_report       : 
+
+run_name               : 
+status                 : completed
+valid_output_rate      : 
+response_type_accuracy : 0.7868852459016393
+best_validation_loss   : 
+benchmark_report       : 
+
+run_name               : 
+status                 : completed
+valid_output_rate      : 
+response_type_accuracy : 0.7213114754098361
+best_validation_loss   : 
+benchmark_report       : 
+
+run_name               : 
+status                 : completed
+valid_output_rate      : 
+response_type_accuracy : 0.6885245901639344
+best_validation_loss   : 
+benchmark_report       : 
+
+run_name               : 
+status                 : completed
+valid_output_rate      : 
+response_type_accuracy : 0.7377049180327869
+best_validation_loss   : 
+benchmark_report       : 
+
+run_name               : 
+status                 : completed
+valid_output_rate      : 
+response_type_accuracy : 0.7540983606557377
+best_validation_loss   : 
+benchmark_report       : 
+
+run_name               : 
+status                 : completed
+valid_output_rate      : 
+response_type_accuracy : 0.5409836065573771
+best_validation_loss   : 
+benchmark_report       : 
+
+run_name               : 
+status                 : completed
+valid_output_rate      : 
+response_type_accuracy : 0.5573770491803278
+best_validation_loss   : 
+benchmark_report       : 
+
+
+
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\configs\\v1_native_byte_transformer_config.json" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 154ms:
+{
+  "output_dir": "models/runs/v1-native-byte-transformer-full-response",
+  "train_file": "data/processed/train_full_response_sft.jsonl",
+  "validation_file": "data/processed/validation_full_response_sft.jsonl",
+  "init_from_model_path": "latest:core:full_response",
+  "device_preference": ["hip", "cuda", "directml", "cpu"],
+  "seed": 11,
+  "num_train_epochs": 12,
+  "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
+  "batch_size": 4,
+  "eval_batch_size": 4,
+  "learning_rate": 0.00002,
+  "optimizer": "auto",
+  "weight_decay": 0.01,
+  "use_class_balanced_loss": false,
+  "class_weight_power": 1.0,
+  "grad_clip": 0.5,
+  "logging_steps": 61,
+  "eval_steps": 183,
+  "max_seq_length": 640,
+  "hidden_size": 512,
+  "num_layers": 10,
+  "num_heads": 8,
+  "mlp_ratio": 4.0,
+  "dropout": 0.1
+}
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-043728\\training_status.json" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content .\\models\\runs\\v1-native-byte-transformer-full-response-20260412-041647\\training_status.json" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json, pathlib, glob
+for p in sorted(glob.glob('models/runs/v1-native-byte-transformer-full-response-20260412-*')):
+ st=pathlib.Path(p)/'training_status.json'
+ if st.exists():
+  o=json.loads(st.read_text())
+  b=o.get('benchmark_status')
+  print(pathlib.Path(p).name,'val',o.get('best_validation_loss'),'step',o.get('global_step'),'bench',bool(b))
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 159ms:
+{
+  "status": "completed",
+  "started_at": "2026-04-12T08:16:47.925553+00:00",
+  "updated_at": "2026-04-12T08:34:19.009734+00:00",
+  "completed_at": "2026-04-12T08:34:19.008733+00:00",
+  "pid": 5804,
+  "output_dir": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-041647",
+  "train_file": "data/processed/train_full_response_sft.jsonl",
+  "validation_file": "data/processed/validation_full_response_sft.jsonl",
+  "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
+  "global_step": 2196,
+  "epoch": 12.0,
+  "max_steps": 2196,
+  "latest_log": {
+    "train_loss": 0.30849283933639526,
+    "validation_loss": 0.6043614787049592,
+    "epoch": 12.0,
+    "train_runtime": 798.9297911999747,
+    "train_steps_per_second": 2.748677072989927,
+    "train_samples_per_second": 10.949648012074627
+  },
+  "error": null,
+  "traceback": null,
+  "train_examples": 729,
+  "validation_examples": 61,
+  "device": "directml:1:AMD Radeon RX 6700 XT",
+  "benchmark_status": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-041647\\benchmark_status.json",
+  "best_validation_loss": 0.6043614787049592,
+  "benchmark_report": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-041647.json"
+}
+
+ succeeded in 160ms:
+{
+  "status": "completed",
+  "started_at": "2026-04-12T08:37:28.070477+00:00",
+  "updated_at": "2026-04-12T08:55:15.583009+00:00",
+  "completed_at": "2026-04-12T08:55:15.583009+00:00",
+  "pid": 34736,
+  "output_dir": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-043728",
+  "train_file": "data/processed/train_full_response_sft.jsonl",
+  "validation_file": "data/processed/validation_full_response_sft.jsonl",
+  "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
+  "global_step": 2196,
+  "epoch": 12.0,
+  "max_steps": 2196,
+  "latest_log": {
+    "train_loss": 0.22384531795978546,
+    "validation_loss": 0.6411526030860841,
+    "epoch": 12.0,
+    "train_runtime": 811.2244480000809,
+    "train_steps_per_second": 2.7070190073953255,
+    "train_samples_per_second": 10.78369866880433
+  },
+  "error": null,
+  "traceback": null,
+  "train_examples": 729,
+  "validation_examples": 61,
+  "device": "directml:1:AMD Radeon RX 6700 XT",
+  "benchmark_status": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-full-response-20260412-043728\\benchmark_status.json",
+  "best_validation_loss": 0.6411526030860841,
+  "benchmark_report": "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-full-response-20260412-043728.json"
+}
+
+ succeeded in 253ms:
+v1-native-byte-transformer-full-response-20260412-000823 val 0.7092835046350956 step 9150 bench True
+v1-native-byte-transformer-full-response-20260412-020325 val 0.8182678762823343 step 2196 bench True
+v1-native-byte-transformer-full-response-20260412-022931 val None step 0 bench False
+v1-native-byte-transformer-full-response-20260412-023000 val 0.7779779322445393 step 2196 bench True
+v1-native-byte-transformer-full-response-20260412-025409 val None step 33 bench False
+v1-native-byte-transformer-full-response-20260412-025519 val 0.7822697907686234 step 2196 bench True
+v1-native-byte-transformer-full-response-20260412-031501 val 0.7831897251307964 step 2196 bench True
+v1-native-byte-transformer-full-response-20260412-033549 val 0.6557198148220778 step 2196 bench True
+v1-native-byte-transformer-full-response-20260412-035709 val 0.6060223840177059 step 2196 bench True
+v1-native-byte-transformer-full-response-20260412-041647 val 0.6043614787049592 step 2196 bench True
+v1-native-byte-transformer-full-response-20260412-043728 val 0.6411526030860841 step 2196 bench True
+v1-native-byte-transformer-full-response-20260412-045733 val 0.7215247922576964 step 2196 bench True
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+import json, pathlib, glob
+rows=[]
+for d in glob.glob('models/runs/v1-native-byte-transformer-full-response-20260412-*'):
+ run=pathlib.Path(d)
+ st=run/'training_status.json'
+ if not st.exists():
+  continue
+ s=json.loads(st.read_text())
+ if s.get('status')"'!='"'completed' or int(s.get('global_step',0))<=0:
+  continue
+ bpath=s.get('benchmark_report')
+ br={}
+ if bpath and pathlib.Path(bpath).exists():
+  br=json.loads(pathlib.Path(bpath).read_text())
+ rows.append((run.name,s.get('best_validation_loss'),br.get('valid_output_rate'),br.get('response_type_accuracy')))
+rows.sort()
+for r in rows:
+ print(r)
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 254ms:
+('v1-native-byte-transformer-full-response-20260412-000823', 0.7092835046350956, 0.8032786885245902, 0.7377049180327869)
+('v1-native-byte-transformer-full-response-20260412-020325', 0.8182678762823343, 0.4262295081967213, 0.18032786885245902)
+('v1-native-byte-transformer-full-response-20260412-023000', 0.7779779322445393, 0.9672131147540983, 0.6885245901639344)
+('v1-native-byte-transformer-full-response-20260412-025519', 0.7822697907686234, 1.0, 0.7868852459016393)
+('v1-native-byte-transformer-full-response-20260412-031501', 0.7831897251307964, 0.9836065573770492, 0.6721311475409836)
+('v1-native-byte-transformer-full-response-20260412-033549', 0.6557198148220778, 0.9508196721311475, 0.8032786885245902)
+('v1-native-byte-transformer-full-response-20260412-035709', 0.6060223840177059, 0.9672131147540983, 0.819672131147541)
+('v1-native-byte-transformer-full-response-20260412-041647', 0.6043614787049592, 0.9180327868852459, 0.8852459016393442)
+('v1-native-byte-transformer-full-response-20260412-043728', 0.6411526030860841, 1.0, 0.8852459016393442)
+('v1-native-byte-transformer-full-response-20260412-045733', 0.7215247922576964, 0.9836065573770492, 0.8852459016393442)
+
+codex
+Iâ€™m applying one narrow change in `train_native_model.py`: make `init_from_model_path=latest:...` choose the best compatible completed run by benchmark stability (`valid_output_rate` first, then `response_type_accuracy`) instead of blindly taking the newest run. This directly targets JSON/type stability for the next train.
+apply patch
+patch: completed
+C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 0930d2b1b7b5f5772ff7bf42c4d8da26f64b4453..3bcbe4a9eaac6b5d07d1b1585d9c2a487e01874d
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -159,6 +159,42 @@
+         return json.load(handle)
+ 
+ 
++def safe_float(value: object, fallback: float = -1.0) -> float:
++    try:
++        return float(value)
++    except (TypeError, ValueError):
++        return fallback
++
++
++def load_run_benchmark_metrics(run_dir: Path, training_status: dict) -> dict[str, float]:
++    metrics = {
++        "valid_output_rate": -1.0,
++        "response_type_accuracy": -1.0,
++        "valid_json_rate": -1.0,
++    }
++    candidate_paths: list[Path] = []
++    benchmark_report = training_status.get("benchmark_report")
++    if isinstance(benchmark_report, str) and benchmark_report.strip():
++        candidate_paths.append(Path(benchmark_report))
++    candidate_paths.append(run_dir / "benchmark_status.json")
++
++    for path in candidate_paths:
++        try:
++            resolved = path if path.is_absolute() else (run_dir / path).resolve()
++            if not resolved.exists():
++                continue
++            payload = load_json(resolved)
++            metrics = {
++                "valid_output_rate": safe_float(payload.get("valid_output_rate"), -1.0),
++                "response_type_accuracy": safe_float(payload.get("response_type_accuracy"), -1.0),
++                "valid_json_rate": safe_float(payload.get("valid_json_rate"), -1.0),
++            }
++            break
++        except Exception:
++            continue
++    return metrics
++
++
+ def infer_run_category(run_dir: Path) -> str:
+     training_config_path = run_dir / "training_config.json"
+     if training_config_path.exists():
+@@ -211,6 +247,7 @@
+         key=lambda path: path.stat().st_mtime,
+         reverse=True,
+     )
++    candidates: list[tuple[tuple[float, float, float, float], Path]] = []
+     for status_path in status_paths:
+         try:
+             run_dir = status_path.parent
+@@ -225,10 +262,21 @@
+                 continue
+             if category_name and infer_run_category(run_dir) != category_name:
+                 continue
+-            return run_dir
++            benchmark_metrics = load_run_benchmark_metrics(run_dir, status)
++            selection_score = (
++                benchmark_metrics["valid_output_rate"],
++                benchmark_metrics["response_type_accuracy"],
++                benchmark_metrics["valid_json_rate"],
++                float(status_path.stat().st_mtime),
++            )
++            candidates.append((selection_score, run_dir))
+         except Exception:
+             continue
+ 
++    if candidates:
++        candidates.sort(key=lambda item: item[0], reverse=True)
++        return candidates[0][1]
++
+     raise FileNotFoundError(
+         f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"
+     )
+
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 0930d2b1b7b5f5772ff7bf42c4d8da26f64b4453..3bcbe4a9eaac6b5d07d1b1585d9c2a487e01874d
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -159,6 +159,42 @@
+         return json.load(handle)
+ 
+ 
++def safe_float(value: object, fallback: float = -1.0) -> float:
++    try:
++        return float(value)
++    except (TypeError, ValueError):
++        return fallback
++
++
++def load_run_benchmark_metrics(run_dir: Path, training_status: dict) -> dict[str, float]:
++    metrics = {
++        "valid_output_rate": -1.0,
++        "response_type_accuracy": -1.0,
++        "valid_json_rate": -1.0,
++    }
++    candidate_paths: list[Path] = []
++    benchmark_report = training_status.get("benchmark_report")
++    if isinstance(benchmark_report, str) and benchmark_report.strip():
++        candidate_paths.append(Path(benchmark_report))
++    candidate_paths.append(run_dir / "benchmark_status.json")
++
++    for path in candidate_paths:
++        try:
++            resolved = path if path.is_absolute() else (run_dir / path).resolve()
++            if not resolved.exists():
++                continue
++            payload = load_json(resolved)
++            metrics = {
++                "valid_output_rate": safe_float(payload.get("valid_output_rate"), -1.0),
++                "response_type_accuracy": safe_float(payload.get("response_type_accuracy"), -1.0),
++                "valid_json_rate": safe_float(payload.get("valid_json_rate"), -1.0),
++            }
++            break
++        except Exception:
++            continue
++    return metrics
++
++
+ def infer_run_category(run_dir: Path) -> str:
+     training_config_path = run_dir / "training_config.json"
+     if training_config_path.exists():
+@@ -211,6 +247,7 @@
+         key=lambda path: path.stat().st_mtime,
+         reverse=True,
+     )
++    candidates: list[tuple[tuple[float, float, float, float], Path]] = []
+     for status_path in status_paths:
+         try:
+             run_dir = status_path.parent
+@@ -225,10 +262,21 @@
+                 continue
+             if category_name and infer_run_category(run_dir) != category_name:
+                 continue
+-            return run_dir
++            benchmark_metrics = load_run_benchmark_metrics(run_dir, status)
++            selection_score = (
++                benchmark_metrics["valid_output_rate"],
++                benchmark_metrics["response_type_accuracy"],
++                benchmark_metrics["valid_json_rate"],
++                float(status_path.stat().st_mtime),
++            )
++            candidates.append((selection_score, run_dir))
+         except Exception:
+             continue
+ 
++    if candidates:
++        candidates.sort(key=lambda item: item[0], reverse=True)
++        return candidates[0][1]
++
+     raise FileNotFoundError(
+         f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"
+     )
+
+codex
+Iâ€™ve made the stage-2 selection patch; next Iâ€™m running a quick syntax check and a dry verification of which init run would now be selected for `latest:core:full_response`.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "python -m py_compile .\\scripts\\train_native_model.py" in C:\Users\jhand\Documents\Github\AiLanguageCore
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "@'
+from pathlib import Path
+import scripts.train_native_model as m
+repo=Path('.').resolve()
+print(m.find_latest_completed_run(repo,'core','full_response'))
+'@ | python -" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 268ms:
+ succeeded in 436ms:
+C:\Users\jhand\Documents\Github\AiLanguageCore\models\runs\v1-native-byte-transformer-full-response-20260412-043728
+
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 0930d2b1b7b5f5772ff7bf42c4d8da26f64b4453..3bcbe4a9eaac6b5d07d1b1585d9c2a487e01874d
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -159,6 +159,42 @@
+         return json.load(handle)
+ 
+ 
++def safe_float(value: object, fallback: float = -1.0) -> float:
++    try:
++        return float(value)
++    except (TypeError, ValueError):
++        return fallback
++
++
++def load_run_benchmark_metrics(run_dir: Path, training_status: dict) -> dict[str, float]:
++    metrics = {
++        "valid_output_rate": -1.0,
++        "response_type_accuracy": -1.0,
++        "valid_json_rate": -1.0,
++    }
++    candidate_paths: list[Path] = []
++    benchmark_report = training_status.get("benchmark_report")
++    if isinstance(benchmark_report, str) and benchmark_report.strip():
++        candidate_paths.append(Path(benchmark_report))
++    candidate_paths.append(run_dir / "benchmark_status.json")
++
++    for path in candidate_paths:
++        try:
++            resolved = path if path.is_absolute() else (run_dir / path).resolve()
++            if not resolved.exists():
++                continue
++            payload = load_json(resolved)
++            metrics = {
++                "valid_output_rate": safe_float(payload.get("valid_output_rate"), -1.0),
++                "response_type_accuracy": safe_float(payload.get("response_type_accuracy"), -1.0),
++                "valid_json_rate": safe_float(payload.get("valid_json_rate"), -1.0),
++            }
++            break
++        except Exception:
++            continue
++    return metrics
++
++
+ def infer_run_category(run_dir: Path) -> str:
+     training_config_path = run_dir / "training_config.json"
+     if training_config_path.exists():
+@@ -211,6 +247,7 @@
+         key=lambda path: path.stat().st_mtime,
+         reverse=True,
+     )
++    candidates: list[tuple[tuple[float, float, float, float], Path]] = []
+     for status_path in status_paths:
+         try:
+             run_dir = status_path.parent
+@@ -225,10 +262,21 @@
+                 continue
+             if category_name and infer_run_category(run_dir) != category_name:
+                 continue
+-            return run_dir
++            benchmark_metrics = load_run_benchmark_metrics(run_dir, status)
++            selection_score = (
++                benchmark_metrics["valid_output_rate"],
++                benchmark_metrics["response_type_accuracy"],
++                benchmark_metrics["valid_json_rate"],
++                float(status_path.stat().st_mtime),
++            )
++            candidates.append((selection_score, run_dir))
+         except Exception:
+             continue
+ 
++    if candidates:
++        candidates.sort(key=lambda item: item[0], reverse=True)
++        return candidates[0][1]
++
+     raise FileNotFoundError(
+         f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"
+     )
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "git diff -- .\\scripts\\train_native_model.py" in C:\Users\jhand\Documents\Github\AiLanguageCore
+ succeeded in 172ms:
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 0930d2b..3bcbe4a 100644
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -159,6 +159,42 @@ def load_json(path: Path) -> dict:
+         return json.load(handle)
+ 
+ 
++def safe_float(value: object, fallback: float = -1.0) -> float:
++    try:
++        return float(value)
++    except (TypeError, ValueError):
++        return fallback
++
++
++def load_run_benchmark_metrics(run_dir: Path, training_status: dict) -> dict[str, float]:
++    metrics = {
++        "valid_output_rate": -1.0,
++        "response_type_accuracy": -1.0,
++        "valid_json_rate": -1.0,
++    }
++    candidate_paths: list[Path] = []
++    benchmark_report = training_status.get("benchmark_report")
++    if isinstance(benchmark_report, str) and benchmark_report.strip():
++        candidate_paths.append(Path(benchmark_report))
++    candidate_paths.append(run_dir / "benchmark_status.json")
++
++    for path in candidate_paths:
++        try:
++            resolved = path if path.is_absolute() else (run_dir / path).resolve()
++            if not resolved.exists():
++                continue
++            payload = load_json(resolved)
++            metrics = {
++                "valid_output_rate": safe_float(payload.get("valid_output_rate"), -1.0),
++                "response_type_accuracy": safe_float(payload.get("response_type_accuracy"), -1.0),
++                "valid_json_rate": safe_float(payload.get("valid_json_rate"), -1.0),
++            }
++            break
++        except Exception:
++            continue
++    return metrics
++
++
+ def infer_run_category(run_dir: Path) -> str:
+     training_config_path = run_dir / "training_config.json"
+     if training_config_path.exists():
+@@ -211,6 +247,7 @@ def find_latest_completed_run(repo_root: Path, type_name: str | None, category_n
+         key=lambda path: path.stat().st_mtime,
+         reverse=True,
+     )
++    candidates: list[tuple[tuple[float, float, float, float], Path]] = []
+     for status_path in status_paths:
+         try:
+             run_dir = status_path.parent
+@@ -225,10 +262,21 @@ def find_latest_completed_run(repo_root: Path, type_name: str | None, category_n
+                 continue
+             if category_name and infer_run_category(run_dir) != category_name:
+                 continue
+-            return run_dir
++            benchmark_metrics = load_run_benchmark_metrics(run_dir, status)
++            selection_score = (
++                benchmark_metrics["valid_output_rate"],
++                benchmark_metrics["response_type_accuracy"],
++                benchmark_metrics["valid_json_rate"],
++                float(status_path.stat().st_mtime),
++            )
++            candidates.append((selection_score, run_dir))
+         except Exception:
+             continue
+ 
++    if candidates:
++        candidates.sort(key=lambda item: item[0], reverse=True)
++        return candidates[0][1]
++
+     raise FileNotFoundError(
+         f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"
+     )
+warning: in the working copy of 'scripts/train_native_model.py', LF will be replaced by CRLF the next time Git touches it
+
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 0930d2b1b7b5f5772ff7bf42c4d8da26f64b4453..3bcbe4a9eaac6b5d07d1b1585d9c2a487e01874d
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -159,6 +159,42 @@
+         return json.load(handle)
+ 
+ 
++def safe_float(value: object, fallback: float = -1.0) -> float:
++    try:
++        return float(value)
++    except (TypeError, ValueError):
++        return fallback
++
++
++def load_run_benchmark_metrics(run_dir: Path, training_status: dict) -> dict[str, float]:
++    metrics = {
++        "valid_output_rate": -1.0,
++        "response_type_accuracy": -1.0,
++        "valid_json_rate": -1.0,
++    }
++    candidate_paths: list[Path] = []
++    benchmark_report = training_status.get("benchmark_report")
++    if isinstance(benchmark_report, str) and benchmark_report.strip():
++        candidate_paths.append(Path(benchmark_report))
++    candidate_paths.append(run_dir / "benchmark_status.json")
++
++    for path in candidate_paths:
++        try:
++            resolved = path if path.is_absolute() else (run_dir / path).resolve()
++            if not resolved.exists():
++                continue
++            payload = load_json(resolved)
++            metrics = {
++                "valid_output_rate": safe_float(payload.get("valid_output_rate"), -1.0),
++                "response_type_accuracy": safe_float(payload.get("response_type_accuracy"), -1.0),
++                "valid_json_rate": safe_float(payload.get("valid_json_rate"), -1.0),
++            }
++            break
++        except Exception:
++            continue
++    return metrics
++
++
+ def infer_run_category(run_dir: Path) -> str:
+     training_config_path = run_dir / "training_config.json"
+     if training_config_path.exists():
+@@ -211,6 +247,7 @@
+         key=lambda path: path.stat().st_mtime,
+         reverse=True,
+     )
++    candidates: list[tuple[tuple[float, float, float, float], Path]] = []
+     for status_path in status_paths:
+         try:
+             run_dir = status_path.parent
+@@ -225,10 +262,21 @@
+                 continue
+             if category_name and infer_run_category(run_dir) != category_name:
+                 continue
+-            return run_dir
++            benchmark_metrics = load_run_benchmark_metrics(run_dir, status)
++            selection_score = (
++                benchmark_metrics["valid_output_rate"],
++                benchmark_metrics["response_type_accuracy"],
++                benchmark_metrics["valid_json_rate"],
++                float(status_path.stat().st_mtime),
++            )
++            candidates.append((selection_score, run_dir))
+         except Exception:
+             continue
+ 
++    if candidates:
++        candidates.sort(key=lambda item: item[0], reverse=True)
++        return candidates[0][1]
++
+     raise FileNotFoundError(
+         f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"
+     )
+
+codex
+Latest run `20260412-045733` regressed `valid_output_rate` to `0.983606557377049` (1 malformed/truncated JSON) while `response_type_accuracy` stayed `0.885245901639344`, so another training iteration is still appropriate.  
+Applied one narrow stage-2 change: `init_from_model_path=latest:...` now selects the best completed compatible run by benchmark stability (`valid_output_rate`, then `response_type_accuracy`, then `valid_json_rate`, then recency) instead of blindly choosing newest.  
+This now resolves to `v1-native-byte-transformer-full-response-20260412-043728` (the stable 1.0 valid-output checkpoint) for the next train.  
+Files touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)  
+AUTOMATION_DECISION: CONTINUE
+diff --git a/scripts/train_native_model.py b/scripts/train_native_model.py
+index 0930d2b1b7b5f5772ff7bf42c4d8da26f64b4453..3bcbe4a9eaac6b5d07d1b1585d9c2a487e01874d
+--- a/scripts/train_native_model.py
++++ b/scripts/train_native_model.py
+@@ -159,6 +159,42 @@
+         return json.load(handle)
+ 
+ 
++def safe_float(value: object, fallback: float = -1.0) -> float:
++    try:
++        return float(value)
++    except (TypeError, ValueError):
++        return fallback
++
++
++def load_run_benchmark_metrics(run_dir: Path, training_status: dict) -> dict[str, float]:
++    metrics = {
++        "valid_output_rate": -1.0,
++        "response_type_accuracy": -1.0,
++        "valid_json_rate": -1.0,
++    }
++    candidate_paths: list[Path] = []
++    benchmark_report = training_status.get("benchmark_report")
++    if isinstance(benchmark_report, str) and benchmark_report.strip():
++        candidate_paths.append(Path(benchmark_report))
++    candidate_paths.append(run_dir / "benchmark_status.json")
++
++    for path in candidate_paths:
++        try:
++            resolved = path if path.is_absolute() else (run_dir / path).resolve()
++            if not resolved.exists():
++                continue
++            payload = load_json(resolved)
++            metrics = {
++                "valid_output_rate": safe_float(payload.get("valid_output_rate"), -1.0),
++                "response_type_accuracy": safe_float(payload.get("response_type_accuracy"), -1.0),
++                "valid_json_rate": safe_float(payload.get("valid_json_rate"), -1.0),
++            }
++            break
++        except Exception:
++            continue
++    return metrics
++
++
+ def infer_run_category(run_dir: Path) -> str:
+     training_config_path = run_dir / "training_config.json"
+     if training_config_path.exists():
+@@ -211,6 +247,7 @@
+         key=lambda path: path.stat().st_mtime,
+         reverse=True,
+     )
++    candidates: list[tuple[tuple[float, float, float, float], Path]] = []
+     for status_path in status_paths:
+         try:
+             run_dir = status_path.parent
+@@ -225,10 +262,21 @@
+                 continue
+             if category_name and infer_run_category(run_dir) != category_name:
+                 continue
+-            return run_dir
++            benchmark_metrics = load_run_benchmark_metrics(run_dir, status)
++            selection_score = (
++                benchmark_metrics["valid_output_rate"],
++                benchmark_metrics["response_type_accuracy"],
++                benchmark_metrics["valid_json_rate"],
++                float(status_path.stat().st_mtime),
++            )
++            candidates.append((selection_score, run_dir))
+         except Exception:
+             continue
+ 
++    if candidates:
++        candidates.sort(key=lambda item: item[0], reverse=True)
++        return candidates[0][1]
++
+     raise FileNotFoundError(
+         f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"
+     )
+
+tokens used
+53,110
