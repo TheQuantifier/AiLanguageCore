@@ -217,6 +217,8 @@ def find_latest_completed_run(repo_root: Path, type_name: str | None, category_n
             if not (run_dir / "model.pt").exists():
                 continue
             status = load_json(status_path)
+            if str(status.get("status", "")).lower() != "completed":
+                continue
             if int(status.get("global_step", 0)) <= 0:
                 continue
             if type_name and infer_run_type(run_dir) != type_name:

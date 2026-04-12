@@ -1,0 +1,5 @@
+Applied one high-signal Stage-2 stability fix: `latest:*` init now only resolves from runs whose `training_status.json` is explicitly `status="completed"` (not merely `global_step>0`), preventing initialization from partial/in-progress runs.
+This directly hardens `init_from_model_path` selection while preserving current tokenizer/embedding/output-head transfer behavior for compatible completed runs.
+Syntax check passed: `python -m py_compile scripts/train_native_model.py`.
+Files touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)
+AUTOMATION_DECISION: CONTINUE
