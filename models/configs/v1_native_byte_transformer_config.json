@@ -5,7 +5,7 @@
   "init_from_model_path": "best:core:full_response",
   "device_preference": ["hip", "cuda", "directml", "cpu"],
   "seed": 11,
-  "num_train_epochs": 12,
+  "num_train_epochs": 6,
   "benchmark_file": "data/processed/benchmark_full_response_sft.jsonl",
   "batch_size": 4,
   "eval_batch_size": 4,

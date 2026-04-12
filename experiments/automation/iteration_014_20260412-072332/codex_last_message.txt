@@ -1,0 +1,4 @@
+Applied one narrow change for the next train: reduced `num_train_epochs` from `12` to `6` to limit Stage-2 post-init drift that is degrading wording while preserving the existing stable init/tokenizer/head transfer path (`init_from_model_path` unchanged).
+Evidence: latest run kept `valid_output_rate=1`/valid JSON but had worse language quality and higher validation loss vs earlier best full_response run, so shorter continuation training is the highest-signal next step.
+File touched: [models/configs/v1_native_byte_transformer_config.json](/C:/Users/jhand/Documents/Github/AiLanguageCore/models/configs/v1_native_byte_transformer_config.json)
+AUTOMATION_DECISION: CONTINUE
