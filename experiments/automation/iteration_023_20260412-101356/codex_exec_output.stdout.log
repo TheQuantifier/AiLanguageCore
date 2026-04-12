@@ -1,0 +1,6 @@
+Latest run regressed vs prior best (`valid_output_rate` 0.9508, `response_type_accuracy` 0.8689), and stage-2 init was already resolving to `best:core:full_response`; the instability came from saving final-step weights after continued training.
+I made one narrow fix: training now snapshots the initialized checkpoint as a baseline, tracks best validation-loss weights during training, and saves that best checkpoint (not always the final step).
+This directly preserves JSON/response-type stability when extra epochs overtrain.
+File touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)
+Validation: `.python\python.exe -m py_compile scripts/train_native_model.py` passed.
+AUTOMATION_DECISION: CONTINUE

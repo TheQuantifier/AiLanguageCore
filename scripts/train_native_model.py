@@ -1286,7 +1286,11 @@ def main() -> int:
 
     global_step = 0
     best_validation_loss = float("inf")
+    best_model_state = build_cpu_state_dict(model)
     training_started_at = time.perf_counter()
+    initial_validation_loss = evaluate_loss(validation_examples)
+    best_validation_loss = initial_validation_loss
+    print(f"Initial validation loss (pre-train checkpoint): {initial_validation_loss:.4f}")
     try:
         model.train()
         for epoch_index in range(int(config["num_train_epochs"])):
@@ -1390,6 +1394,7 @@ def main() -> int:
                     )
                     if validation_loss < best_validation_loss:
                         best_validation_loss = validation_loss
+                        best_model_state = build_cpu_state_dict(model)
 
                 del logits
                 del loss
@@ -1405,7 +1410,7 @@ def main() -> int:
         )
         sys.stdout.write("\n")
         model_path = output_dir / "model.pt"
-        torch.save(build_cpu_state_dict(model), model_path)
+        torch.save(best_model_state, model_path)
         tokenizer.save(output_dir / "tokenizer_config.json")
         save_json(
             output_dir / "model_config.json",
