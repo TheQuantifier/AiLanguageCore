@@ -1,0 +1,5 @@
+Changed Stage-2 checkpoint selection in `best:...` mode to prioritize `valid_output_rate` before `response_type_accuracy`, then `valid_json_rate`, so init now favors JSON-stable runs for the next train.
+This directly targets your priority (valid JSON and response-type stability first) without changing data targets or adding broader refactors.
+Validated: `python -m py_compile scripts/train_native_model.py` passes, and `find_best_completed_run(core, full_response)` now resolves to `models/runs/v1-native-byte-transformer-full-response-20260412-043728` (1.0 valid_output/valid_json).
+File touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)
+AUTOMATION_DECISION: CONTINUE

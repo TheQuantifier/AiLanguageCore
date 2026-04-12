@@ -372,13 +372,12 @@ def find_best_completed_run(
                 or parse_iso_timestamp(status.get("started_at"))
                 or float(status_path.stat().st_mtime)
             )
-            # Keep response-type and JSON stability as top priority, then prefer
-            # lower validation loss before recency to reduce wording drift across
-            # stage-2 iterations when headline benchmark metrics tie.
+            # Prioritize strict output validity first for stage-2 chaining,
+            # then response type stability, then raw JSON validity.
             selection_score = (
+                valid_output_rate,
                 response_type_accuracy,
                 valid_json_rate,
-                valid_output_rate,
                 -best_validation_loss,
                 completion_time,
             )
