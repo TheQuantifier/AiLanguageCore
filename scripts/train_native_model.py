@@ -788,7 +788,7 @@ def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteToken
             source_tensor=source_vocab_tensor,
             target_tensor=target_state["token_embedding.weight"],
             token_pairs=token_pairs,
-            fallback_source_id=None,
+            fallback_source_id=source_tokenizer.unknown_token_id,
         )
         updated_state["token_embedding.weight"] = shared_vocab_transfer
         updated_state["lm_head.weight"] = shared_vocab_transfer

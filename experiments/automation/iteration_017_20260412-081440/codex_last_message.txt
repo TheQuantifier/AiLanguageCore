@@ -1,0 +1,5 @@
+Applied one narrow Stage-2 transfer fix: unmapped vocab rows during `init_from_model_path` remap now initialize from the source tokenizer’s unknown-token embedding instead of random weights, preserving stable embedding/output-head transfer when vocab grows (76 -> 80 in the latest chain).
+This directly targets tokenizer compatibility while keeping response-type/valid-JSON behavior unchanged.
+File touched: [scripts/train_native_model.py](/C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/train_native_model.py) (in `load_stage2_weights`, `fallback_source_id=source_tokenizer.unknown_token_id`).
+Validation: `python -m py_compile scripts/train_native_model.py` passed.
+AUTOMATION_DECISION: CONTINUE
