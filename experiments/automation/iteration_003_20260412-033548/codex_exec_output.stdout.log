@@ -1,0 +1,5 @@
+Applied one high-signal change to improve structural token stability before wording: tied `lm_head` weights to `token_embedding` in the native trainer, so output-token logits stay aligned with the tokenizer embedding space during Stage-2 continuation.
+This targets JSON reliability (quotes/braces sequencing) while preserving response-type behavior from current targets/loss.
+File touched: `scripts/train_native_model.py` (inside `NativeTransformerLM.__init__`, added `self.lm_head.weight = self.token_embedding.weight`).
+Validation run: `python -m py_compile scripts/train_native_model.py` passed.
+AUTOMATION_DECISION: CONTINUE

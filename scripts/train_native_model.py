@@ -911,6 +911,7 @@ def main() -> int:
             )
             self.norm = nn.LayerNorm(int(model_config["hidden_size"]))
             self.lm_head = nn.Linear(int(model_config["hidden_size"]), self.vocab_size, bias=False)
+            self.lm_head.weight = self.token_embedding.weight
 
         def forward(self, input_ids):
             batch_size, seq_len = input_ids.shape
