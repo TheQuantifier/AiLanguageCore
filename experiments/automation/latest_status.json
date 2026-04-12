@@ -1,12 +1,12 @@
 {
-    "iteration_label":  "005",
-    "phase":  "stopped",
-    "timestamp":  "2026-04-11 04:59:19",
-    "note":  "Reached autotrain target: valid_output and correct_type are both 100%.",
+    "iteration_label":  "001",
+    "phase":  "failed",
+    "timestamp":  "2026-04-11 14:56:51",
+    "note":  "Codex exec failed with exit code ",
     "workflow":  "train -\u003e benchmark -\u003e codex -\u003e decision",
     "stage":  {
-                  "current":  "stopped",
-                  "index":  6,
+                  "current":  "failed",
+                  "index":  8,
                   "total":  8,
                   "order":  [
                                 "starting",
@@ -18,15 +18,5 @@
                                 "interrupted",
                                 "failed"
                             ]
-              },
-    "training_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-stress-v2-20260411-043740\\training_status.json",
-    "benchmark_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-stress-v2-20260411-043740\\benchmark_status.json",
-    "benchmark_size":  24,
-    "nonempty_output_count":  24,
-    "valid_output_count":  24,
-    "correct_response_type_count":  24,
-    "items_per_sec":  3.5325734178951276,
-    "valid_output_rate":  1,
-    "response_type_accuracy":  1,
-    "benchmark_report":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-stress-v2-20260411-043740.json"
+              }
 }

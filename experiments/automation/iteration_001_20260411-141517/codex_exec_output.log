@@ -1,0 +1,36 @@
+﻿OpenAI Codex v0.119.0-alpha.28 (research preview)
+--------
+workdir: C:\Users\jhand\Documents\Github\AiLanguageCore
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR, C:\Users\jhand\.codex\memories]
+reasoning effort: medium
+reasoning summaries: none
+session id: 019d7de7-60fa-71f3-801d-c30605ba39a9
+--------
+user
+Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.
+
+You are running inside the AiLanguageCore repository.
+The training command has just completed successfully.
+Inspect the latest native run under models/runs and its benchmark report under experiments.
+Make the next improvement directly in the repo so the next training iteration is the best next step.
+Current training type: core
+Current training category: full_response
+Current benchmark summary:
+- valid_output_rate: 0.508196721311475
+- response_type_accuracy: 0.459016393442623
+- benchmark_report: C:\Users\jhand\Documents\Github\AiLanguageCore\experiments\benchmark_report-v1-native-byte-transformer-full-response-20260411-141522.json
+
+Rules:
+- Work only on the next most important improvement.
+- Prioritize improving classification accuracy on the current weak boundaries over changing output formatting.
+- Avoid retrying class-balanced loss unless you have new evidence it is the right fix.
+- Keep changes narrow and comparable so the next training run is an informative experiment.
+- In your final response, summarize the change briefly and list the files changed, but do not print a full diff.
+- If training should continue after your change, end your final message with exactly: AUTOMATION_DECISION: CONTINUE
+- If the automation loop should stop, end your final message with exactly: AUTOMATION_DECISION: STOP
+
+ERROR: You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at 4:21 PM.
+ERROR: You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at 4:21 PM.

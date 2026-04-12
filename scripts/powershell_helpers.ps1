@@ -156,6 +156,31 @@ function eval_native {
     }
 }
 
+function chat {
+    param(
+        [Parameter(Position = 0, ValueFromRemainingArguments = $true)][string[]]$prompt,
+        [string]$model_path,
+        [switch]$raw
+    )
+
+    Push-Location $AiLanguageCoreRoot
+    try {
+        $arguments = @()
+        if ($PSBoundParameters.ContainsKey('model_path')) {
+            $arguments += @('-ModelPath', $model_path)
+        }
+        if ($raw) {
+            $arguments += '-Raw'
+        }
+        if ($prompt) {
+            $arguments += $prompt
+        }
+        .\chat.ps1 @arguments
+    } finally {
+        Pop-Location
+    }
+}
+
 function benchmark {
     param(
         [Parameter(Position = 0)][string]$type,
