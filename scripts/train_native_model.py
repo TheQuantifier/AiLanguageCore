@@ -277,7 +277,25 @@ def _load_run_benchmark_metrics(run_dir: Path) -> tuple[float, float, float]:
     return valid_output_rate, response_type_accuracy, valid_json_rate
 
 
-def find_latest_completed_run(repo_root: Path, type_name: str | None, category_name: str | None) -> Path:
+def _run_tokenizer_supports_chars(run_dir: Path, required_chars: set[str] | None) -> bool:
+    if not required_chars:
+        return True
+    tokenizer_path = run_dir / "tokenizer_config.json"
+    if not tokenizer_path.exists():
+        return False
+    try:
+        tokenizer = ByteTokenizer.from_config(load_json(tokenizer_path))
+    except Exception:
+        return False
+    return required_chars.issubset(set(tokenizer.chars))
+
+
+def find_latest_completed_run(
+    repo_root: Path,
+    type_name: str | None,
+    category_name: str | None,
+    required_tokenizer_chars: set[str] | None = None,
+) -> Path:
     runs_root = repo_root / "models" / "runs"
     status_paths = sorted(
         runs_root.rglob("training_status.json"),
@@ -299,6 +317,8 @@ def find_latest_completed_run(repo_root: Path, type_name: str | None, category_n
                 continue
             if category_name and infer_run_category(run_dir) != category_name:
                 continue
+            if not _run_tokenizer_supports_chars(run_dir, required_tokenizer_chars):
+                continue
             selection_score = (
                 parse_iso_timestamp(status.get("completed_at"))
                 or parse_iso_timestamp(status.get("updated_at"))
@@ -318,7 +338,12 @@ def find_latest_completed_run(repo_root: Path, type_name: str | None, category_n
     )
 
 
-def find_best_completed_run(repo_root: Path, type_name: str | None, category_name: str | None) -> Path:
+def find_best_completed_run(
+    repo_root: Path,
+    type_name: str | None,
+    category_name: str | None,
+    required_tokenizer_chars: set[str] | None = None,
+) -> Path:
     runs_root = repo_root / "models" / "runs"
     status_paths = sorted(runs_root.rglob("training_status.json"), key=lambda path: path.stat().st_mtime, reverse=True)
     candidates: list[tuple[tuple[float, float, float, float, float], Path]] = []
@@ -335,6 +360,8 @@ def find_best_completed_run(repo_root: Path, type_name: str | None, category_nam
             if type_name and infer_run_type(run_dir) != type_name:
                 continue
             if category_name and infer_run_category(run_dir) != category_name:
+                continue
+            if not _run_tokenizer_supports_chars(run_dir, required_tokenizer_chars):
                 continue
 
             valid_output_rate, response_type_accuracy, valid_json_rate = _load_run_benchmark_metrics(run_dir)
@@ -365,7 +392,11 @@ def find_best_completed_run(repo_root: Path, type_name: str | None, category_nam
     )
 
 
-def resolve_init_model_path(path_value: str | Path | None, repo_root: Path) -> Path | None:
+def resolve_init_model_path(
+    path_value: str | Path | None,
+    repo_root: Path,
+    required_tokenizer_chars: set[str] | None = None,
+) -> Path | None:
     if not path_value:
         return None
     value = str(path_value).strip()
@@ -377,12 +408,32 @@ def resolve_init_model_path(path_value: str | Path | None, repo_root: Path) -> P
         try:
             if len(parts) == 2:
                 if mode == "latest":
-                    return find_latest_completed_run(repo_root, None, parts[1])
-                return find_best_completed_run(repo_root, None, parts[1])
+                    return find_latest_completed_run(
+                        repo_root,
+                        None,
+                        parts[1],
+                        required_tokenizer_chars=required_tokenizer_chars,
+                    )
+                return find_best_completed_run(
+                    repo_root,
+                    None,
+                    parts[1],
+                    required_tokenizer_chars=required_tokenizer_chars,
+                )
             if len(parts) == 3:
                 if mode == "latest":
-                    return find_latest_completed_run(repo_root, parts[1], parts[2])
-                return find_best_completed_run(repo_root, parts[1], parts[2])
+                    return find_latest_completed_run(
+                        repo_root,
+                        parts[1],
+                        parts[2],
+                        required_tokenizer_chars=required_tokenizer_chars,
+                    )
+                return find_best_completed_run(
+                    repo_root,
+                    parts[1],
+                    parts[2],
+                    required_tokenizer_chars=required_tokenizer_chars,
+                )
         except FileNotFoundError:
             return None
         raise ValueError(
@@ -1021,7 +1072,11 @@ def main() -> int:
     train_rows = load_jsonl(train_file)
     validation_rows = load_jsonl(validation_file)
     required_tokenizer_chars = collect_required_tokenizer_chars(train_rows, validation_rows)
-    init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
+    init_model_dir = resolve_init_model_path(
+        config.get("init_from_model_path"),
+        repo_root,
+        required_tokenizer_chars=required_tokenizer_chars,
+    )
     tokenizer = None
     tokenizer_reused_from_init = False
     if init_model_dir is not None:

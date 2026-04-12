@@ -1,0 +1,6 @@
+Analyzed latest run `v1-native-byte-transformer-full-response-20260412-091250` + report: strong JSON validity (60/61) but response-type drift (53/61), and stage-2 init resolved to older run `20260412-053936` with incompatible tokenizer (`vocab_size 76` vs current `80`).
+Implemented one narrow fix: `best:/latest:` init selection is now tokenizer-compatibility aware (must cover required train/validation chars) before choosing a checkpoint.
+This keeps stage-2 transfer focused on compatible embedding/output-head reuse instead of relying on remapping newly introduced tokens from unknown fallback rows.
+Validation: `python -m py_compile scripts/train_native_model.py` passed; selector now changes from unfiltered `...053936` to compatible `...072334` for `best:core:full_response`.
+Files touched: `C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py`.
+AUTOMATION_DECISION: CONTINUE
