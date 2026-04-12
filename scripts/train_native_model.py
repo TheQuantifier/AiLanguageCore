@@ -240,6 +240,20 @@ def infer_run_type(run_dir: Path) -> str:
     return "core"
 
 
+def parse_iso_timestamp(value: object) -> float | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = f"{text[:-1]}+00:00"
+    try:
+        return datetime.fromisoformat(text).timestamp()
+    except ValueError:
+        return None
+
+
 def find_latest_completed_run(repo_root: Path, type_name: str | None, category_name: str | None) -> Path:
     runs_root = repo_root / "models" / "runs"
     status_paths = sorted(
@@ -247,7 +261,7 @@ def find_latest_completed_run(repo_root: Path, type_name: str | None, category_n
         key=lambda path: path.stat().st_mtime,
         reverse=True,
     )
-    candidates: list[tuple[tuple[float, float, float, float], Path]] = []
+    candidates: list[tuple[float, Path]] = []
     for status_path in status_paths:
         try:
             run_dir = status_path.parent
@@ -262,12 +276,11 @@ def find_latest_completed_run(repo_root: Path, type_name: str | None, category_n
                 continue
             if category_name and infer_run_category(run_dir) != category_name:
                 continue
-            benchmark_metrics = load_run_benchmark_metrics(run_dir, status)
             selection_score = (
-                benchmark_metrics["valid_output_rate"],
-                benchmark_metrics["response_type_accuracy"],
-                benchmark_metrics["valid_json_rate"],
-                float(status_path.stat().st_mtime),
+                parse_iso_timestamp(status.get("completed_at"))
+                or parse_iso_timestamp(status.get("updated_at"))
+                or parse_iso_timestamp(status.get("started_at"))
+                or float(status_path.stat().st_mtime)
             )
             candidates.append((selection_score, run_dir))
         except Exception:

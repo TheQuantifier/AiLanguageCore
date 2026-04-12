@@ -1,0 +1,7 @@
+Latest benchmark confirms stability-first profile (`valid_output_rate=0.9836`, `response_type_accuracy=0.8852`), with 7 type mismatches and 1 invalid JSON sample.
+Stage-2 root cause: `init_from_model_path=latest:core:full_response` was selecting the best-scoring historical run (often `...043728`) instead of the newest completed run, so iterations were not chaining from the freshest checkpoint.
+I made one narrow change: `find_latest_completed_run` now ranks by completion/update/start timestamp (with file mtime fallback), not benchmark score.
+This preserves tokenizer/embedding/head compatibility behavior as-is and only fixes checkpoint selection for the next train.
+Files touched: [scripts/train_native_model.py](C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/train_native_model.py)
+Sanity check passed: module compiles and resolver now returns `...v1-native-byte-transformer-full-response-20260412-051849`.
+AUTOMATION_DECISION: CONTINUE
