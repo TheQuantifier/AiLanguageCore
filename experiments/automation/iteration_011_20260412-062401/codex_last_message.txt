@@ -1,0 +1,4 @@
+Analyzed run `v1-native-byte-transformer-full-response-20260412-062402` vs prior benchmarks: stage-2 tokenizer compatibility and embedding/output-head remap are functioning, but `best:core:full_response` was tie-breaking to an older checkpoint.
+I changed best-run selection to prioritize benchmark metrics, then **recency**, then validation loss, so the next train initializes from the latest top-stability checkpoint (now `...-20260412-053936`), which is the highest-signal next step for preserving valid JSON/response-type stability.
+File touched: [scripts/train_native_model.py](C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/train_native_model.py)
+AUTOMATION_DECISION: CONTINUE

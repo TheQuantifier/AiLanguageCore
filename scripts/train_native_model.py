@@ -339,15 +339,18 @@ def find_best_completed_run(repo_root: Path, type_name: str | None, category_nam
 
             valid_output_rate, response_type_accuracy, valid_json_rate = _load_run_benchmark_metrics(run_dir)
             best_validation_loss = float(status.get("best_validation_loss", 1e9))
+            completion_time = (
+                parse_iso_timestamp(status.get("completed_at"))
+                or parse_iso_timestamp(status.get("updated_at"))
+                or parse_iso_timestamp(status.get("started_at"))
+                or float(status_path.stat().st_mtime)
+            )
             selection_score = (
                 valid_output_rate,
                 response_type_accuracy,
                 valid_json_rate,
+                completion_time,
                 -best_validation_loss,
-                parse_iso_timestamp(status.get("completed_at"))
-                or parse_iso_timestamp(status.get("updated_at"))
-                or parse_iso_timestamp(status.get("started_at"))
-                or float(status_path.stat().st_mtime),
             )
             candidates.append((selection_score, run_dir))
         except Exception:
