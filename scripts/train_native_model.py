@@ -254,6 +254,29 @@ def parse_iso_timestamp(value: object) -> float | None:
         return None
 
 
+def _load_run_benchmark_metrics(run_dir: Path) -> tuple[float, float, float]:
+    status_path = run_dir / "training_status.json"
+    if not status_path.exists():
+        return -1.0, -1.0, -1.0
+    try:
+        status = load_json(status_path)
+    except Exception:
+        return -1.0, -1.0, -1.0
+
+    report_path = status.get("benchmark_report")
+    if not report_path:
+        return -1.0, -1.0, -1.0
+    try:
+        report = load_json(Path(report_path))
+    except Exception:
+        return -1.0, -1.0, -1.0
+
+    valid_output_rate = float(report.get("valid_output_rate", -1.0))
+    response_type_accuracy = float(report.get("response_type_accuracy", -1.0))
+    valid_json_rate = float(report.get("valid_json_rate", -1.0))
+    return valid_output_rate, response_type_accuracy, valid_json_rate
+
+
 def find_latest_completed_run(repo_root: Path, type_name: str | None, category_name: str | None) -> Path:
     runs_root = repo_root / "models" / "runs"
     status_paths = sorted(
@@ -295,22 +318,74 @@ def find_latest_completed_run(repo_root: Path, type_name: str | None, category_n
     )
 
 
+def find_best_completed_run(repo_root: Path, type_name: str | None, category_name: str | None) -> Path:
+    runs_root = repo_root / "models" / "runs"
+    status_paths = sorted(runs_root.rglob("training_status.json"), key=lambda path: path.stat().st_mtime, reverse=True)
+    candidates: list[tuple[tuple[float, float, float, float, float], Path]] = []
+    for status_path in status_paths:
+        try:
+            run_dir = status_path.parent
+            if not (run_dir / "model.pt").exists():
+                continue
+            status = load_json(status_path)
+            if str(status.get("status", "")).lower() != "completed":
+                continue
+            if int(status.get("global_step", 0)) <= 0:
+                continue
+            if type_name and infer_run_type(run_dir) != type_name:
+                continue
+            if category_name and infer_run_category(run_dir) != category_name:
+                continue
+
+            valid_output_rate, response_type_accuracy, valid_json_rate = _load_run_benchmark_metrics(run_dir)
+            best_validation_loss = float(status.get("best_validation_loss", 1e9))
+            selection_score = (
+                valid_output_rate,
+                response_type_accuracy,
+                valid_json_rate,
+                -best_validation_loss,
+                parse_iso_timestamp(status.get("completed_at"))
+                or parse_iso_timestamp(status.get("updated_at"))
+                or parse_iso_timestamp(status.get("started_at"))
+                or float(status_path.stat().st_mtime),
+            )
+            candidates.append((selection_score, run_dir))
+        except Exception:
+            continue
+
+    if candidates:
+        candidates.sort(key=lambda item: item[0], reverse=True)
+        return candidates[0][1]
+
+    raise FileNotFoundError(
+        f"Could not find a completed training run for type={type_name or '*'} category={category_name or '*'} under {runs_root}"
+    )
+
+
 def resolve_init_model_path(path_value: str | Path | None, repo_root: Path) -> Path | None:
     if not path_value:
         return None
     value = str(path_value).strip()
     if not value:
         return None
-    if value.startswith("latest:"):
+    if value.startswith("latest:") or value.startswith("best:"):
+        mode = value.split(":", 1)[0]
         parts = value.split(":")
         try:
             if len(parts) == 2:
-                return find_latest_completed_run(repo_root, None, parts[1])
+                if mode == "latest":
+                    return find_latest_completed_run(repo_root, None, parts[1])
+                return find_best_completed_run(repo_root, None, parts[1])
             if len(parts) == 3:
-                return find_latest_completed_run(repo_root, parts[1], parts[2])
+                if mode == "latest":
+                    return find_latest_completed_run(repo_root, parts[1], parts[2])
+                return find_best_completed_run(repo_root, parts[1], parts[2])
         except FileNotFoundError:
             return None
-        raise ValueError("init_from_model_path must use latest:<category> or latest:<type>:<category>")
+        raise ValueError(
+            "init_from_model_path must use latest:<category>, latest:<type>:<category>, "
+            "best:<category>, or best:<type>:<category>"
+        )
     return resolve_path(value, repo_root)
 
 

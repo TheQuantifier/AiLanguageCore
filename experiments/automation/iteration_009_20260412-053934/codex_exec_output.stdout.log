@@ -1,0 +1,5 @@
+Applied one Stage-2 change: checkpoint initialization now supports `best:` selection and ranks completed runs by `valid_output_rate`, `response_type_accuracy`, `valid_json_rate`, then `best_validation_loss` (with recency tie-break), so we avoid chaining from a weaker latest run.
+Updated full-response training config to initialize from the best prior run instead of newest (`best:core:full_response`).
+Files touched: [scripts/train_native_model.py](C:/Users/jhand/Documents/Github/AiLanguageCore/scripts/train_native_model.py), [models/configs/v1_native_byte_transformer_config.json](C:/Users/jhand/Documents/Github/AiLanguageCore/models/configs/v1_native_byte_transformer_config.json)
+Sanity check passed: `best:core:full_response` resolves to `...-20260412-043728` while `latest:*` still resolves to `...-20260412-053936`.
+AUTOMATION_DECISION: CONTINUE

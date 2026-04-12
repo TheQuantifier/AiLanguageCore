@@ -2,7 +2,7 @@
   "output_dir": "models/runs/v1-native-byte-transformer-full-response",
   "train_file": "data/processed/train_full_response_sft.jsonl",
   "validation_file": "data/processed/validation_full_response_sft.jsonl",
-  "init_from_model_path": "latest:core:full_response",
+  "init_from_model_path": "best:core:full_response",
   "device_preference": ["hip", "cuda", "directml", "cpu"],
   "seed": 11,
   "num_train_epochs": 12,
