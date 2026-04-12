@@ -373,9 +373,9 @@ def find_best_completed_run(
                 or float(status_path.stat().st_mtime)
             )
             selection_score = (
-                valid_output_rate,
                 response_type_accuracy,
                 valid_json_rate,
+                valid_output_rate,
                 completion_time,
                 -best_validation_loss,
             )
