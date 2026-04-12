@@ -1,0 +1,5 @@
+Applied one Stage‑2 transfer fix to protect stability while enabling next train: new tokenizer-only tokens are no longer initialized from the old `unknown` embedding during checkpoint remap.
+This is high-signal for your latest run because init source vocab was `76` and target vocab is `80` (new chars include `\n`, `<`, `>`, `|`), and collapsing those to one embedding can hurt JSON/response consistency.
+Changed file: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py) (set `fallback_source_id=None` in `load_stage2_weights` remap call).
+Validation: `python -m py_compile scripts/train_native_model.py` passed.
+AUTOMATION_DECISION: CONTINUE
