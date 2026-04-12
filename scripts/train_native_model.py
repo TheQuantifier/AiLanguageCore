@@ -533,6 +533,17 @@ def build_tokenizer_from_rows(*row_sets: list[dict]) -> ByteTokenizer:
     return ByteTokenizer(chars=sorted(chars))
 
 
+def collect_required_tokenizer_chars(*row_sets: list[dict]) -> set[str]:
+    chars: set[str] = set()
+    for prefix in ROLE_PREFIXES.values():
+        chars.update(prefix)
+    for rows in row_sets:
+        for row in rows:
+            for message in row["messages"]:
+                chars.update(message["content"])
+    return chars
+
+
 def create_batches(examples: list[Example], batch_size: int, shuffle: bool) -> list[list[Example]]:
     items = examples[:]
     if shuffle:
@@ -1009,12 +1020,23 @@ def main() -> int:
     device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
     train_rows = load_jsonl(train_file)
     validation_rows = load_jsonl(validation_file)
+    required_tokenizer_chars = collect_required_tokenizer_chars(train_rows, validation_rows)
     init_model_dir = resolve_init_model_path(config.get("init_from_model_path"), repo_root)
     tokenizer = None
+    tokenizer_reused_from_init = False
     if init_model_dir is not None:
         init_tokenizer_path = init_model_dir / "tokenizer_config.json"
         if init_tokenizer_path.exists():
             tokenizer = ByteTokenizer.from_config(load_json(init_tokenizer_path))
+            missing_chars = required_tokenizer_chars.difference(set(tokenizer.chars))
+            if missing_chars:
+                print(
+                    "Tokenizer compatibility: stage-2 tokenizer missing required chars; "
+                    f"rebuilding tokenizer with {len(missing_chars)} added chars."
+                )
+                tokenizer = None
+            else:
+                tokenizer_reused_from_init = True
     if tokenizer is None:
         tokenizer = build_tokenizer_from_rows(train_rows, validation_rows)
     max_seq_length = int(config["max_seq_length"])
@@ -1112,7 +1134,7 @@ def main() -> int:
     print(f"Validation file: {validation_file}")
     print(f"Benchmark file: {benchmark_file}")
     print(f"Output dir: {output_dir}")
-    if init_model_dir is not None and (init_model_dir / "tokenizer_config.json").exists():
+    if tokenizer_reused_from_init:
         print(f"Tokenizer source: stage-2 init model ({init_model_dir})")
     else:
         print("Tokenizer source: rebuilt from train+validation rows")

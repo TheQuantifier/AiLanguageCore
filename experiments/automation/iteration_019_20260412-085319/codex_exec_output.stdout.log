@@ -1,0 +1,5 @@
+Applied one targeted stage-2 fix: `train_native_model.py` now validates init-tokenizer compatibility against required prompt/data chars and rebuilds tokenizer only when chars are missing, instead of blindly reusing an incompatible tokenizer.  
+This addresses the observed mismatch (`\n`, `<`, `>`, `|` missing), which was collapsing role-prefix structure into unknown tokens and likely hurting response wording while keeping JSON/type routing stable.  
+Embedding/output-head transfer behavior remains unchanged; stage-2 remap still handles vocab transfer after rebuild.  
+Files touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)  
+AUTOMATION_DECISION: CONTINUE
