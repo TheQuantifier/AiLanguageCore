@@ -1,0 +1,4 @@
+Changed stage-2 init model ranking to prefer lower `best_validation_loss` before recency when `response_type_accuracy`/`valid_json_rate`/`valid_output_rate` tie, so `best:core:full_response` keeps stability-first selection while reducing wording drift across iterations.
+Touched [train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py) (selection tuple in `find_best_completed_run`), plus an inline rationale comment.
+Validated with `python -m py_compile scripts/train_native_model.py`.
+AUTOMATION_DECISION: CONTINUE
