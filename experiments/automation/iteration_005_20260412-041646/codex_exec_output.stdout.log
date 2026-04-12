@@ -1,0 +1,5 @@
+Applied one narrow fix: increased auto-benchmark generation budget from `256` to `384` tokens to prevent truncating valid JSON mid-`response` (the 5 invalid cases were all cut off at the token cap).
+This preserves response-type behavior while directly targeting `valid_json`/`valid_output` for the next training run.
+Files touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py:514)
+Validation: `python -m py_compile scripts/train_native_model.py` passed.
+AUTOMATION_DECISION: CONTINUE

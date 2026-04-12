@@ -530,6 +530,8 @@ def run_post_training_benchmark(repo_root: Path, output_dir: Path) -> Path:
         str(report_path),
         "--status-file",
         str(status_path),
+        "--max-new-tokens",
+        "384",
     ]
     subprocess.run(command, check=True, cwd=repo_root)
     return report_path
