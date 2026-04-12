@@ -524,6 +524,8 @@ def build_examples(rows: list[dict], tokenizer: ByteTokenizer, max_seq_length: i
 
 def build_tokenizer_from_rows(*row_sets: list[dict]) -> ByteTokenizer:
     chars = set()
+    for prefix in ROLE_PREFIXES.values():
+        chars.update(prefix)
     for rows in row_sets:
         for row in rows:
             for message in row["messages"]:

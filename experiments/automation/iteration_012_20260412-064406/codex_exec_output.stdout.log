@@ -1,0 +1,5 @@
+Latest run (`20260412-064408`) regressed JSON/type vs the prior best; stage-2 warm-start looked compatible (same prior tokenizer chars and remap path active), so I made one narrow tokenizer fix instead of data/loss changes.  
+Change: include `ROLE_PREFIXES` characters in tokenizer construction so prompt scaffolding (`<|system|>`, `<|user|>`, `<|assistant|>`, newline) is no longer collapsed to `?` tokens during train/eval input encoding.  
+This directly targets response_type/valid-JSON stability before wording improvements and remains compatible with embedding/output-head remap from `init_from_model_path`.  
+Files touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)  
+AUTOMATION_DECISION: CONTINUE
