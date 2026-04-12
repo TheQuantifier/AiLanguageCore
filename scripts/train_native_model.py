@@ -759,6 +759,25 @@ def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteToken
     token_pairs = build_token_id_remap(source_tokenizer, target_tokenizer)
     target_state = model.state_dict()
     updated_state = dict(target_state)
+    shared_vocab_transfer = None
+    source_vocab_tensor = source_state.get("token_embedding.weight")
+    if source_vocab_tensor is None:
+        source_vocab_tensor = source_state.get("lm_head.weight")
+    if (
+        source_vocab_tensor is not None
+        and "token_embedding.weight" in target_state
+        and "lm_head.weight" in target_state
+        and len(target_state["token_embedding.weight"].shape) == 2
+        and len(source_vocab_tensor.shape) == 2
+        and int(target_state["token_embedding.weight"].shape[1]) == int(source_vocab_tensor.shape[1])
+    ):
+        shared_vocab_transfer = remap_vocab_matrix(
+            source_tensor=source_vocab_tensor,
+            target_tensor=target_state["token_embedding.weight"],
+            token_pairs=token_pairs,
+        )
+        updated_state["token_embedding.weight"] = shared_vocab_transfer
+        updated_state["lm_head.weight"] = shared_vocab_transfer
     loaded_names: list[str] = []
     skipped_names: list[str] = []
 
@@ -767,12 +786,7 @@ def load_stage2_weights(model, init_model_dir: Path, target_tokenizer: ByteToken
             skipped_names.append(name)
             continue
         if name in {"token_embedding.weight", "lm_head.weight"}:
-            if len(target_state[name].shape) == 2 and len(tensor.shape) == 2 and int(target_state[name].shape[1]) == int(tensor.shape[1]):
-                updated_state[name] = remap_vocab_matrix(
-                    source_tensor=tensor,
-                    target_tensor=target_state[name],
-                    token_pairs=token_pairs,
-                )
+            if shared_vocab_transfer is not None and target_state[name].shape == shared_vocab_transfer.shape:
                 loaded_names.append(name)
                 continue
         if target_state[name].shape == tensor.shape:

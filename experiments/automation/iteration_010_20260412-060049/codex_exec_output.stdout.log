@@ -1,0 +1,5 @@
+Latest run (`2026-04-12 06:00:51`) kept strong structure (`valid_output_rate=0.9836`, `response_type_accuracy=0.8852`) but showed wording corruption, so I made one stage-2 transfer fix instead of changing targets.
+Change made: in [`scripts/train_native_model.py`](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py), `load_stage2_weights` now derives a single remapped vocab tensor from `token_embedding.weight` (fallback `lm_head.weight`) and applies it to both embedding/head keys, preventing embedding/output-head drift during `init_from_model_path` loading.
+This directly addresses tokenizer/embedding/head compatibility while preserving JSON/response-type behavior.
+Validation: `.\.python\python.exe -m py_compile scripts/train_native_model.py` passed.
+AUTOMATION_DECISION: CONTINUE
