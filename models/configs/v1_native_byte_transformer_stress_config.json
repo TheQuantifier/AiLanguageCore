@@ -3,7 +3,7 @@
   "train_file": "data/processed/train_category_prediction_sft.jsonl",
   "validation_file": "data/processed/validation_category_prediction_sft.jsonl",
   "benchmark_file": "data/processed/benchmark_stress_native_sft.jsonl",
-  "device_preference": ["hip", "cuda", "directml", "cpu"],
+  "device_preference": ["cuda", "cpu"],
   "seed": 11,
   "num_train_epochs": 50,
   "batch_size": 4,

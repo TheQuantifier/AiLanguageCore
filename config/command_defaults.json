@@ -1,16 +1,16 @@
 {
     "global_defaults":  {
                             "type":  "core",
-                            "category":  "full_response"
+                            "category":  "response"
                         },
     "command_defaults":  {
                              "train":  {
                                            "type":  "core",
-                                           "category":  "full_response"
+                                           "category":  "response"
                                        },
                              "benchmark":  {
                                                "type":  "core",
-                                               "category":  "full_response"
+                                               "category":  "response"
                                            },
                              "frozen_benchmark":  {
                                                       "type":  "stress_v2",
@@ -18,11 +18,11 @@
                                                   },
                              "autotrain":  {
                                                "type":  "core",
-                                               "category":  "full_response"
+                                               "category":  "response"
                                            },
                              "improve":  {
                                              "type":  "core",
-                                             "category":  "full_response"
+                                             "category":  "response"
                                          }
                          },
     "updated_at":  "2026-04-11T12:00:15.3970302-04:00"

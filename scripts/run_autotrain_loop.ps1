@@ -713,7 +713,7 @@ function Invoke-CodexImprovementPass {
     Write-Host ''
     Write-Host "=== Iteration ${IterationLabel}: Codex improvement pass ==="
 
-    $priorityLine = if ($selectedCategory -eq 'full_response') {
+    $priorityLine = if ($selectedCategory -eq 'full_response' -or $selectedCategory -eq 'response') {
         'Priority: preserve response_type stability and valid JSON before improving wording.'
     } else {
         'Priority: improve classification accuracy on the weakest boundaries.'
@@ -725,8 +725,8 @@ function Invoke-CodexImprovementPass {
         ''
     }
 
-    $stage2Line = if ($selectedCategory -eq 'full_response') {
-        'Stage-2: inspect init_from_model_path, tokenizer compatibility, and embedding/output-head transfer before changing data targets.'
+    $stage2Line = if ($selectedCategory -eq 'full_response' -or $selectedCategory -eq 'response') {
+        'Stage-2: keep init_from_model_path on the core category_prediction checkpoint by default; inspect tokenizer compatibility and embedding/output-head transfer before changing data targets.'
     } else {
         ''
     }

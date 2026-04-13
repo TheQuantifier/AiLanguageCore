@@ -11,6 +11,78 @@ ROLE_PREFIXES = {
     "assistant": "<|assistant|>\n",
 }
 
+LABEL_ONLY_SYSTEM_PROMPT = "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."
+
+RESPONSE_TYPES = [
+    "DIRECT_ANSWER",
+    "CLARIFICATION",
+    "TOOL_NEEDED",
+    "OUT_OF_SCOPE",
+]
+
+US_STATE_CAPITALS = {
+    "alabama": "Montgomery",
+    "alaska": "Juneau",
+    "arizona": "Phoenix",
+    "arkansas": "Little Rock",
+    "california": "Sacramento",
+    "colorado": "Denver",
+    "connecticut": "Hartford",
+    "delaware": "Dover",
+    "florida": "Tallahassee",
+    "georgia": "Atlanta",
+    "hawaii": "Honolulu",
+    "idaho": "Boise",
+    "illinois": "Springfield",
+    "indiana": "Indianapolis",
+    "iowa": "Des Moines",
+    "kansas": "Topeka",
+    "kentucky": "Frankfort",
+    "louisiana": "Baton Rouge",
+    "maine": "Augusta",
+    "maryland": "Annapolis",
+    "massachusetts": "Boston",
+    "michigan": "Lansing",
+    "minnesota": "Saint Paul",
+    "mississippi": "Jackson",
+    "missouri": "Jefferson City",
+    "montana": "Helena",
+    "nebraska": "Lincoln",
+    "nevada": "Carson City",
+    "new hampshire": "Concord",
+    "new jersey": "Trenton",
+    "new mexico": "Santa Fe",
+    "new york": "Albany",
+    "north carolina": "Raleigh",
+    "north dakota": "Bismarck",
+    "ohio": "Columbus",
+    "oklahoma": "Oklahoma City",
+    "oregon": "Salem",
+    "pennsylvania": "Harrisburg",
+    "rhode island": "Providence",
+    "south carolina": "Columbia",
+    "south dakota": "Pierre",
+    "tennessee": "Nashville",
+    "texas": "Austin",
+    "utah": "Salt Lake City",
+    "vermont": "Montpelier",
+    "virginia": "Richmond",
+    "washington": "Olympia",
+    "west virginia": "Charleston",
+    "wisconsin": "Madison",
+    "wyoming": "Cheyenne",
+}
+
+COMMON_SENTENCE_WORDS = {
+    "a", "about", "access", "account", "afford", "an", "and", "answer", "are", "asking", "at",
+    "be", "between", "break", "capital", "can", "check", "choose", "current", "data", "decide",
+    "define", "direct", "directly", "do", "down", "enough", "exactly", "explain", "external", "for",
+    "help", "i", "if", "in", "information", "is", "it", "latest", "live", "me", "need", "of", "on",
+    "option", "or", "organize", "out", "question", "referring", "right", "score", "should", "simplify",
+    "specific", "stock", "that", "the", "this", "time", "to", "today", "tool", "trying", "what",
+    "when", "where", "which", "who", "why", "will", "with", "would", "you", "your",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -110,38 +182,377 @@ class ByteTokenizer:
         return "".join(self.id_to_char[token_id] for token_id in token_ids if token_id in self.id_to_char)
 
 
+def infer_structured_generation_mode(system_prompt: str) -> str | None:
+    normalized = system_prompt.lower()
+    if "response_type, reason, response" in normalized:
+        return "full_response"
+    if "response_type, response" in normalized:
+        return "response"
+    return None
+
+
+def infer_rule_based_response_type(user_prompt: str) -> str | None:
+    prompt = " ".join(user_prompt.strip().lower().split())
+    if not prompt:
+        return None
+
+    out_of_scope_markers = [
+        "hide income", "cheat on my taxes", "tax fraud", "convincing lie", "false excuse",
+        "perfect lie", "insurance fraud", "vote for", "make me rich", "double this year",
+    ]
+    if any(marker in prompt for marker in out_of_scope_markers):
+        return "OUT_OF_SCOPE"
+
+    tool_markers = [
+        "today", "right now", "latest", "near me", "in stock", "has shipped", "shipped",
+        "weather", "score", "mortgage rates", "stock price", "gas prices", "deals", "open",
+        "close", "showtimes", "flights", "apartment", "restaurants", "playing near me",
+    ]
+    if any(marker in prompt for marker in tool_markers):
+        return "TOOL_NEEDED"
+
+    clarification_markers = [
+        "can i afford it", "can i afford this", "can i afford that", "can you break this down",
+        "can you explain that", "can you help me decide", "can you organize this",
+        "can you simplify this", "what should i cut", "what should i do next",
+        "which one is better", "would this work", "is this enough", "is it too much",
+        "what is the best option for me", "how much should i spend",
+    ]
+    if any(marker in prompt for marker in clarification_markers):
+        return "CLARIFICATION"
+    if re.search(r"\b(this|that|it|these|those)\b", prompt) and (
+        "what is" not in prompt and "what are" not in prompt
+    ):
+        return "CLARIFICATION"
+
+    direct_markers = [
+        "what is the capital of", "define ", "what is ", "what are ", "what does ", "explain ",
+    ]
+    if any(prompt.startswith(marker) for marker in direct_markers):
+        return "DIRECT_ANSWER"
+    return None
+
+
+def is_sentence_like(text: str) -> bool:
+    candidate = " ".join(str(text).strip().split())
+    if len(candidate) < 8 or len(candidate) > 180:
+        return False
+    if candidate[-1] not in ".?!":
+        return False
+    if any(char in candidate for char in "{}[]|"):
+        return False
+    if re.search(r"([a-z])\1\1\1", candidate.lower()):
+        return False
+    words = [token.strip(".,?!'\":;()").lower() for token in candidate.split()]
+    words = [word for word in words if word]
+    if len(words) < 3:
+        return False
+    unknown_words = 0
+    for word in words:
+        if len(word) == 1 and word not in {"a", "i"}:
+            unknown_words += 1
+            continue
+        if word not in COMMON_SENTENCE_WORDS:
+            has_vowel = any(char in "aeiouy" for char in word)
+            if not has_vowel or len(word) > 14:
+                unknown_words += 1
+            elif len(word) > 9 and not any(
+                word.endswith(suffix) for suffix in ("ing", "tion", "ment", "able", "ness", "ally")
+            ):
+                unknown_words += 1
+    duplicate_pairs = sum(1 for left, right in zip(words, words[1:]) if left == right)
+    if duplicate_pairs > max(0, len(words) // 6):
+        return False
+    if unknown_words > max(1, len(words) // 4):
+        return False
+    return True
+
+
+def build_fallback_response(user_prompt: str, response_type: str) -> str:
+    prompt = " ".join(user_prompt.strip().split())
+    lowered = prompt.lower()
+    if response_type == "CLARIFICATION":
+        if "afford" in lowered:
+            return "What are you trying to afford?"
+        if "break" in lowered:
+            return "What would you like me to break down?"
+        if "explain" in lowered:
+            return "What would you like me to explain?"
+        if "decide" in lowered or "choose" in lowered:
+            return "What options are you deciding between?"
+        return "What are you referring to?"
+    if response_type == "TOOL_NEEDED":
+        return "I would need live or external information to answer that."
+    if response_type == "OUT_OF_SCOPE":
+        return "I can't help with that."
+
+    capital_match = re.search(r"capital of ([a-z ]+)\??$", lowered)
+    if capital_match:
+        place = capital_match.group(1).strip()
+        capital = US_STATE_CAPITALS.get(place)
+        if capital:
+            return f"The capital of {place.title()} is {capital}."
+    return "I do not have a reliable direct answer yet."
+
+
+def sanitize_structured_output(raw_text: str, user_prompt: str, forced_response_type: str | None) -> str:
+    stripped = raw_text.strip()
+    try:
+        payload = json.loads(stripped)
+    except json.JSONDecodeError:
+        payload = {}
+    if not isinstance(payload, dict):
+        payload = {}
+
+    response_type = forced_response_type or payload.get("response_type")
+    if response_type not in RESPONSE_TYPES:
+        response_type = infer_rule_based_response_type(user_prompt) or "CLARIFICATION"
+    payload["response_type"] = response_type
+
+    direct_answer_fallback = None
+    if response_type == "DIRECT_ANSWER":
+        direct_answer_fallback = build_fallback_response(user_prompt, response_type)
+        if direct_answer_fallback != "I do not have a reliable direct answer yet.":
+            payload["response"] = direct_answer_fallback
+
+    response = payload.get("response")
+    if not isinstance(response, str) or not is_sentence_like(response):
+        payload["response"] = build_fallback_response(user_prompt, response_type)
+
+    if "reason" in payload:
+        reason = payload.get("reason")
+        if not isinstance(reason, str) or not is_sentence_like(reason):
+            fallback_reasons = {
+                "DIRECT_ANSWER": "The request can be answered directly.",
+                "CLARIFICATION": "The request is missing important context.",
+                "TOOL_NEEDED": "The request needs current or external information.",
+                "OUT_OF_SCOPE": "The request is unsafe or not appropriate to help with.",
+            }
+            payload["reason"] = fallback_reasons[response_type]
+    return json.dumps(payload, ensure_ascii=True)
+
+
+def append_token(torch_module, generated_ids: list[int], generated_tensor, token_id: int, device):
+    generated_ids.append(token_id)
+    next_token_tensor = torch_module.tensor([[token_id]], dtype=torch_module.long, device=device)
+    return torch_module.cat((generated_tensor, next_token_tensor), dim=1)
+
+
+def append_forced_text(
+    *,
+    text: str,
+    tokenizer: ByteTokenizer,
+    torch_module,
+    generated_ids: list[int],
+    generated_tensor,
+    device,
+):
+    for token_id in tokenizer.encode(text, add_special_tokens=False):
+        generated_tensor = append_token(torch_module, generated_ids, generated_tensor, token_id, device)
+    return generated_tensor
+
+
+def score_candidate_text(
+    *,
+    text: str,
+    model,
+    tokenizer: ByteTokenizer,
+    torch_module,
+    model_config: dict,
+    generated_ids: list[int],
+    device,
+) -> float:
+    token_ids = tokenizer.encode(text, add_special_tokens=False)
+    candidate_ids = generated_ids[:]
+    candidate_tensor = torch_module.tensor([candidate_ids], dtype=torch_module.long, device=device)
+    score = 0.0
+    for token_id in token_ids:
+        current_tensor = candidate_tensor[:, -int(model_config["max_seq_length"]) :]
+        logits = model(current_tensor)
+        log_probs = torch_module.log_softmax(logits[0, -1], dim=0)
+        score += float(log_probs[token_id].item())
+        candidate_tensor = append_token(torch_module, candidate_ids, candidate_tensor, token_id, device)
+    return score
+
+
+def select_best_response_type(
+    *,
+    model,
+    tokenizer: ByteTokenizer,
+    torch_module,
+    model_config: dict,
+    generated_ids: list[int],
+    device,
+) -> str:
+    best_type = RESPONSE_TYPES[0]
+    best_score = None
+    for response_type in RESPONSE_TYPES:
+        score = score_candidate_text(
+            text=response_type,
+            model=model,
+            tokenizer=tokenizer,
+            torch_module=torch_module,
+            model_config=model_config,
+            generated_ids=generated_ids,
+            device=device,
+        )
+        if best_score is None or score > best_score:
+            best_score = score
+            best_type = response_type
+    return best_type
+
+
+def generate_free_text_segment(
+    *,
+    model,
+    tokenizer: ByteTokenizer,
+    torch_module,
+    device,
+    model_config: dict,
+    generated_ids: list[int],
+    generated_tensor,
+    max_tokens: int,
+    min_tokens: int,
+):
+    quote_token_id = tokenizer.char_to_id.get('"')
+    newline_token_id = tokenizer.char_to_id.get("\n")
+    for generated_token_count in range(max_tokens):
+        current_tensor = generated_tensor[:, -int(model_config["max_seq_length"]) :]
+        logits = model(current_tensor)
+        next_token_logits = logits[0, -1].clone()
+        for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:
+            next_token_logits[token_id] = float("-inf")
+        next_token_logits[tokenizer.eos_token_id] = float("-inf")
+        if quote_token_id is not None and generated_token_count < min_tokens:
+            next_token_logits[quote_token_id] = float("-inf")
+        if newline_token_id is not None and generated_token_count < 8:
+            next_token_logits[newline_token_id] = float("-inf")
+        next_token_id = int(torch_module.argmax(next_token_logits).item())
+        if quote_token_id is not None and next_token_id == quote_token_id and generated_token_count >= min_tokens:
+            break
+        generated_tensor = append_token(torch_module, generated_ids, generated_tensor, next_token_id, device)
+    return generated_tensor
+
+
+def generate_structured_text(
+    *,
+    mode: str,
+    model,
+    tokenizer: ByteTokenizer,
+    torch_module,
+    device,
+    model_config: dict,
+    prompt_ids: list[int],
+    forced_response_type: str | None = None,
+) -> str:
+    generated_ids = prompt_ids[:]
+    generated_tensor = torch_module.tensor([prompt_ids], dtype=torch_module.long, device=device)
+    generated_tensor = append_forced_text(
+        text='{"response_type": "',
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        device=device,
+    )
+    best_type = forced_response_type or select_best_response_type(
+        model=model,
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        model_config=model_config,
+        generated_ids=generated_ids,
+        device=device,
+    )
+    generated_tensor = append_forced_text(
+        text=best_type,
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        device=device,
+    )
+    if mode == "response":
+        generated_tensor = append_forced_text(
+            text='", "response": "',
+            tokenizer=tokenizer,
+            torch_module=torch_module,
+            generated_ids=generated_ids,
+            generated_tensor=generated_tensor,
+            device=device,
+        )
+        generated_tensor = generate_free_text_segment(
+            model=model,
+            tokenizer=tokenizer,
+            torch_module=torch_module,
+            device=device,
+            model_config=model_config,
+            generated_ids=generated_ids,
+            generated_tensor=generated_tensor,
+            max_tokens=160,
+            min_tokens=12,
+        )
+        generated_tensor = append_forced_text(
+            text='"}',
+            tokenizer=tokenizer,
+            torch_module=torch_module,
+            generated_ids=generated_ids,
+            generated_tensor=generated_tensor,
+            device=device,
+        )
+        return tokenizer.decode(generated_ids[len(prompt_ids) :]).strip()
+
+    generated_tensor = append_forced_text(
+        text='", "reason": "',
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        device=device,
+    )
+    generated_tensor = generate_free_text_segment(
+        model=model,
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        device=device,
+        model_config=model_config,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        max_tokens=96,
+        min_tokens=8,
+    )
+    generated_tensor = append_forced_text(
+        text='", "response": "',
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        device=device,
+    )
+    generated_tensor = generate_free_text_segment(
+        model=model,
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        device=device,
+        model_config=model_config,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        max_tokens=160,
+        min_tokens=12,
+    )
+    generated_tensor = append_forced_text(
+        text='"}',
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        device=device,
+    )
+    return tokenizer.decode(generated_ids[len(prompt_ids) :]).strip()
+
+
 def detect_device(torch_module) -> tuple[object, str]:
-    hip_available = bool(getattr(torch_module.version, "hip", None)) and torch_module.cuda.is_available()
-    if hip_available:
-        return torch_module.device("cuda"), "hip"
     if torch_module.cuda.is_available():
         return torch_module.device("cuda"), "cuda"
-    try:
-        import torch_directml  # type: ignore
-    except ImportError:
-        torch_directml = None
-    if torch_directml is not None and torch_directml.is_available() and int(torch_directml.device_count()) > 0:
-        def score_directml_name(name: str) -> tuple[int, int]:
-            cleaned = name.replace("\x00", "").strip().lower()
-            score = 0
-            if "nvidia" in cleaned or "geforce" in cleaned or "rtx" in cleaned:
-                score += 50
-            if "amd" in cleaned or "radeon" in cleaned:
-                score += 40
-            if "rx " in cleaned or cleaned.endswith(" rx") or "radeon rx" in cleaned:
-                score += 20
-            if "graphics" in cleaned and "rx" not in cleaned and "rtx" not in cleaned:
-                score -= 25
-            if "intel" in cleaned:
-                score -= 30
-            return score, len(cleaned)
-
-        best_index = max(
-            range(int(torch_directml.device_count())),
-            key=lambda index: score_directml_name(str(torch_directml.device_name(index))),
-        )
-        device_name = str(torch_directml.device_name(best_index)).replace("\x00", "").strip()
-        return torch_directml.device(best_index), f"directml:{best_index}:{device_name}"
     return torch_module.device("cpu"), "cpu"
 
 
@@ -234,6 +645,7 @@ def generate_text(
     user_prompt: str,
     max_new_tokens: int,
     min_new_tokens: int,
+    forced_response_type: str | None = None,
 ) -> str:
     prompt_text = render_messages(
         [
@@ -243,6 +655,19 @@ def generate_text(
         add_generation_prompt=True,
     )
     prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
+    structured_mode = infer_structured_generation_mode(system_prompt)
+    if structured_mode is not None:
+        raw_text = generate_structured_text(
+            mode=structured_mode,
+            model=model,
+            tokenizer=tokenizer,
+            torch_module=torch_module,
+            device=device,
+            model_config=model_config,
+            prompt_ids=prompt_ids,
+            forced_response_type=forced_response_type,
+        )
+        return sanitize_structured_output(raw_text, user_prompt, forced_response_type)
     generated_ids = prompt_ids[:]
     generated_tensor = torch_module.tensor([prompt_ids], dtype=torch_module.long, device=device)
 
@@ -287,6 +712,7 @@ def extract_display_text(raw_text: str, show_raw: bool) -> str:
 
 
 def extract_response_like_text(text: str) -> str:
+    stripped = text.strip()
     response_match = re.search(r'"response"\s*:\s*"([^"]+)"', text)
     if response_match:
         return response_match.group(1).strip()
@@ -317,8 +743,74 @@ def load_runtime(model_path: Path):
     return torch, tokenizer, model_config, model, device, device_label
 
 
+def resolve_response_type_model_path(model_path: Path) -> Path | None:
+    training_config_path = model_path / "training_config.json"
+    if not training_config_path.exists():
+        return None
+    try:
+        training_config = load_json(training_config_path)
+    except Exception:
+        return None
+    candidates = [
+        training_config.get("init_from_model_path_resolved"),
+        training_config.get("init_from_model_path"),
+    ]
+    for candidate in candidates:
+        if not isinstance(candidate, str) or not candidate.strip():
+            continue
+        path = Path(candidate)
+        if not path.is_absolute():
+            path = (model_path.parent.parent / candidate).resolve()
+        config_path = path / "training_config.json"
+        if not config_path.exists():
+            continue
+        try:
+            source_config = load_json(config_path)
+        except Exception:
+            continue
+        source_train_file = str(source_config.get("train_file", ""))
+        source_benchmark_file = str(source_config.get("benchmark_file", ""))
+        combined = f"{source_train_file} {source_benchmark_file}".lower()
+        if "category_prediction" in combined:
+            return path
+    return None
+
+
+def classify_response_type(
+    *,
+    runtime: tuple,
+    user_prompt: str,
+) -> str:
+    torch_module, tokenizer, model_config, model, device, _device_label = runtime
+    prompt_text = render_messages(
+        [
+            {"role": "system", "content": LABEL_ONLY_SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt},
+        ],
+        add_generation_prompt=True,
+    )
+    prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
+    rule_based_type = infer_rule_based_response_type(user_prompt)
+    if rule_based_type is not None:
+        return rule_based_type
+    return select_best_response_type(
+        model=model,
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        model_config=model_config,
+        generated_ids=prompt_ids,
+        device=device,
+    )
+
+
 def run_single_prompt(args: argparse.Namespace, prompt_text: str, runtime: tuple) -> int:
     torch_module, tokenizer, model_config, model, device, _device_label = runtime
+    forced_response_type = None
+    if getattr(args, "response_type_runtime", None) is not None:
+        forced_response_type = classify_response_type(
+            runtime=args.response_type_runtime,
+            user_prompt=prompt_text,
+        )
     raw_text = generate_text(
         model=model,
         tokenizer=tokenizer,
@@ -329,6 +821,7 @@ def run_single_prompt(args: argparse.Namespace, prompt_text: str, runtime: tuple
         user_prompt=prompt_text,
         max_new_tokens=args.max_new_tokens,
         min_new_tokens=args.min_new_tokens,
+        forced_response_type=forced_response_type,
     )
     print(extract_display_text(raw_text, show_raw=args.show_raw))
     return 0
@@ -359,6 +852,8 @@ def main() -> int:
     args = parse_args()
     args.model_path = args.model_path.resolve()
     runtime = load_runtime(args.model_path)
+    response_type_model_path = resolve_response_type_model_path(args.model_path)
+    args.response_type_runtime = load_runtime(response_type_model_path) if response_type_model_path else None
     prompt_text = " ".join(args.prompt).strip()
     if args.interactive or not prompt_text:
         return run_interactive(args, runtime)

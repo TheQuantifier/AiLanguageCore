@@ -19,6 +19,7 @@ $defaultSelection = Get-AiLanguageCoreDefaultSelection -RepoRoot $repoRoot -Comm
 $Type = $defaultSelection.Type
 $ResolvedCategory = if ($Category) { Resolve-AiLanguageCoreCategory -CategoryName $Category } else { $defaultSelection.Category }
 $hasEpochOverride = $PSBoundParameters.ContainsKey('Epochs')
+$defaultEpochs = 30
 if ($null -ne $TypeOrEpoch) {
     $parsedEpoch = 0
     if ($TypeOrEpoch -is [int] -or $TypeOrEpoch -is [long]) {
@@ -70,6 +71,11 @@ $configPath = if ([System.IO.Path]::IsPathRooted($resolvedConfig)) {
 
 if (-not (Test-Path $configPath)) {
     throw "Training config not found: $configPath"
+}
+
+if (-not $hasEpochOverride) {
+    $Epochs = $defaultEpochs
+    $hasEpochOverride = $true
 }
 
 Write-Host "Starting native training from $repoRoot"

@@ -2,7 +2,7 @@
   "output_dir": "models/runs/v1-native-byte-transformer-smoke",
   "train_file": "data/processed/train_sft.jsonl",
   "validation_file": "data/processed/validation_sft.jsonl",
-  "device_preference": ["hip", "cuda", "directml", "cpu"],
+  "device_preference": ["cuda", "cpu"],
   "seed": 11,
   "num_train_epochs": 1,
   "batch_size": 16,

@@ -12,6 +12,7 @@ DEFAULT_CSV_OUT = DEFAULT_REPORTS_DIR / "training_runs_summary.csv"
 BENCHMARK_FILE_TO_TYPE = {
     "benchmark_sft.jsonl": "core",
     "benchmark_category_prediction_sft.jsonl": "core",
+    "benchmark_response_sft.jsonl": "core",
     "benchmark_full_response_sft.jsonl": "core",
     "benchmark_stress_native_sft.jsonl": "stress",
     "benchmark_stress_v2_native_sft.jsonl": "stress_v2",
@@ -23,6 +24,7 @@ BENCHMARK_FILE_TO_TYPE = {
 BENCHMARK_FILE_TO_CATEGORY = {
     "benchmark_sft.jsonl": "full_response",
     "benchmark_category_prediction_sft.jsonl": "category_prediction",
+    "benchmark_response_sft.jsonl": "response",
     "benchmark_full_response_sft.jsonl": "full_response",
     "benchmark_stress_native_sft.jsonl": "category_prediction",
     "benchmark_stress_v2_native_sft.jsonl": "category_prediction",

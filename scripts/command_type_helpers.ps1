@@ -9,6 +9,11 @@ function Get-AiLanguageCoreCommandTypeCatalog {
                     config = 'models\configs\v1_native_byte_transformer_category_prediction_config.json'
                     benchmark = 'data\processed\benchmark_category_prediction_sft.jsonl'
                 }
+                response = @{
+                    trainable = $true
+                    config = 'models\configs\v1_native_byte_transformer_response_config.json'
+                    benchmark = 'data\processed\benchmark_response_sft.jsonl'
+                }
                 full_response = @{
                     trainable = $true
                     config = 'models\configs\v1_native_byte_transformer_config.json'
@@ -112,9 +117,9 @@ function Get-AiLanguageCoreCanonicalCategory {
         'category_prediction' { return 'category_prediction' }
         'category-prediction' { return 'category_prediction' }
         'prediction' { return 'category_prediction' }
+        'response' { return 'response' }
         'full_response' { return 'full_response' }
         'full-response' { return 'full_response' }
-        'response' { return 'full_response' }
         default { return $null }
     }
 }
@@ -124,7 +129,7 @@ function Get-AiLanguageCoreSupportedTypeList {
 }
 
 function Get-AiLanguageCoreSupportedCategoryList {
-    return @('default', 'category_prediction', 'full_response')
+    return @('default', 'category_prediction', 'response', 'full_response')
 }
 
 function Get-AiLanguageCoreTrainableTypeList {
@@ -205,7 +210,7 @@ function Get-AiLanguageCorePreferredCategoryForType {
 
     $canonicalType = Resolve-AiLanguageCoreType -TypeName $TypeName
     if ($canonicalType -eq 'core') {
-        return 'full_response'
+        return 'response'
     }
     return 'category_prediction'
 }
@@ -238,14 +243,14 @@ function Get-AiLanguageCoreStoredDefaults {
     $fallback = [ordered]@{
         global = [ordered]@{
             type = 'core'
-            category = 'full_response'
+            category = 'response'
         }
         command_defaults = [ordered]@{
-            train = [ordered]@{ type = 'core'; category = 'full_response' }
-            benchmark = [ordered]@{ type = 'core'; category = 'full_response' }
+            train = [ordered]@{ type = 'core'; category = 'response' }
+            benchmark = [ordered]@{ type = 'core'; category = 'response' }
             frozen_benchmark = [ordered]@{ type = 'stress_v2'; category = 'category_prediction' }
-            autotrain = [ordered]@{ type = 'core'; category = 'full_response' }
-            improve = [ordered]@{ type = 'core'; category = 'full_response' }
+            autotrain = [ordered]@{ type = 'core'; category = 'response' }
+            improve = [ordered]@{ type = 'core'; category = 'response' }
         }
     }
 
@@ -640,8 +645,14 @@ function Get-AiLanguageCoreRunCategory {
             if ($trainingConfig.train_file -and [string]$trainingConfig.train_file -match 'full_response') {
                 return 'full_response'
             }
+            if ($trainingConfig.train_file -and [string]$trainingConfig.train_file -match 'train_response') {
+                return 'response'
+            }
             if ($trainingConfig.train_file -and [string]$trainingConfig.train_file -match 'category_prediction') {
                 return 'category_prediction'
+            }
+            if ($trainingConfig.benchmark_file -and [string]$trainingConfig.benchmark_file -match 'benchmark_response') {
+                return 'response'
             }
             if ($trainingConfig.benchmark_file -and [string]$trainingConfig.benchmark_file -match 'full_response') {
                 return 'full_response'
@@ -652,6 +663,7 @@ function Get-AiLanguageCoreRunCategory {
 
     $runName = Split-Path -Leaf $RunDir
     if ($runName -match 'full-response') { return 'full_response' }
+    if ($runName -match '(^|-)response(-|$)') { return 'response' }
     if ($runName -match 'category-prediction') { return 'category_prediction' }
     return 'category_prediction'
 }

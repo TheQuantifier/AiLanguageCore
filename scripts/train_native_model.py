@@ -91,7 +91,7 @@ def configure_reproducibility(seed: int) -> None:
 
 def detect_device(torch_module, device_preference: list[str]) -> tuple[object, str]:
     if not device_preference:
-        device_preference = ["hip", "cuda", "directml", "cpu"]
+        device_preference = ["cuda", "cpu"]
 
     hip_available = bool(getattr(torch_module.version, "hip", None)) and torch_module.cuda.is_available()
     cuda_available = torch_module.cuda.is_available() and not hip_available
@@ -204,6 +204,8 @@ def infer_run_category(run_dir: Path) -> str:
             benchmark_file = str(training_config.get("benchmark_file", ""))
             if "full_response" in train_file or "full_response" in benchmark_file:
                 return "full_response"
+            if "train_response" in train_file or "benchmark_response" in benchmark_file:
+                return "response"
             if "category_prediction" in train_file or "category_prediction" in benchmark_file:
                 return "category_prediction"
         except Exception:
@@ -212,6 +214,8 @@ def infer_run_category(run_dir: Path) -> str:
     run_name = run_dir.name
     if "full-response" in run_name:
         return "full_response"
+    if run_name.endswith("-response") or "-response-" in run_name:
+        return "response"
     if "category-prediction" in run_name:
         return "category_prediction"
     return "category_prediction"
@@ -372,12 +376,10 @@ def find_best_completed_run(
                 or parse_iso_timestamp(status.get("started_at"))
                 or float(status_path.stat().st_mtime)
             )
-            # Prioritize strict output validity first for stage-2 chaining,
-            # then response type stability, then raw JSON validity.
             selection_score = (
-                valid_output_rate,
                 response_type_accuracy,
                 valid_json_rate,
+                valid_output_rate,
                 -best_validation_loss,
                 completion_time,
             )
@@ -456,6 +458,19 @@ def render_messages(messages: list[dict], add_generation_prompt: bool) -> str:
     if add_generation_prompt:
         parts.append(ROLE_PREFIXES["assistant"])
     return "".join(parts)
+
+
+def extract_example_response_type(answer_text: str) -> str:
+    stripped = str(answer_text).strip()
+    try:
+        payload = json.loads(stripped)
+    except json.JSONDecodeError:
+        return stripped
+    if isinstance(payload, dict):
+        response_type = payload.get("response_type")
+        if isinstance(response_type, str) and response_type.strip():
+            return response_type.strip()
+    return stripped
 
 
 class ByteTokenizer:
@@ -569,7 +584,7 @@ def build_examples(rows: list[dict], tokenizer: ByteTokenizer, max_seq_length: i
             Example(
                 input_ids=input_ids,
                 label_ids=label_ids,
-                response_type=answer_text,
+                response_type=extract_example_response_type(answer_text),
             )
         )
     return examples
@@ -1070,7 +1085,7 @@ def main() -> int:
     import torch.nn.functional as F
     from torch import nn
 
-    device, device_label = detect_device(torch, config.get("device_preference", ["hip", "cuda", "directml", "cpu"]))
+    device, device_label = detect_device(torch, config.get("device_preference", ["cuda", "cpu"]))
     train_rows = load_jsonl(train_file)
     validation_rows = load_jsonl(validation_file)
     required_tokenizer_chars = collect_required_tokenizer_chars(train_rows, validation_rows)

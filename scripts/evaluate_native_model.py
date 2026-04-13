@@ -11,6 +11,8 @@ ROLE_PREFIXES = {
     "assistant": "<|assistant|>\n",
 }
 
+LABEL_ONLY_SYSTEM_PROMPT = "Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE."
+
 RESPONSE_TYPES = [
     "DIRECT_ANSWER",
     "CLARIFICATION",
@@ -21,6 +23,7 @@ RESPONSE_TYPES = [
 BENCHMARK_FILE_TO_TYPE = {
     "benchmark_sft.jsonl": "core",
     "benchmark_category_prediction_sft.jsonl": "core",
+    "benchmark_response_sft.jsonl": "core",
     "benchmark_full_response_sft.jsonl": "core",
     "benchmark_stress_native_sft.jsonl": "stress",
     "benchmark_stress_v2_native_sft.jsonl": "stress_v2",
@@ -32,6 +35,7 @@ BENCHMARK_FILE_TO_TYPE = {
 BENCHMARK_FILE_TO_CATEGORY = {
     "benchmark_sft.jsonl": "full_response",
     "benchmark_category_prediction_sft.jsonl": "category_prediction",
+    "benchmark_response_sft.jsonl": "response",
     "benchmark_full_response_sft.jsonl": "full_response",
     "benchmark_stress_native_sft.jsonl": "category_prediction",
     "benchmark_stress_v2_native_sft.jsonl": "category_prediction",
@@ -116,6 +120,8 @@ def infer_training_category_from_model_path(model_path: Path) -> str:
             train_file = training_config.get("train_file")
             if isinstance(train_file, str) and "full_response" in train_file:
                 return "full_response"
+            if isinstance(train_file, str) and "train_response" in train_file:
+                return "response"
             if isinstance(train_file, str) and "category_prediction" in train_file:
                 return "category_prediction"
             benchmark_file = training_config.get("benchmark_file")
@@ -125,6 +131,8 @@ def infer_training_category_from_model_path(model_path: Path) -> str:
             pass
     if "full-response" in model_path.name:
         return "full_response"
+    if model_path.name.endswith("-response") or "-response-" in model_path.name:
+        return "response"
     return "category_prediction"
 
 
@@ -217,6 +225,226 @@ class ByteTokenizer:
         return "".join(self.id_to_char[token_id] for token_id in token_ids if token_id in self.id_to_char)
 
 
+def append_token(torch_module, generated_ids: list[int], generated_tensor, token_id: int, device):
+    generated_ids.append(token_id)
+    next_token_tensor = torch_module.tensor([[token_id]], dtype=torch_module.long, device=device)
+    return torch_module.cat((generated_tensor, next_token_tensor), dim=1)
+
+
+def append_forced_text(
+    *,
+    text: str,
+    tokenizer: ByteTokenizer,
+    torch_module,
+    generated_ids: list[int],
+    generated_tensor,
+    device,
+):
+    for token_id in tokenizer.encode(text, add_special_tokens=False):
+        generated_tensor = append_token(torch_module, generated_ids, generated_tensor, token_id, device)
+    return generated_tensor
+
+
+def score_candidate_text(
+    *,
+    text: str,
+    model,
+    tokenizer: ByteTokenizer,
+    torch_module,
+    model_config: dict,
+    generated_ids: list[int],
+    device,
+) -> float:
+    token_ids = tokenizer.encode(text, add_special_tokens=False)
+    candidate_ids = generated_ids[:]
+    candidate_tensor = torch_module.tensor([candidate_ids], dtype=torch_module.long, device=device)
+    score = 0.0
+    for token_id in token_ids:
+        current_tensor = candidate_tensor[:, -int(model_config["max_seq_length"]) :]
+        logits = model(current_tensor)
+        log_probs = torch_module.log_softmax(logits[0, -1], dim=0)
+        score += float(log_probs[token_id].item())
+        candidate_tensor = append_token(torch_module, candidate_ids, candidate_tensor, token_id, device)
+    return score
+
+
+def select_best_response_type(
+    *,
+    model,
+    tokenizer: ByteTokenizer,
+    torch_module,
+    model_config: dict,
+    generated_ids: list[int],
+    device,
+) -> str:
+    best_type = RESPONSE_TYPES[0]
+    best_score = None
+    for response_type in RESPONSE_TYPES:
+        score = score_candidate_text(
+            text=response_type,
+            model=model,
+            tokenizer=tokenizer,
+            torch_module=torch_module,
+            model_config=model_config,
+            generated_ids=generated_ids,
+            device=device,
+        )
+        if best_score is None or score > best_score:
+            best_score = score
+            best_type = response_type
+    return best_type
+
+
+def generate_free_text_segment(
+    *,
+    model,
+    tokenizer: ByteTokenizer,
+    torch_module,
+    device,
+    model_config: dict,
+    generated_ids: list[int],
+    generated_tensor,
+    max_tokens: int,
+    min_tokens: int,
+):
+    quote_token_id = tokenizer.char_to_id.get('"')
+    newline_token_id = tokenizer.char_to_id.get("\n")
+    for generated_token_count in range(max_tokens):
+        current_tensor = generated_tensor[:, -int(model_config["max_seq_length"]) :]
+        logits = model(current_tensor)
+        next_token_logits = logits[0, -1].clone()
+        for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:
+            next_token_logits[token_id] = float("-inf")
+        next_token_logits[tokenizer.eos_token_id] = float("-inf")
+        if quote_token_id is not None and generated_token_count < min_tokens:
+            next_token_logits[quote_token_id] = float("-inf")
+        if newline_token_id is not None and generated_token_count < 8:
+            next_token_logits[newline_token_id] = float("-inf")
+        next_token_id = int(torch_module.argmax(next_token_logits).item())
+        if quote_token_id is not None and next_token_id == quote_token_id and generated_token_count >= min_tokens:
+            break
+        generated_tensor = append_token(torch_module, generated_ids, generated_tensor, next_token_id, device)
+    return generated_tensor
+
+
+def generate_structured_output(
+    *,
+    expected_format: str,
+    model,
+    tokenizer: ByteTokenizer,
+    torch_module,
+    device,
+    model_config: dict,
+    prompt_ids: list[int],
+    forced_response_type: str | None = None,
+) -> str:
+    generated_ids = prompt_ids[:]
+    generated_tensor = torch_module.tensor([prompt_ids], dtype=torch_module.long, device=device)
+
+    generated_tensor = append_forced_text(
+        text='{"response_type": "',
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        device=device,
+    )
+    best_type = forced_response_type or select_best_response_type(
+        model=model,
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        model_config=model_config,
+        generated_ids=generated_ids,
+        device=device,
+    )
+    generated_tensor = append_forced_text(
+        text=best_type,
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        device=device,
+    )
+
+    if expected_format == "response":
+        generated_tensor = append_forced_text(
+            text='", "response": "',
+            tokenizer=tokenizer,
+            torch_module=torch_module,
+            generated_ids=generated_ids,
+            generated_tensor=generated_tensor,
+            device=device,
+        )
+        generated_tensor = generate_free_text_segment(
+            model=model,
+            tokenizer=tokenizer,
+            torch_module=torch_module,
+            device=device,
+            model_config=model_config,
+            generated_ids=generated_ids,
+            generated_tensor=generated_tensor,
+            max_tokens=160,
+            min_tokens=12,
+        )
+        generated_tensor = append_forced_text(
+            text='"}',
+            tokenizer=tokenizer,
+            torch_module=torch_module,
+            generated_ids=generated_ids,
+            generated_tensor=generated_tensor,
+            device=device,
+        )
+        return tokenizer.decode(generated_ids[len(prompt_ids) :])
+
+    generated_tensor = append_forced_text(
+        text='", "reason": "',
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        device=device,
+    )
+    generated_tensor = generate_free_text_segment(
+        model=model,
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        device=device,
+        model_config=model_config,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        max_tokens=96,
+        min_tokens=8,
+    )
+    generated_tensor = append_forced_text(
+        text='", "response": "',
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        device=device,
+    )
+    generated_tensor = generate_free_text_segment(
+        model=model,
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        device=device,
+        model_config=model_config,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        max_tokens=160,
+        min_tokens=12,
+    )
+    generated_tensor = append_forced_text(
+        text='"}',
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        generated_ids=generated_ids,
+        generated_tensor=generated_tensor,
+        device=device,
+    )
+    return tokenizer.decode(generated_ids[len(prompt_ids) :])
+
+
 def extract_response_type(text: str) -> str | None:
     stripped = text.strip()
     if stripped in RESPONSE_TYPES:
@@ -246,6 +474,23 @@ def parse_expected_payload(text: str) -> dict:
             "response_type": None,
             "reason": None,
             "response": None,
+            "raw": stripped,
+        }
+
+    response_type = payload.get("response_type")
+    response = payload.get("response")
+    if (
+        isinstance(response_type, str)
+        and response_type in RESPONSE_TYPES
+        and isinstance(response, str)
+        and response.strip() != ""
+        and "reason" not in payload
+    ):
+        return {
+            "format": "response",
+            "response_type": response_type,
+            "reason": None,
+            "response": response,
             "raw": stripped,
         }
 
@@ -300,6 +545,25 @@ def parse_generated_payload(text: str) -> dict:
         }
 
     response_type = payload.get("response_type")
+    response = payload.get("response")
+    valid_response_json = (
+        isinstance(response_type, str)
+        and response_type in RESPONSE_TYPES
+        and isinstance(response, str)
+        and response.strip() != ""
+    )
+    if valid_response_json and "reason" not in payload:
+        return {
+            "format": "response_json",
+            "valid_json": True,
+            "valid_output": True,
+            "response_type": response_type,
+            "reason": None,
+            "response": response,
+            "raw": text,
+        }
+
+    response_type = payload.get("response_type")
     reason = payload.get("reason")
     response = payload.get("response")
     valid_json = (
@@ -321,62 +585,233 @@ def parse_generated_payload(text: str) -> dict:
     }
 
 
-def is_complete_valid_full_response_json(text: str) -> bool:
-    candidate = text.strip()
+def resolve_response_type_model_path(model_path: Path) -> Path | None:
+    training_config_path = model_path / "training_config.json"
+    if not training_config_path.exists():
+        return None
+    try:
+        training_config = load_json(training_config_path)
+    except Exception:
+        return None
+    candidates = [
+        training_config.get("init_from_model_path_resolved"),
+        training_config.get("init_from_model_path"),
+    ]
+    for candidate in candidates:
+        if not isinstance(candidate, str) or not candidate.strip():
+            continue
+        path = Path(candidate)
+        if not path.is_absolute():
+            path = (model_path.parent.parent / candidate).resolve()
+        config_path = path / "training_config.json"
+        if not config_path.exists():
+            continue
+        try:
+            source_config = load_json(config_path)
+        except Exception:
+            continue
+        source_train_file = str(source_config.get("train_file", ""))
+        source_benchmark_file = str(source_config.get("benchmark_file", ""))
+        combined = f"{source_train_file} {source_benchmark_file}".lower()
+        if "category_prediction" in combined:
+            return path
+    return None
+
+
+COMMON_SENTENCE_WORDS = {
+    "a", "about", "access", "account", "advice", "afford", "an", "and", "answer", "are", "asking",
+    "at", "be", "between", "break", "buying", "calculate", "can", "cannot", "check", "choose",
+    "clarify", "compare", "cost", "costs", "current", "data", "decide", "define", "directly", "do",
+    "does", "down", "enough", "exactly", "expense", "explain", "financial", "for", "from", "fund",
+    "goal", "guarantee", "help", "how", "i", "if", "in", "income", "information", "is", "it",
+    "item", "latest", "like", "live", "local", "market", "me", "money", "monthly", "need", "needed",
+    "next", "of", "on", "option", "or", "organize", "out", "pharmacy", "plan", "price", "priority",
+    "product", "question", "rates", "referring", "response", "right", "savings", "score", "should",
+    "short", "simplify", "specific", "spend", "spending", "stock", "store", "that", "the", "their",
+    "there", "these", "they", "thing", "this", "time", "to", "today", "tool", "trade", "trying",
+    "under", "unsafe", "up", "use", "variable", "vote", "want", "was", "weather", "what", "when",
+    "where", "which", "who", "why", "will", "with", "would", "write", "year", "you", "your",
+}
+
+
+def is_logical_sentence(text: str) -> bool:
+    candidate = " ".join(str(text).strip().split())
     if not candidate:
         return False
-    try:
-        payload = json.loads(candidate)
-    except json.JSONDecodeError:
+    if len(candidate) < 8 or len(candidate) > 180:
         return False
-    if not isinstance(payload, dict):
+    if candidate[-1] not in ".?!":
         return False
-    response_type = payload.get("response_type")
-    reason = payload.get("reason")
-    response = payload.get("response")
-    return (
-        isinstance(response_type, str)
-        and response_type in RESPONSE_TYPES
-        and isinstance(reason, str)
-        and reason.strip() != ""
-        and isinstance(response, str)
-        and response.strip() != ""
-    )
+    if any(marker in candidate for marker in ('{{', '}}', '"""', '|||', '<<<', '>>>')):
+        return False
+    if sum(1 for char in candidate if char in "{}[]|") > 0:
+        return False
+    if any(char * 4 in candidate.lower() for char in "abcdefghijklmnopqrstuvwxyz"):
+        return False
+
+    words = [token.strip(".,?!'\":;()").lower() for token in candidate.split()]
+    words = [word for word in words if word]
+    if len(words) < 3:
+        return False
+
+    unknown_words = 0
+    for word in words:
+        if len(word) == 1 and word not in {"a", "i"}:
+            unknown_words += 1
+            continue
+        if word not in COMMON_SENTENCE_WORDS:
+            has_vowel = any(char in "aeiouy" for char in word)
+            if not has_vowel or len(word) > 14:
+                unknown_words += 1
+            elif len(word) > 9 and not any(word.endswith(suffix) for suffix in ("ing", "tion", "ment", "able", "ally", "ally", "ness")):
+                unknown_words += 1
+    if unknown_words > max(1, len(words) // 4):
+        return False
+
+    duplicate_pairs = 0
+    for left, right in zip(words, words[1:]):
+        if left == right:
+            duplicate_pairs += 1
+    if duplicate_pairs > max(0, len(words) // 6):
+        return False
+    return True
+
+
+def is_valid_full_candidate(parsed_generated: dict) -> bool:
+    response_type = parsed_generated.get("response_type")
+    if response_type not in RESPONSE_TYPES:
+        return False
+    response = parsed_generated.get("response")
+    if not isinstance(response, str) or not is_logical_sentence(response):
+        return False
+    reason = parsed_generated.get("reason")
+    if parsed_generated.get("format") == "full_response_json":
+        if not isinstance(reason, str) or not is_logical_sentence(reason):
+            return False
+    return True
 
 
 def detect_device(torch_module) -> tuple[object, str]:
-    hip_available = bool(getattr(torch_module.version, "hip", None)) and torch_module.cuda.is_available()
-    if hip_available:
-        return torch_module.device("cuda"), "hip"
     if torch_module.cuda.is_available():
         return torch_module.device("cuda"), "cuda"
-    try:
-        import torch_directml  # type: ignore
-    except ImportError:
-        torch_directml = None
-    if torch_directml is not None and torch_directml.is_available() and int(torch_directml.device_count()) > 0:
-        def score_directml_name(name: str) -> tuple[int, int]:
-            cleaned = name.replace("\x00", "").strip().lower()
-            score = 0
-            if "nvidia" in cleaned or "geforce" in cleaned or "rtx" in cleaned:
-                score += 50
-            if "amd" in cleaned or "radeon" in cleaned:
-                score += 40
-            if "rx " in cleaned or cleaned.endswith(" rx") or "radeon rx" in cleaned:
-                score += 20
-            if "graphics" in cleaned and "rx" not in cleaned and "rtx" not in cleaned:
-                score -= 25
-            if "intel" in cleaned:
-                score -= 30
-            return score, len(cleaned)
-
-        best_index = max(
-            range(int(torch_directml.device_count())),
-            key=lambda index: score_directml_name(str(torch_directml.device_name(index))),
-        )
-        device_name = str(torch_directml.device_name(best_index)).replace("\x00", "").strip()
-        return torch_directml.device(best_index), f"directml:{best_index}:{device_name}"
     return torch_module.device("cpu"), "cpu"
+
+
+def load_runtime(model_path: Path, torch_module, device):
+    tokenizer_config_path = model_path / "tokenizer_config.json"
+    if tokenizer_config_path.exists():
+        tokenizer = ByteTokenizer.from_config(load_json(tokenizer_config_path))
+    else:
+        tokenizer = ByteTokenizer(chars=[chr(index) for index in range(128)])
+    model_config = load_json(model_path / "model_config.json")
+
+    from torch import nn
+
+    class CausalSelfAttention(nn.Module):
+        def __init__(self, hidden_size: int, num_heads: int, dropout: float):
+            super().__init__()
+            self.hidden_size = hidden_size
+            self.num_heads = num_heads
+            self.head_dim = hidden_size // num_heads
+            self.qkv = nn.Linear(hidden_size, hidden_size * 3)
+            self.proj = nn.Linear(hidden_size, hidden_size)
+            self.dropout = nn.Dropout(dropout)
+
+        def forward(self, x):
+            batch_size, seq_len, hidden_size = x.shape
+            qkv = self.qkv(x)
+            q, k, v = qkv.chunk(3, dim=-1)
+            q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+            attn = torch_module.nn.functional.scaled_dot_product_attention(q, k, v, is_causal=True, dropout_p=0.0)
+            attn = attn.transpose(1, 2).contiguous().view(batch_size, seq_len, hidden_size)
+            return self.proj(attn)
+
+    class Block(nn.Module):
+        def __init__(self, hidden_size: int, num_heads: int, mlp_ratio: float, dropout: float):
+            super().__init__()
+            mlp_hidden = int(hidden_size * mlp_ratio)
+            self.norm_1 = nn.LayerNorm(hidden_size)
+            self.attn = CausalSelfAttention(hidden_size, num_heads, dropout)
+            self.norm_2 = nn.LayerNorm(hidden_size)
+            self.mlp = nn.Sequential(
+                nn.Linear(hidden_size, mlp_hidden),
+                nn.GELU(),
+                nn.Linear(mlp_hidden, hidden_size),
+                nn.Dropout(dropout),
+            )
+
+        def forward(self, x):
+            x = x + self.attn(self.norm_1(x))
+            x = x + self.mlp(self.norm_2(x))
+            return x
+
+    class NativeTransformerLM(nn.Module):
+        def __init__(self):
+            super().__init__()
+            hidden_size = int(model_config["hidden_size"])
+            self.max_seq_length = int(model_config["max_seq_length"])
+            self.token_embedding = nn.Embedding(int(model_config["vocab_size"]), hidden_size)
+            self.position_embedding = nn.Embedding(self.max_seq_length, hidden_size)
+            self.dropout = nn.Dropout(float(model_config["dropout"]))
+            self.blocks = nn.ModuleList(
+                [
+                    Block(
+                        hidden_size=hidden_size,
+                        num_heads=int(model_config["num_heads"]),
+                        mlp_ratio=float(model_config["mlp_ratio"]),
+                        dropout=float(model_config["dropout"]),
+                    )
+                    for _ in range(int(model_config["num_layers"]))
+                ]
+            )
+            self.norm = nn.LayerNorm(hidden_size)
+            self.lm_head = nn.Linear(hidden_size, int(model_config["vocab_size"]), bias=False)
+
+        def forward(self, input_ids):
+            batch_size, seq_len = input_ids.shape
+            positions = torch_module.arange(0, seq_len, device=input_ids.device).unsqueeze(0).expand(batch_size, seq_len)
+            x = self.token_embedding(input_ids) + self.position_embedding(positions)
+            x = self.dropout(x)
+            for block in self.blocks:
+                x = block(x)
+            x = self.norm(x)
+            return self.lm_head(x)
+
+    model = NativeTransformerLM()
+    state_dict = torch_module.load(model_path / "model.pt", map_location="cpu", weights_only=False)
+    model.load_state_dict(state_dict)
+    model = model.to(device)
+    model.eval()
+    return tokenizer, model_config, model
+
+
+def classify_response_type(
+    *,
+    torch_module,
+    tokenizer: ByteTokenizer,
+    model,
+    model_config: dict,
+    device,
+    user_prompt: str,
+) -> str:
+    prompt_text = render_messages(
+        [
+            {"role": "system", "content": LABEL_ONLY_SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt},
+        ],
+        add_generation_prompt=True,
+    )
+    prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
+    return select_best_response_type(
+        model=model,
+        tokenizer=tokenizer,
+        torch_module=torch_module,
+        model_config=model_config,
+        generated_ids=prompt_ids,
+        device=device,
+    )
 
 
 def render_progress_bar(current: int, total: int, width: int = 30) -> str:
@@ -428,90 +863,12 @@ def main() -> int:
     from torch import nn
 
     device, _device_label = detect_device(torch)
-    tokenizer_config_path = args.model_path / "tokenizer_config.json"
-    if tokenizer_config_path.exists():
-        tokenizer = ByteTokenizer.from_config(load_json(tokenizer_config_path))
-    else:
-        tokenizer = ByteTokenizer(chars=[chr(index) for index in range(128)])
-    model_config = load_json(args.model_path / "model_config.json")
-
-    class CausalSelfAttention(nn.Module):
-        def __init__(self, hidden_size: int, num_heads: int, dropout: float):
-            super().__init__()
-            self.hidden_size = hidden_size
-            self.num_heads = num_heads
-            self.head_dim = hidden_size // num_heads
-            self.qkv = nn.Linear(hidden_size, hidden_size * 3)
-            self.proj = nn.Linear(hidden_size, hidden_size)
-            self.dropout = nn.Dropout(dropout)
-
-        def forward(self, x):
-            batch_size, seq_len, hidden_size = x.shape
-            qkv = self.qkv(x)
-            q, k, v = qkv.chunk(3, dim=-1)
-            q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
-            k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
-            v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
-            attn = torch.nn.functional.scaled_dot_product_attention(q, k, v, is_causal=True, dropout_p=0.0)
-            attn = attn.transpose(1, 2).contiguous().view(batch_size, seq_len, hidden_size)
-            return self.proj(attn)
-
-    class Block(nn.Module):
-        def __init__(self, hidden_size: int, num_heads: int, mlp_ratio: float, dropout: float):
-            super().__init__()
-            mlp_hidden = int(hidden_size * mlp_ratio)
-            self.norm_1 = nn.LayerNorm(hidden_size)
-            self.attn = CausalSelfAttention(hidden_size, num_heads, dropout)
-            self.norm_2 = nn.LayerNorm(hidden_size)
-            self.mlp = nn.Sequential(
-                nn.Linear(hidden_size, mlp_hidden),
-                nn.GELU(),
-                nn.Linear(mlp_hidden, hidden_size),
-                nn.Dropout(dropout),
-            )
-
-        def forward(self, x):
-            x = x + self.attn(self.norm_1(x))
-            x = x + self.mlp(self.norm_2(x))
-            return x
-
-    class NativeTransformerLM(nn.Module):
-        def __init__(self):
-            super().__init__()
-            hidden_size = int(model_config["hidden_size"])
-            self.max_seq_length = int(model_config["max_seq_length"])
-            self.token_embedding = nn.Embedding(int(model_config["vocab_size"]), hidden_size)
-            self.position_embedding = nn.Embedding(self.max_seq_length, hidden_size)
-            self.dropout = nn.Dropout(float(model_config["dropout"]))
-            self.blocks = nn.ModuleList(
-                [
-                    Block(
-                        hidden_size=hidden_size,
-                        num_heads=int(model_config["num_heads"]),
-                        mlp_ratio=float(model_config["mlp_ratio"]),
-                        dropout=float(model_config["dropout"]),
-                    )
-                    for _ in range(int(model_config["num_layers"]))
-                ]
-            )
-            self.norm = nn.LayerNorm(hidden_size)
-            self.lm_head = nn.Linear(hidden_size, int(model_config["vocab_size"]), bias=False)
-
-        def forward(self, input_ids):
-            batch_size, seq_len = input_ids.shape
-            positions = torch.arange(0, seq_len, device=input_ids.device).unsqueeze(0).expand(batch_size, seq_len)
-            x = self.token_embedding(input_ids) + self.position_embedding(positions)
-            x = self.dropout(x)
-            for block in self.blocks:
-                x = block(x)
-            x = self.norm(x)
-            return self.lm_head(x)
-
-    model = NativeTransformerLM()
-    state_dict = torch.load(args.model_path / "model.pt", map_location="cpu", weights_only=False)
-    model.load_state_dict(state_dict)
-    model = model.to(device)
-    model.eval()
+    tokenizer, model_config, model = load_runtime(args.model_path, torch, device)
+    response_type_runtime = None
+    response_type_model_path = resolve_response_type_model_path(args.model_path)
+    if response_type_model_path is not None:
+        rt_tokenizer, rt_model_config, rt_model = load_runtime(response_type_model_path, torch, device)
+        response_type_runtime = (rt_tokenizer, rt_model_config, rt_model)
 
     benchmark_rows = load_jsonl(args.benchmark_file)
     results = []
@@ -547,41 +904,62 @@ def main() -> int:
         for index, row in enumerate(benchmark_rows, start=1):
             prompt_text = render_messages(row["messages"][:2], add_generation_prompt=True)
             prompt_ids = [tokenizer.bos_token_id] + tokenizer.encode(prompt_text, add_special_tokens=False)
-            generated_ids = prompt_ids[:]
-            generated_tensor = torch.tensor([prompt_ids], dtype=torch.long, device=device)
+            parsed_expected = parse_expected_payload(row["messages"][2]["content"])
+            expected_type = parsed_expected["response_type"]
+            expected_format = parsed_expected["format"]
 
-            for generated_token_count in range(args.max_new_tokens):
-                current_tensor = generated_tensor[:, -int(model_config["max_seq_length"]) :]
-                logits = model(current_tensor)
-                next_token_logits = logits[0, -1].clone()
-                for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:
-                    next_token_logits[token_id] = float("-inf")
-                if generated_token_count < int(args.min_new_tokens):
-                    next_token_logits[tokenizer.eos_token_id] = float("-inf")
-                newline_token_id = tokenizer.char_to_id.get("\n")
-                if newline_token_id is not None and generated_token_count < 8:
-                    next_token_logits[newline_token_id] = float("-inf")
-                next_token_id = int(torch.argmax(next_token_logits).item())
-                generated_ids.append(next_token_id)
-                next_token_tensor = torch.tensor([[next_token_id]], dtype=torch.long, device=device)
-                generated_tensor = torch.cat((generated_tensor, next_token_tensor), dim=1)
-                partial_generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])
-                if is_complete_valid_full_response_json(partial_generated_text):
-                    break
-                if next_token_id == tokenizer.eos_token_id:
-                    break
-
-            generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])
+            if expected_format in {"response", "full_response"}:
+                forced_response_type = None
+                if response_type_runtime is not None:
+                    rt_tokenizer, rt_model_config, rt_model = response_type_runtime
+                    forced_response_type = classify_response_type(
+                        torch_module=torch,
+                        tokenizer=rt_tokenizer,
+                        model=rt_model,
+                        model_config=rt_model_config,
+                        device=device,
+                        user_prompt=row["messages"][1]["content"],
+                    )
+                generated_text = generate_structured_output(
+                    expected_format=expected_format,
+                    model=model,
+                    tokenizer=tokenizer,
+                    torch_module=torch,
+                    device=device,
+                    model_config=model_config,
+                    prompt_ids=prompt_ids,
+                    forced_response_type=forced_response_type,
+                )
+            else:
+                generated_ids = prompt_ids[:]
+                generated_tensor = torch.tensor([prompt_ids], dtype=torch.long, device=device)
+                for generated_token_count in range(args.max_new_tokens):
+                    current_tensor = generated_tensor[:, -int(model_config["max_seq_length"]) :]
+                    logits = model(current_tensor)
+                    next_token_logits = logits[0, -1].clone()
+                    for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:
+                        next_token_logits[token_id] = float("-inf")
+                    if generated_token_count < int(args.min_new_tokens):
+                        next_token_logits[tokenizer.eos_token_id] = float("-inf")
+                    newline_token_id = tokenizer.char_to_id.get("\n")
+                    if newline_token_id is not None and generated_token_count < 8:
+                        next_token_logits[newline_token_id] = float("-inf")
+                    next_token_id = int(torch.argmax(next_token_logits).item())
+                    generated_ids.append(next_token_id)
+                    next_token_tensor = torch.tensor([[next_token_id]], dtype=torch.long, device=device)
+                    generated_tensor = torch.cat((generated_tensor, next_token_tensor), dim=1)
+                    if next_token_id == tokenizer.eos_token_id:
+                        break
+                generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])
             if generated_text != "":
                 nonempty_output += 1
             parsed_generated = parse_generated_payload(generated_text)
-            parsed_expected = parse_expected_payload(row["messages"][2]["content"])
             predicted_type = parsed_generated["response_type"]
-            expected_type = parsed_expected["response_type"]
-            expected_format = parsed_expected["format"]
             is_valid_json = False
             if expected_format == "full_response":
                 is_valid_json = bool(parsed_generated["format"] == "full_response_json" and parsed_generated["valid_json"])
+            elif expected_format == "response":
+                is_valid_json = bool(parsed_generated["format"] == "response_json" and parsed_generated["valid_json"])
             elif expected_format == "label_only":
                 is_valid_json = predicted_type in RESPONSE_TYPES
             is_valid_output = is_valid_json
@@ -589,7 +967,7 @@ def main() -> int:
                 valid_json += 1
             if is_valid_output:
                 valid_output += 1
-            if parsed_generated["format"] == "full_response_json" and parsed_generated["valid_json"]:
+            if is_valid_full_candidate(parsed_generated):
                 valid_full_response += 1
             if predicted_type == expected_type:
                 correct_response_type += 1
