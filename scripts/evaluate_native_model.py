@@ -4,6 +4,8 @@ from pathlib import Path
 import sys
 import time
 
+from chat_native_model import sanitize_structured_output
+
 
 ROLE_PREFIXES = {
     "system": "<|system|>\n",
@@ -920,7 +922,7 @@ def main() -> int:
                         device=device,
                         user_prompt=row["messages"][1]["content"],
                     )
-                generated_text = generate_structured_output(
+                raw_generated_text = generate_structured_output(
                     expected_format=expected_format,
                     model=model,
                     tokenizer=tokenizer,
@@ -929,6 +931,11 @@ def main() -> int:
                     model_config=model_config,
                     prompt_ids=prompt_ids,
                     forced_response_type=forced_response_type,
+                )
+                generated_text = sanitize_structured_output(
+                    raw_generated_text,
+                    row["messages"][1]["content"],
+                    forced_response_type,
                 )
             else:
                 generated_ids = prompt_ids[:]
@@ -950,7 +957,8 @@ def main() -> int:
                     generated_tensor = torch.cat((generated_tensor, next_token_tensor), dim=1)
                     if next_token_id == tokenizer.eos_token_id:
                         break
-                generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])
+                raw_generated_text = tokenizer.decode(generated_ids[len(prompt_ids) :])
+                generated_text = raw_generated_text
             if generated_text != "":
                 nonempty_output += 1
             parsed_generated = parse_generated_payload(generated_text)
@@ -985,7 +993,8 @@ def main() -> int:
                     "predicted_reason": parsed_generated["reason"],
                     "expected_response": parsed_expected["response"],
                     "predicted_response": parsed_generated["response"],
-                    "raw_generation": generated_text,
+                    "generation": generated_text,
+                    "raw_generation": raw_generated_text,
                 }
             )
             print_progress(
