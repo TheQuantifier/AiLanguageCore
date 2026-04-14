@@ -3,11 +3,14 @@ import csv
 import json
 from datetime import datetime
 from pathlib import Path
+import shutil
 
 
 DEFAULT_RUNS_DIR = Path("models/runs")
 DEFAULT_REPORTS_DIR = Path("experiments")
 DEFAULT_CSV_OUT = DEFAULT_REPORTS_DIR / "training_runs_summary.csv"
+DEFAULT_NON_FROZEN_RETENTION = 3
+FROZEN_TYPES = {"stress_v2", "account", "medical", "oos_tool"}
 
 BENCHMARK_FILE_TO_TYPE = {
     "benchmark_sft.jsonl": "core",
@@ -66,12 +69,42 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Do not write the CSV summary file.",
     )
+    parser.add_argument(
+        "--apply-retention-cleanup",
+        action="store_true",
+        help="Prune non-frozen run folders and benchmark reports after updating the historical CSV log.",
+    )
+    parser.add_argument(
+        "--retain-non-frozen",
+        type=int,
+        default=DEFAULT_NON_FROZEN_RETENTION,
+        help="How many non-frozen runs and reports to keep saved on disk.",
+    )
     return parser.parse_args()
 
 
 def load_json(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def normalize_csv_value(value: object) -> object:
+    if value is None:
+        return ""
+    text = str(value).strip()
+    if text == "":
+        return ""
+    lowered = text.lower()
+    if lowered == "none":
+        return ""
+    if lowered == "nan":
+        return float("nan")
+    try:
+        if "." in text or "e" in lowered:
+            return float(text)
+        return int(text)
+    except ValueError:
+        return text
 
 
 def infer_type_from_benchmark_path(path_value: object) -> str:
@@ -157,8 +190,97 @@ def split_run_timestamp(run_name: str) -> tuple[str, str]:
     return "", ""
 
 
+def get_run_sort_key(row: dict) -> tuple[str, str, str]:
+    run_date = str(row.get("run_date") or "")
+    run_time = str(row.get("run_time") or "")
+    run_name = str(row.get("run") or "")
+    return run_date, run_time, run_name
+
+
 def infer_type_from_run_name(run_name: str) -> str:
     return "stress" if "-stress-" in run_name else "core"
+
+
+def is_frozen_type(type_name: object) -> bool:
+    return str(type_name or "").strip().lower() in FROZEN_TYPES
+
+
+def resolve_report_path(path_value: object, reports_dir: Path) -> Path | None:
+    if not isinstance(path_value, str) or not path_value.strip():
+        return None
+    candidate = Path(path_value)
+    if candidate.exists():
+        return candidate
+    if not candidate.is_absolute():
+        repo_candidate = (Path.cwd() / candidate).resolve()
+        if repo_candidate.exists():
+            return repo_candidate
+        reports_candidate = (reports_dir / candidate.name).resolve()
+        if reports_candidate.exists():
+            return reports_candidate
+    return candidate
+
+
+def load_existing_rows(path: Path, reports_dir: Path) -> list[dict]:
+    if not path.exists():
+        return []
+
+    rows: list[dict] = []
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        for raw_row in reader:
+            row = {key: normalize_csv_value(value) for key, value in raw_row.items()}
+            row["run"] = str(row.get("run") or "")
+            row["run_date"] = str(row.get("run_date") or "")
+            row["run_time"] = str(row.get("run_time") or "")
+            report_path = resolve_report_path(row.get("report_path"), reports_dir)
+            row["report_path"] = str(report_path) if report_path and report_path.exists() else ""
+            rows.append(row)
+    return rows
+
+
+def merge_rows(current_rows: list[dict], existing_rows: list[dict], reports_dir: Path) -> list[dict]:
+    merged: dict[str, dict] = {}
+    preserve_if_missing_fields = [
+        "training_category",
+        "training_type",
+        "status",
+        "epoch",
+        "global_step",
+        "train_examples",
+        "validation_examples",
+        "train_runtime_s",
+        "train_steps_per_second",
+        "train_samples_per_second",
+        "train_loss",
+        "benchmark_size",
+        "valid_json_rate",
+        "response_type_accuracy",
+    ]
+    for row in existing_rows:
+        run_name = str(row.get("run") or "").strip()
+        if not run_name:
+            continue
+        report_path = resolve_report_path(row.get("report_path"), reports_dir)
+        row["report_path"] = str(report_path) if report_path and report_path.exists() else ""
+        merged[run_name] = row
+
+    for row in current_rows:
+        run_name = str(row["run"])
+        previous = merged.get(run_name, {})
+        merged_row = dict(row)
+        for field in preserve_if_missing_fields:
+            current_value = merged_row.get(field)
+            if current_value in ("", None):
+                if previous.get(field) not in ("", None):
+                    merged_row[field] = previous[field]
+        if merged_row.get("report_path") in ("", None):
+            merged_row["report_path"] = ""
+        merged[run_name] = merged_row
+
+    rows = list(merged.values())
+    rows.sort(key=get_run_sort_key, reverse=True)
+    return rows
 
 
 def build_rows(runs_dir: Path, reports_dir: Path) -> list[dict]:
@@ -221,7 +343,75 @@ def build_rows(runs_dir: Path, reports_dir: Path) -> list[dict]:
                 "report_path": str(report_path) if report_path and report_path.exists() else "",
             }
         )
+    rows.sort(key=get_run_sort_key, reverse=True)
     return rows
+
+
+def collect_non_frozen_run_dirs(runs_dir: Path) -> list[tuple[tuple[str, str, str], Path]]:
+    candidates: list[tuple[tuple[str, str, str], Path]] = []
+    for status_path in runs_dir.rglob("training_status.json"):
+        run_dir = status_path.parent
+        try:
+            status = load_json(status_path)
+        except Exception:
+            continue
+        run_name = run_dir.name
+        run_date, run_time = split_run_timestamp(run_name)
+        run_type = infer_type_from_benchmark_path(status.get("benchmark_file"))
+        if run_type in {"unknown", "custom"}:
+            run_type = infer_type_from_run_name(run_name)
+        if is_frozen_type(run_type):
+            continue
+        candidates.append(((run_date, run_time, run_name), run_dir))
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    return candidates
+
+
+def collect_non_frozen_report_paths(reports_dir: Path) -> list[tuple[tuple[str, str, str], Path]]:
+    candidates: list[tuple[tuple[str, str, str], Path]] = []
+    for report_path in reports_dir.glob("benchmark_report-*.json"):
+        try:
+            report = load_json(report_path)
+        except Exception:
+            continue
+
+        benchmark_type = str(report.get("benchmark_type") or "").strip().lower()
+        training_type = str(report.get("training_type") or "").strip().lower()
+        if is_frozen_type(benchmark_type) or is_frozen_type(training_type):
+            continue
+
+        stem_suffix = report_path.stem.removeprefix("benchmark_report-")
+        run_date, run_time = split_run_timestamp(stem_suffix)
+        sort_key = (run_date, run_time, report_path.name)
+        if run_date == "" or run_time == "":
+            modified = datetime.fromtimestamp(report_path.stat().st_mtime)
+            sort_key = (
+                modified.strftime("%Y-%m-%d"),
+                modified.strftime("%H:%M:%S"),
+                report_path.name,
+            )
+        candidates.append((sort_key, report_path))
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    return candidates
+
+
+def apply_retention_cleanup(runs_dir: Path, reports_dir: Path, retain_non_frozen: int) -> dict[str, int]:
+    removed_runs = 0
+    removed_reports = 0
+    for _sort_key, run_dir in collect_non_frozen_run_dirs(runs_dir)[max(0, retain_non_frozen):]:
+        if run_dir.exists():
+            shutil.rmtree(run_dir, ignore_errors=False)
+            removed_runs += 1
+
+    for _sort_key, report_path in collect_non_frozen_report_paths(reports_dir)[max(0, retain_non_frozen):]:
+        if report_path.exists():
+            report_path.unlink()
+            removed_reports += 1
+
+    return {
+        "removed_runs": removed_runs,
+        "removed_reports": removed_reports,
+    }
 
 
 def write_csv(rows: list[dict], path: Path) -> Path:
@@ -338,7 +528,9 @@ def render_table(rows: list[dict], csv_out: Path | None = None) -> str:
 
 def main() -> int:
     args = parse_args()
-    rows = build_rows(args.runs_dir, args.reports_dir)
+    existing_rows = load_existing_rows(args.csv_out, args.reports_dir)
+    current_rows = build_rows(args.runs_dir, args.reports_dir)
+    rows = merge_rows(current_rows, existing_rows, args.reports_dir)
     csv_path = None
     if not args.no_csv:
         try:
@@ -349,11 +541,41 @@ def main() -> int:
                 "Close the file and run the summary again."
             )
 
+    cleanup_summary = None
+    if args.apply_retention_cleanup:
+        cleanup_summary = apply_retention_cleanup(
+            runs_dir=args.runs_dir,
+            reports_dir=args.reports_dir,
+            retain_non_frozen=max(0, int(args.retain_non_frozen)),
+        )
+        current_rows = build_rows(args.runs_dir, args.reports_dir)
+        rows = merge_rows(current_rows, rows, args.reports_dir)
+        if not args.no_csv:
+            try:
+                csv_path = write_csv(rows, args.csv_out)
+            except PermissionError:
+                print(
+                    f"Warning: could not update {args.csv_out} after cleanup because it is in use. "
+                    "Close the file and run the summary again."
+                )
+
     if args.json:
-        print(json.dumps(rows, indent=2, ensure_ascii=True))
+        payload: object = rows
+        if cleanup_summary is not None:
+            payload = {
+                "rows": rows,
+                "cleanup": cleanup_summary,
+            }
+        print(json.dumps(payload, indent=2, ensure_ascii=True))
         return 0
 
-    print(render_table(rows, csv_path))
+    output = render_table(rows, csv_path)
+    if cleanup_summary is not None:
+        output = (
+            f"{output}\n\nRetention cleanup: removed {cleanup_summary['removed_runs']} run folder(s) "
+            f"and {cleanup_summary['removed_reports']} benchmark report(s)."
+        )
+    print(output)
     return 0
 
 

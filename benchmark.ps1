@@ -67,6 +67,11 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "Benchmark failed with exit code $LASTEXITCODE"
     }
+
+    & $pythonPath 'scripts\summarize_training_runs.py' '--apply-retention-cleanup'
+    if ($LASTEXITCODE -ne 0) {
+        throw "Benchmark summary cleanup failed with exit code $LASTEXITCODE"
+    }
 } finally {
     Pop-Location
 }

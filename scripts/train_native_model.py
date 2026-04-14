@@ -757,8 +757,10 @@ def run_post_training_benchmark(repo_root: Path, output_dir: Path) -> Path:
     return report_path
 
 
-def refresh_training_summary(repo_root: Path) -> None:
+def refresh_training_summary(repo_root: Path, apply_retention_cleanup: bool = False) -> None:
     command = [os.sys.executable, str(repo_root / "scripts" / "summarize_training_runs.py")]
+    if apply_retention_cleanup:
+        command.append("--apply-retention-cleanup")
     subprocess.run(command, capture_output=True, text=True, cwd=repo_root)
 
 
@@ -1457,7 +1459,7 @@ def main() -> int:
         )
         print("Training loop complete. Starting automatic benchmark evaluation...")
         benchmark_report_path = run_post_training_benchmark(repo_root, output_dir)
-        refresh_training_summary(repo_root)
+        refresh_training_summary(repo_root, apply_retention_cleanup=True)
         status_writer.update(
             status="completed",
             completed_at=utc_now_iso(),
