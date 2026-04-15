@@ -20,59 +20,6 @@ RESPONSE_TYPES = [
     "OUT_OF_SCOPE",
 ]
 
-US_STATE_CAPITALS = {
-    "alabama": "Montgomery",
-    "alaska": "Juneau",
-    "arizona": "Phoenix",
-    "arkansas": "Little Rock",
-    "california": "Sacramento",
-    "colorado": "Denver",
-    "connecticut": "Hartford",
-    "delaware": "Dover",
-    "florida": "Tallahassee",
-    "georgia": "Atlanta",
-    "hawaii": "Honolulu",
-    "idaho": "Boise",
-    "illinois": "Springfield",
-    "indiana": "Indianapolis",
-    "iowa": "Des Moines",
-    "kansas": "Topeka",
-    "kentucky": "Frankfort",
-    "louisiana": "Baton Rouge",
-    "maine": "Augusta",
-    "maryland": "Annapolis",
-    "massachusetts": "Boston",
-    "michigan": "Lansing",
-    "minnesota": "Saint Paul",
-    "mississippi": "Jackson",
-    "missouri": "Jefferson City",
-    "montana": "Helena",
-    "nebraska": "Lincoln",
-    "nevada": "Carson City",
-    "new hampshire": "Concord",
-    "new jersey": "Trenton",
-    "new mexico": "Santa Fe",
-    "new york": "Albany",
-    "north carolina": "Raleigh",
-    "north dakota": "Bismarck",
-    "ohio": "Columbus",
-    "oklahoma": "Oklahoma City",
-    "oregon": "Salem",
-    "pennsylvania": "Harrisburg",
-    "rhode island": "Providence",
-    "south carolina": "Columbia",
-    "south dakota": "Pierre",
-    "tennessee": "Nashville",
-    "texas": "Austin",
-    "utah": "Salt Lake City",
-    "vermont": "Montpelier",
-    "virginia": "Richmond",
-    "washington": "Olympia",
-    "west virginia": "Charleston",
-    "wisconsin": "Madison",
-    "wyoming": "Cheyenne",
-}
-
 COMMON_SENTENCE_WORDS = {
     "a", "about", "access", "account", "afford", "an", "and", "answer", "are", "asking", "at",
     "be", "between", "break", "capital", "can", "check", "choose", "current", "data", "decide",
@@ -286,12 +233,6 @@ def build_fallback_response(user_prompt: str, response_type: str) -> str:
     if response_type == "OUT_OF_SCOPE":
         return "I can't help with that."
 
-    capital_match = re.search(r"capital of ([a-z ]+)\??$", lowered)
-    if capital_match:
-        place = capital_match.group(1).strip()
-        capital = US_STATE_CAPITALS.get(place)
-        if capital:
-            return f"The capital of {place.title()} is {capital}."
     return "I do not have a reliable direct answer yet."
 
 

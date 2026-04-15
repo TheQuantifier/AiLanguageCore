@@ -2152,5 +2152,437 @@
     "response_type": "OUT_OF_SCOPE",
     "reason": "This asks for help deceiving a landlord, so it should be refused rather than answered as a writing task.",
     "response": "I can't help write a lie to tell your landlord."
+  },
+  {
+    "user_input": "What is the capital of California?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of California is Sacramento."
+  },
+  {
+    "user_input": "What is the capital of France?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of France is Paris."
+  },
+  {
+    "user_input": "What is 2 + 2?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic math problem that can be solved directly.",
+    "response": "2 + 2 equals 4."
+  },
+  {
+    "user_input": "What is 5 times 3?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic multiplication problem that can be solved directly.",
+    "response": "5 times 3 equals 15."
+  },
+  {
+    "user_input": "What is the capital of Texas?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Texas is Austin."
+  },
+  {
+    "user_input": "What is the capital of New York?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of New York is Albany."
+  },
+  {
+    "user_input": "What is the capital of Florida?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Florida is Tallahassee."
+  },
+  {
+    "user_input": "What is 10 divided by 2?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic division problem that can be solved directly.",
+    "response": "10 divided by 2 equals 5."
+  },
+  {
+    "user_input": "What is the capital of Germany?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Germany is Berlin."
+  },
+  {
+    "user_input": "What is the capital of Alabama?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Alabama is Montgomery."
+  },
+  {
+    "user_input": "What is the capital of Alaska?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Alaska is Juneau."
+  },
+  {
+    "user_input": "What is the capital of Arizona?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Arizona is Phoenix."
+  },
+  {
+    "user_input": "What is the capital of Arkansas?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Arkansas is Little Rock."
+  },
+  {
+    "user_input": "What is the capital of Colorado?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Colorado is Denver."
+  },
+  {
+    "user_input": "What is the capital of Connecticut?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Connecticut is Hartford."
+  },
+  {
+    "user_input": "What is the capital of Delaware?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Delaware is Dover."
+  },
+  {
+    "user_input": "What is the capital of Georgia?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Georgia is Atlanta."
+  },
+  {
+    "user_input": "What is the capital of Hawaii?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Hawaii is Honolulu."
+  },
+  {
+    "user_input": "What is the capital of Idaho?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Idaho is Boise."
+  },
+  {
+    "user_input": "What is the capital of Illinois?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Illinois is Springfield."
+  },
+  {
+    "user_input": "What is the capital of Indiana?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Indiana is Indianapolis."
+  },
+  {
+    "user_input": "What is the capital of Iowa?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Iowa is Des Moines."
+  },
+  {
+    "user_input": "What is the capital of Kansas?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Kansas is Topeka."
+  },
+  {
+    "user_input": "What is the capital of Kentucky?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Kentucky is Frankfort."
+  },
+  {
+    "user_input": "What is the capital of Louisiana?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Louisiana is Baton Rouge."
+  },
+  {
+    "user_input": "What is the capital of Maine?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Maine is Augusta."
+  },
+  {
+    "user_input": "What is the capital of Maryland?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Maryland is Annapolis."
+  },
+  {
+    "user_input": "What is the capital of Massachusetts?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Massachusetts is Boston."
+  },
+  {
+    "user_input": "What is the capital of Michigan?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Michigan is Lansing."
+  },
+  {
+    "user_input": "What is the capital of Minnesota?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Minnesota is Saint Paul."
+  },
+  {
+    "user_input": "What is the capital of Mississippi?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Mississippi is Jackson."
+  },
+  {
+    "user_input": "What is the capital of Missouri?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Missouri is Jefferson City."
+  },
+  {
+    "user_input": "What is the capital of Montana?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Montana is Helena."
+  },
+  {
+    "user_input": "What is the capital of Nebraska?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Nebraska is Lincoln."
+  },
+  {
+    "user_input": "What is the capital of Nevada?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Nevada is Carson City."
+  },
+  {
+    "user_input": "What is the capital of New Hampshire?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of New Hampshire is Concord."
+  },
+  {
+    "user_input": "What is the capital of New Jersey?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of New Jersey is Trenton."
+  },
+  {
+    "user_input": "What is the capital of New Mexico?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of New Mexico is Santa Fe."
+  },
+  {
+    "user_input": "What is the capital of North Carolina?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of North Carolina is Raleigh."
+  },
+  {
+    "user_input": "What is the capital of North Dakota?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of North Dakota is Bismarck."
+  },
+  {
+    "user_input": "What is the capital of Ohio?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Ohio is Columbus."
+  },
+  {
+    "user_input": "What is the capital of Oklahoma?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Oklahoma is Oklahoma City."
+  },
+  {
+    "user_input": "What is the capital of Oregon?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Oregon is Salem."
+  },
+  {
+    "user_input": "What is the capital of Pennsylvania?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Pennsylvania is Harrisburg."
+  },
+  {
+    "user_input": "What is the capital of Rhode Island?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Rhode Island is Providence."
+  },
+  {
+    "user_input": "What is the capital of South Carolina?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of South Carolina is Columbia."
+  },
+  {
+    "user_input": "What is the capital of South Dakota?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of South Dakota is Pierre."
+  },
+  {
+    "user_input": "What is the capital of Tennessee?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Tennessee is Nashville."
+  },
+  {
+    "user_input": "What is the capital of Utah?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Utah is Salt Lake City."
+  },
+  {
+    "user_input": "What is the capital of Vermont?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Vermont is Montpelier."
+  },
+  {
+    "user_input": "What is the capital of Virginia?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Virginia is Richmond."
+  },
+  {
+    "user_input": "What is the capital of Washington?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Washington is Olympia."
+  },
+  {
+    "user_input": "What is the capital of West Virginia?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of West Virginia is Charleston."
+  },
+  {
+    "user_input": "What is the capital of Wisconsin?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Wisconsin is Madison."
+  },
+  {
+    "user_input": "What is the capital of Wyoming?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Wyoming is Cheyenne."
+  },
+  {
+    "user_input": "What is 3 + 4?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic math problem that can be solved directly.",
+    "response": "3 + 4 equals 7."
+  },
+  {
+    "user_input": "What is 6 times 7?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic math problem that can be solved directly.",
+    "response": "6 times 7 equals 42."
+  },
+  {
+    "user_input": "What is 12 divided by 3?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic math problem that can be solved directly.",
+    "response": "12 divided by 3 equals 4."
+  },
+  {
+    "user_input": "What is 8 minus 2?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic math problem that can be solved directly.",
+    "response": "8 minus 2 equals 6."
+  },
+  {
+    "user_input": "What is 9 squared?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic math problem that can be solved directly.",
+    "response": "9 squared equals 81."
+  },
+  {
+    "user_input": "What is the square root of 25?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic math problem that can be solved directly.",
+    "response": "The square root of 25 is 5."
+  },
+  {
+    "user_input": "What is the capital of France?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of France is Paris."
+  },
+  {
+    "user_input": "What is the capital of Germany?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Germany is Berlin."
+  },
+  {
+    "user_input": "What is the capital of Italy?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Italy is Rome."
+  },
+  {
+    "user_input": "What is the capital of Spain?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Spain is Madrid."
+  },
+  {
+    "user_input": "What is the capital of United Kingdom?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of United Kingdom is London."
+  },
+  {
+    "user_input": "What is the capital of Canada?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Canada is Ottawa."
+  },
+  {
+    "user_input": "What is the capital of Australia?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Australia is Canberra."
+  },
+  {
+    "user_input": "What is the capital of Japan?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of Japan is Tokyo."
+  },
+  {
+    "user_input": "What is the capital of China?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of China is Beijing."
+  },
+  {
+    "user_input": "What is the capital of India?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly.",
+    "response": "The capital of India is New Delhi."
+  },
+  {
+    "user_input": "Look up AMD stock price today.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request needs current, external, or account-specific information.",
+    "response": "I would need live market data to answer that."
   }
 ]

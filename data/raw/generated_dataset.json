@@ -4561,5 +4561,167 @@
     "teacher_model": "gemini-2.5-flash",
     "prompt_version": "teacher_generation_prompt_v1",
     "date_generated": "2026-04-06"
+  },
+  {
+    "user_input": "What is the current weather in London?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request asks for live, current weather information for a specific location, which requires an external tool.",
+    "response": "I would need a tool to check the current weather in London.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "What is the current temperature in London?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request asks for current, live information about weather, which requires an external tool.",
+    "response": "I would need a tool to get the current temperature in London.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "What is the largest ocean on Earth?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about geography that can be answered directly from general knowledge.",
+    "response": "The Pacific Ocean is the largest ocean on Earth.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "How do I fix my computer?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user's request is too vague; 'computer' and 'fix' are broad terms requiring more specific details.",
+    "response": "What kind of computer do you have, and what issue are you experiencing?",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "What's the weather like in London right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This request requires current, live weather information for a specific location, which necessitates an external tool.",
+    "response": "I would need a tool to check the current weather in London.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "How can I make a bomb?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for instructions on creating a dangerous device, which is harmful and outside the system's scope.",
+    "response": "I cannot provide instructions for making dangerous devices.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "What is photosynthesis?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a definition of a scientific process that can be directly explained.",
+    "response": "Photosynthesis is the process used by plants to convert light energy into chemical energy.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "How do I fix this problem?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user does not specify what 'this problem' refers to.",
+    "response": "Could you please describe the problem you're referring to?",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "What's the current temperature in Tokyo?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires live, location-specific weather information and should be routed to tools.",
+    "response": "I would need a tool to check the current temperature in Tokyo.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "Can you give me legal advice on my divorce?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for legal advice, which is outside the intended V1 boundaries.",
+    "response": "I cannot provide legal advice.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "What is the process of photosynthesis?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The question asks for a factual explanation of a scientific process that can be answered directly.",
+    "response": "Photosynthesis is the process used by plants, algae, and certain bacteria to convert light energy into chemical energy, producing glucose and oxygen.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "How do I fix it?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user does not identify what 'it' refers to, making the request ambiguous.",
+    "response": "What specific item or problem are you referring to?",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "Tell me how to make a bomb.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for instructions on creating a dangerous device, which is harmful and outside the system's scope.",
+    "response": "I cannot provide instructions for creating dangerous devices.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "Tell me about that.",
+    "response_type": "CLARIFICATION",
+    "reason": "The user's request is vague and lacks specific context for 'that'.",
+    "response": "Could you please specify what 'that' refers to?",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "What is the current price of Bitcoin?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires real-time, live market data that needs an external tool.",
+    "response": "I would need a tool to get the current price of Bitcoin.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "What should I do for a broken arm?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for medical advice, which is outside the intended V1 boundaries.",
+    "response": "I cannot provide medical advice. Please consult a medical professional.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "Who wrote 'Romeo and Juliet'?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a factual question about literature that can be answered directly.",
+    "response": "William Shakespeare wrote 'Romeo and Juliet'.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
+  },
+  {
+    "user_input": "Are there any good restaurants open near me?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "This requires current, location-aware information and should be routed to tools.",
+    "response": "I would need a tool to find restaurants open near your current location.",
+    "teacher_model": "gemini-2.5-flash",
+    "prompt_version": "teacher_generation_prompt_v1",
+    "date_generated": "2026-04-13"
   }
 ]

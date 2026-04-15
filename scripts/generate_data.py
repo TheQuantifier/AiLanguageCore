@@ -23,7 +23,7 @@ DEFAULT_PROMPT_TEMPLATE = Path("prompts/teacher_generation_prompt_v1.md")
 DEFAULT_ENV_FILE = Path(".env")
 DEFAULT_FAILED_RESPONSES_DIR = Path("data/raw/failed_responses")
 DEFAULT_MODEL = "gemini-2.5-flash"
-DEFAULT_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
+DEFAULT_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 DEFAULT_BATCH_SIZE = 100
 TOKENS_PER_RECORD_ESTIMATE = 120
 
@@ -48,6 +48,14 @@ DIRECT_ANSWER_TOPICS = [
     "long-term goal",
     "trade-off",
     "opportunity cost",
+    "us state capital",
+    "country capital",
+    "basic math",
+    "simple definition",
+    "common fact",
+    "geography",
+    "history",
+    "science basics",
 ]
 
 CLARIFICATION_BASES = [
@@ -190,6 +198,26 @@ DIRECT_TEMPLATES = [
     "What is {topic}?",
     "What does {topic} mean?",
     "Give me a simple explanation of {topic}.",
+]
+
+US_STATES = [
+    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware",
+    "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+    "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi",
+    "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico",
+    "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania",
+    "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont",
+    "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
+]
+
+COUNTRIES = [
+    "France", "Germany", "Italy", "Spain", "United Kingdom", "Canada", "Australia", "Japan",
+    "China", "India", "Brazil", "Mexico", "Russia", "South Korea", "Netherlands", "Sweden"
+]
+
+SIMPLE_MATH_PROBLEMS = [
+    "What is 2 + 2?", "What is 5 times 3?", "What is 10 divided by 2?", "What is 7 minus 4?",
+    "What is 6 squared?", "What is the square root of 16?", "What is 15 percent of 100?"
 ]
 
 CLARIFICATION_SUFFIXES = [
@@ -398,8 +426,20 @@ def generate_candidate_prompts(count: int) -> list[str]:
     while len(prompts) < target_count and attempts < max_attempts:
         attempts += 1
 
+        # Generate DIRECT_ANSWER prompts based on topic type
         topic = random.choice(DIRECT_ANSWER_TOPICS)
-        prompts.add(random.choice(DIRECT_TEMPLATES).format(topic=topic))
+        if topic == "us state capital":
+            state = random.choice(US_STATES)
+            prompts.add(f"What is the capital of {state}?")
+        elif topic == "country capital":
+            country = random.choice(COUNTRIES)
+            prompts.add(f"What is the capital of {country}?")
+        elif topic == "basic math":
+            prompts.add(random.choice(SIMPLE_MATH_PROBLEMS))
+        elif topic in ["geography", "history", "science basics"]:
+            prompts.add(random.choice(DIRECT_TEMPLATES).format(topic=topic))
+        else:
+            prompts.add(random.choice(DIRECT_TEMPLATES).format(topic=topic))
 
         clarification_base = random.choice(CLARIFICATION_BASES)
         clarification_suffix = random.choice(CLARIFICATION_SUFFIXES)
@@ -710,35 +750,68 @@ def call_teacher_model(
     max_output_tokens: int,
     expect_array: bool,
 ) -> dict:
-    url = api_base_url.rstrip("/") + "/chat/completions"
+    # Convert OpenAI-style messages to Google AI format
+    # Combine all messages into a single text prompt
+    prompt_parts = []
+    for message in messages:
+        role = message.get("role", "")
+        content = message.get("content", "")
+        if role == "system":
+            prompt_parts.append(f"System: {content}")
+        elif role == "user":
+            prompt_parts.append(f"User: {content}")
+        elif role == "assistant":
+            prompt_parts.append(f"Assistant: {content}")
+    full_prompt = "\n\n".join(prompt_parts)
+
+    url = f"{api_base_url.rstrip('/')}/models/{model}:generateContent"
+    headers = {
+        "Content-Type": "application/json",
+    }
+
+    # Use appropriate authentication based on key format
+    if api_key.startswith("AIzaSy"):
+        # Google AI API key - use as query parameter
+        url += f"?key={api_key}"
+    elif api_key.startswith("AQ."):
+        # OAuth access token - use in Authorization header
+        headers["Authorization"] = f"Bearer {api_key}"
+    else:
+        # Fallback - try as API key
+        url += f"?key={api_key}"
+
     payload = {
-        "model": model,
-        "messages": messages,
-        "temperature": temperature,
+        "contents": [{
+            "parts": [{
+                "text": full_prompt
+            }]
+        }],
+        "generationConfig": {
+            "temperature": temperature,
+        }
     }
     if max_output_tokens and max_output_tokens > 0:
-        payload["max_tokens"] = max_output_tokens
-    if not expect_array:
-        payload["response_format"] = {"type": "json_object"}
+        payload["generationConfig"]["maxOutputTokens"] = max_output_tokens
+
     request = urllib.request.Request(
         url,
         data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        },
+        headers=headers,
         method="POST",
     )
 
     with urllib.request.urlopen(request, timeout=90) as response:
         body = response.read().decode("utf-8")
     data = json.loads(body)
+
     try:
-        content = extract_message_content(data["choices"][0]["message"].get("content", ""))
+        content = data["candidates"][0]["content"]["parts"][0]["text"]
     except (KeyError, IndexError) as exc:
-        raise ValueError(f"Unexpected API response shape: {body}") from exc
+        raise ValueError(f"Unexpected Google AI API response shape: {body}") from exc
+
     if not content.strip():
         raise ValueError(f"Model returned empty content. Response body: {body[:1000]}")
+
     extracted = extract_json_value(content)
     return json.loads(extracted), content, body
 
