@@ -1,0 +1,4 @@
+Changed one config default for the next core/response train: reduced `num_train_epochs` from `6` to `3` to match the stronger recent run behavior (`0.4098` at 3 epochs vs `0.3279` at 6, with `valid_output_rate=1` and `valid_json_rate=1` unchanged).
+Kept stage-2 init untouched: `init_from_model_path` remains `best:core:category_prediction` (no tokenizer/embedding-transfer target change).
+File touched: `models/configs/v1_native_byte_transformer_response_config.json`.
+AUTOMATION_DECISION: CONTINUE
