@@ -1,0 +1,5 @@
+Latest `response` benchmark (`2026-04-17 21:02:45`) regressed to `response_type_accuracy=0.3279` vs the recent best comparable run at `20:58:18` (`0.4098`), with `valid_output_rate` still `1.0`.
+All recent runs already used `init_from_model_path: best:core:category_prediction`; no tokenizer/init-path change is indicated from this evidence.
+Applied one narrow change for next train: reduced default response epochs from `6` to `3` (the better recent setting for type stability).
+Files touched: [models/configs/v1_native_byte_transformer_response_config.json](C:/Users/jhand/Documents/Github/AiLanguageCore/models/configs/v1_native_byte_transformer_response_config.json)
+AUTOMATION_DECISION: CONTINUE
