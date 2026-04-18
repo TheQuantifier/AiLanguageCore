@@ -1,0 +1,5 @@
+Latest benchmark (`2026-04-17 21:41:45`) kept high validity (`valid_output_rate=0.9836`) but response-type collapsed toward `CLARIFICATION` (42/61 preds; all 15 `DIRECT_ANSWER` misses flipped), and it only tied the best retained response run.  
+I inspected stage-2 init path/compatibility: default `best:core:category_prediction` is preserved, tokenizer transfer is compatible enough (only 9 response-only chars missing from init vocab, remapped embedding/head path is active), so training is the bottleneck.  
+Made one narrow next-train change: raised response LR from `2e-5` to `5e-5` to reduce underfitting of response-type tokens while keeping JSON structure behavior and init defaults unchanged.  
+File touched: [models/configs/v1_native_byte_transformer_response_config.json](C:\Users\jhand\Documents\Github\AiLanguageCore\models\configs\v1_native_byte_transformer_response_config.json)  
+AUTOMATION_DECISION: CONTINUE
