@@ -451,7 +451,10 @@ def resolve_init_model_path(
                         required_tokenizer_chars=required_tokenizer_chars,
                     )
                 except FileNotFoundError:
-                    return None
+                    try:
+                        return fallback_finder(repo_root, None, "category_prediction", required_tokenizer_chars=None)
+                    except FileNotFoundError:
+                        return None
             return None
         raise ValueError(
             "init_from_model_path must use latest:<category>, latest:<type>:<category>, "

@@ -1,0 +1,5 @@
+Latest `response` benchmark (`2026-04-17 20:42:49`) regressed to `response_type_accuracy=0.3443` from `0.6393` in the prior run while `valid_output_rate/valid_json_rate` stayed `1.0`; the latest run also lacked `init_from_model_path_resolved` (scratch start).
+I made one narrow fix so stage-2 init won’t silently drop to scratch when tokenizer-char compatibility filtering is too strict.
+Change: in `resolve_init_model_path`, after strict `category_prediction` fallback fails, retry fallback with `required_tokenizer_chars=None` so embeddings/output-head remap path can still initialize from the checkpoint.
+File touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py).
+AUTOMATION_DECISION: CONTINUE
