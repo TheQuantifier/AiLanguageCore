@@ -1,0 +1,5 @@
+Latest report is best of the last 3 (`0.4098` vs `0.3443`), with JSON stability intact (`valid_output_rate=1.0`), so another training iteration is still the right next step.  
+Single high-signal change made: increased default response training duration from 3 to 6 epochs to improve response-type separation without changing decoding/data targets.  
+File touched: [v1_native_byte_transformer_response_config.json](C:\Users\jhand\Documents\Github\AiLanguageCore\models\configs\v1_native_byte_transformer_response_config.json) (`num_train_epochs: 3 -> 6`).  
+Not changed: `init_from_model_path` remains `best:core:category_prediction` per stage-2 guidance.  
+AUTOMATION_DECISION: CONTINUE
