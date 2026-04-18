@@ -241,7 +241,7 @@ def infer_run_type(run_dir: Path) -> str | None:
         return "stress_v2"
     if "-stress-" in run_name:
         return "stress"
-    return None
+    return "core"
 
 
 def parse_iso_timestamp(value: object) -> float | None:
