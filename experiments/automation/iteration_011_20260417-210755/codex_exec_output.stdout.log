@@ -1,0 +1,5 @@
+Analyzed latest `response` runs: `valid_output_rate` stayed `1.0`, but `response_type_accuracy` dropped to `0.4098` on recent 3-epoch runs versus `0.6393` on a recent 6-epoch run (`2026-04-17 20:38:20`), with Stage-2 init already correctly set to `best:core:category_prediction`.
+Made one narrow benchmark-driven change: restored default response training epochs from `3` to `6`.
+File touched: `models/configs/v1_native_byte_transformer_response_config.json`
+Rationale: this preserves JSON/response_type framing setup and targets the highest-signal regression driver (undertraining) without changing tokenizer/init/data semantics.
+AUTOMATION_DECISION: CONTINUE
