@@ -1,0 +1,5 @@
+Latest benchmark (`valid_output_rate=0.9836`, `response_type_accuracy=0.3770`) plus run metadata shows stage-2 was initializing from `stress_v2` (`vocab_size=72`) while response runs use tokenizer/model vocab `81`; that mismatch is the main regression driver (garbled responses + type drift).
+I made one narrow fix: removed the unsafe fallback that ignored tokenizer compatibility when resolving `best:core:category_prediction`, so training will no longer silently load incompatible category checkpoints.
+File touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)
+Sanity check passed: `python -m py_compile scripts/train_native_model.py`
+AUTOMATION_DECISION: CONTINUE
