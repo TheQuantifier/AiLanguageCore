@@ -1,7 +1,7 @@
 {
-    "iteration_label":  "012",
+    "iteration_label":  "013",
     "phase":  "decision",
-    "timestamp":  "2026-04-17 21:17:07",
+    "timestamp":  "2026-04-17 21:23:03",
     "note":  "Codex decision: CONTINUE",
     "workflow":  "train -\u003e benchmark -\u003e codex -\u003e decision",
     "stage":  {
@@ -20,14 +20,14 @@
                                 "failed"
                             ]
               },
-    "training_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-response-20260417-211119\\training_status.json",
-    "benchmark_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-response-20260417-211119\\benchmark_status.json",
+    "training_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-response-20260417-211709\\training_status.json",
+    "benchmark_status":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\models\\runs\\v1-native-byte-transformer-response-20260417-211709\\benchmark_status.json",
     "benchmark_size":  61,
     "nonempty_output_count":  61,
     "valid_output_count":  61,
-    "correct_response_type_count":  20,
-    "items_per_sec":  2.9153244305889112,
+    "correct_response_type_count":  25,
+    "items_per_sec":  2.763267377583932,
     "valid_output_rate":  1,
-    "response_type_accuracy":  0.32786885245901637,
-    "benchmark_report":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-response-20260417-211119.json"
+    "response_type_accuracy":  0.4098360655737705,
+    "benchmark_report":  "C:\\Users\\jhand\\Documents\\Github\\AiLanguageCore\\experiments\\benchmark_report-v1-native-byte-transformer-response-20260417-211709.json"
 }

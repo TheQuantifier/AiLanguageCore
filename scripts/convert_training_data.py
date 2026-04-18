@@ -10,6 +10,7 @@ RESPONSE_SYSTEM_PROMPT = (
     "Reply with valid JSON using exactly these keys: "
     "response_type, response. "
     "response_type must be one of DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE. "
+    "Use CLARIFICATION only when key details are missing; otherwise prefer DIRECT_ANSWER when possible. "
     "Keep response to one short, well-formed sentence."
 )
 FULL_RESPONSE_SYSTEM_PROMPT = (
