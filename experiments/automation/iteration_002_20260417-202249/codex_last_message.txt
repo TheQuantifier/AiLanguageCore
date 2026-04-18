@@ -1,0 +1,5 @@
+Latest run regressed because `init_from_model_path=best:core:category_prediction` could not resolve (no core category_prediction checkpoints in `models/runs`), so it silently trained from scratch; that matches the drop from `0.6393` to `0.3607` with higher val loss.
+I made one narrow fix: stage-2 still defaults to category_prediction, but if that symbolic target is missing it now falls back to same-type `response` checkpoint instead of cold start.
+File touched: `scripts/train_native_model.py` (in `resolve_init_model_path`, FileNotFound fallback path only).
+Validation: `python -m py_compile scripts/train_native_model.py` passed.
+AUTOMATION_DECISION: CONTINUE

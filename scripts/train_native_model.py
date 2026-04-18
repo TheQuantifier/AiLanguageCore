@@ -439,6 +439,19 @@ def resolve_init_model_path(
                     required_tokenizer_chars=required_tokenizer_chars,
                 )
         except FileNotFoundError:
+            # Keep stage-2 default on category_prediction, but avoid cold starts
+            # when category_prediction checkpoints are absent after retention.
+            if len(parts) == 3 and parts[2] == "category_prediction":
+                fallback_finder = find_latest_completed_run if mode == "latest" else find_best_completed_run
+                try:
+                    return fallback_finder(
+                        repo_root,
+                        parts[1],
+                        "response",
+                        required_tokenizer_chars=required_tokenizer_chars,
+                    )
+                except FileNotFoundError:
+                    return None
             return None
         raise ValueError(
             "init_from_model_path must use latest:<category>, latest:<type>:<category>, "
