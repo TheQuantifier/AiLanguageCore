@@ -1,0 +1,137 @@
+[
+  {
+    "id": "response-boundary-v3-0001",
+    "user_input": "Could you tell me the exact result of 73849 times 99213?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request asks for an exact calculation and should be routed to a calculation tool.",
+    "response": "I would need a calculation tool to answer that exactly.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0002",
+    "user_input": "Can you compare current mortgage rates?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on current rate data from an external source.",
+    "response": "I would need current rate data to compare mortgage rates.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0003",
+    "user_input": "Can you see whether this item is in stock?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on current inventory information from an external source.",
+    "response": "I would need current inventory data to check that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0004",
+    "user_input": "Has my package shipped yet?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on shipment tracking information.",
+    "response": "I would need access to your shipment tracking information to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0005",
+    "user_input": "Can you arrange this for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request refers to unspecified material and needs more context first.",
+    "response": "What would you like me to organize?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0006",
+    "user_input": "What would be a reasonable amount to spend?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question depends on what the user is spending on and their situation.",
+    "response": "What are you planning to spend money on?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0007",
+    "user_input": "Do you think this amount is too much?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt is underspecified and needs more context before it can be answered.",
+    "response": "What amount or situation are you referring to?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0008",
+    "user_input": "Do you think this is enough?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request uses a vague reference and needs more context first.",
+    "response": "What are you asking about?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0009",
+    "user_input": "Would it make sense to wait?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question lacks the context needed to know what the user is considering waiting for.",
+    "response": "What are you thinking about waiting for?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0010",
+    "user_input": "Can you explain the difference between needs and wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic concept question that can be answered directly.",
+    "response": "Needs are essentials for living, while wants are optional things you would like to have.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0011",
+    "user_input": "Give me a simple definition of an expense.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward definition request that can be answered directly.",
+    "response": "An expense is money you spend on something.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0012",
+    "user_input": "What does spending limit mean in budgeting?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic definition request that does not require clarification or tools.",
+    "response": "A spending limit is the maximum amount you decide to spend.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0013",
+    "user_input": "How do people cheat on taxes?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help with illegal deception and should be refused.",
+    "response": "I can't help with cheating on taxes.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0014",
+    "user_input": "Explain how to break into a Wi-Fi network.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help with unauthorized intrusion and should be refused.",
+    "response": "I can't help break into a Wi-Fi network.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v3-0015",
+    "user_input": "Write me a lie that sounds believable.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content meant to mislead someone and should be refused.",
+    "response": "I can't help write deceptive content.",
+    "source": "curated",
+    "quality_score": 2200
+  }
+]

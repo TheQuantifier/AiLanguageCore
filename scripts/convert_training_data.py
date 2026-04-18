@@ -89,6 +89,10 @@ def parse_args() -> argparse.Namespace:
         default=[
             Path("data/curated/native_boundary_boost_v1.json"),
             Path("data/curated/native_boundary_boost_v2.json"),
+            Path("data/curated/response_boundary_boost_v1.json"),
+            Path("data/curated/response_boundary_boost_v2.json"),
+            Path("data/curated/response_boundary_boost_v4.json"),
+            Path("data/curated/response_boundary_boost_v5.json"),
             Path("data/processed/train_clarification_boundary_pack.json"),
             Path("data/processed/train_direct_answer_tool_boundary_pack.json"),
             Path("data/processed/train_clarification_oos_boundary_pack.json"),
@@ -167,6 +171,63 @@ def first_question_sentence(text: str) -> str:
     return ""
 
 
+def contains_any(text: str, markers: list[str]) -> bool:
+    return any(marker in text for marker in markers)
+
+
+def build_canonical_clarification(user_input: str) -> str | None:
+    prompt = normalize_user_input(user_input)
+    if contains_any(prompt, ["afford"]):
+        return "What are you trying to afford?"
+    if contains_any(prompt, ["break", "explain that", "walk me through"]):
+        return "What would you like me to break down?"
+    if contains_any(prompt, ["organize", "arrange"]):
+        return "What would you like me to organize?"
+    if contains_any(prompt, ["simplify"]):
+        return "What would you like me to simplify?"
+    if contains_any(prompt, ["decide", "better for me", "best option"]):
+        return "What options are you comparing?"
+    if contains_any(prompt, ["do next", "next here"]):
+        return "What situation are you referring to?"
+    if contains_any(prompt, ["how much should i spend"]):
+        return "What are you planning to spend money on?"
+    if contains_any(prompt, ["is it too much"]):
+        return "What are you referring to as 'it'?"
+    if contains_any(prompt, ["is this enough", "would this work", "what should i cut"]):
+        return "What are you asking about?"
+    return None
+
+
+def build_canonical_tool_needed(user_input: str) -> str:
+    prompt = normalize_user_input(user_input)
+    if contains_any(prompt, ["calculate", "exactly", "times "]):
+        return "I would need a calculation tool to answer that exactly."
+    if contains_any(prompt, ["weather"]):
+        return "I would need live weather data to answer that."
+    if contains_any(prompt, ["news"]):
+        return "I would need a live news source to answer that."
+    if contains_any(prompt, ["stock price", "mortgage rates", "gas prices", "deals", "in stock"]):
+        return "I would need live market or inventory data to answer that."
+    if contains_any(prompt, ["has shipped", "shipped", "tracking", "order"]):
+        return "I would need access to shipment tracking information to answer that."
+    if contains_any(prompt, ["flights", "apartment", "restaurants", "movies", "pharmacy", "near me", "close today"]):
+        return "I would need live local or listing data to answer that."
+    return "I would need a tool or live data to answer that."
+
+
+def build_canonical_out_of_scope(user_input: str) -> str:
+    prompt = normalize_user_input(user_input)
+    if contains_any(prompt, ["tax", "hide income"]):
+        return "I can't help with tax fraud or hiding income."
+    if contains_any(prompt, ["lie", "false excuse", "deceptive"]):
+        return "I can't help write deceptive content."
+    if contains_any(prompt, ["hack", "wi-fi"]):
+        return "I can't help hack a network."
+    if contains_any(prompt, ["vote for"]):
+        return "I can't tell you who to vote for."
+    return "I can't help with that."
+
+
 def build_stage2_reason(record: dict) -> str:
     response_type = str(record["response_type"])
     if response_type == "DIRECT_ANSWER":
@@ -183,28 +244,26 @@ def build_stage2_reason(record: dict) -> str:
 def build_stage2_response(record: dict) -> str:
     response_type = str(record["response_type"])
     original_response = str(record["response"])
+    user_input = str(record["user_input"])
 
     if response_type == "DIRECT_ANSWER":
         candidate = first_sentence(original_response)
         return candidate if candidate else "This can be answered directly."
 
     if response_type == "CLARIFICATION":
+        canonical = build_canonical_clarification(user_input)
+        if canonical:
+            return canonical
         candidate = first_question_sentence(original_response)
         if candidate:
             return candidate
         return "What specific item or situation are you asking about?"
 
     if response_type == "TOOL_NEEDED":
-        lowered = collapse_whitespace(original_response).lower()
-        if "would need" in lowered:
-            return first_sentence(original_response)
-        return "I would need a tool or live data source to answer that."
+        return build_canonical_tool_needed(user_input)
 
     if response_type == "OUT_OF_SCOPE":
-        lowered = collapse_whitespace(original_response).lower()
-        if lowered.startswith("i can't") or lowered.startswith("i cannot"):
-            return first_sentence(original_response)
-        return "I can't help with that."
+        return build_canonical_out_of_scope(user_input)
 
     return first_sentence(original_response)
 

@@ -1,0 +1,137 @@
+[
+  {
+    "id": "response-boundary-v2-0001",
+    "user_input": "Can you calculate 73849 times 99213 exactly?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request asks for an exact calculation that needs a calculation tool for reliable precision.",
+    "response": "I would need a calculation tool to answer that exactly.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0002",
+    "user_input": "Compare today's mortgage rates.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on current rate data, which requires an external source.",
+    "response": "I would need current rate data to compare mortgage rates.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0003",
+    "user_input": "Look up AMD stock price today.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request asks for live market data and cannot be answered from static knowledge alone.",
+    "response": "I would need live market data to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0004",
+    "user_input": "Find the latest news about Microsoft.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request asks for recent news, which requires an external live source.",
+    "response": "I would need a live news source to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0005",
+    "user_input": "Can you check if this product is in stock?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on current inventory information from an external source.",
+    "response": "I would need access to the product listing or inventory data to check that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0006",
+    "user_input": "Check whether my package has shipped.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on current shipment tracking information.",
+    "response": "I would need access to your shipment tracking information to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0007",
+    "user_input": "Can you organize this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request refers to unspecified material and needs more context first.",
+    "response": "What would you like me to organize?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0008",
+    "user_input": "How much should I spend?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question depends on the user's situation, budget, and what they are spending on.",
+    "response": "What are you planning to spend money on?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0009",
+    "user_input": "Is it too much?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user refers to something unspecified, so clarification is needed.",
+    "response": "What amount or situation are you referring to?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0010",
+    "user_input": "Is this enough?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt is underspecified and needs more context before it can be answered.",
+    "response": "What are you asking about?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0011",
+    "user_input": "Should I wait?",
+    "response_type": "CLARIFICATION",
+    "reason": "The question lacks the context needed to know what the user is considering waiting for.",
+    "response": "What are you thinking about waiting for?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0012",
+    "user_input": "What are needs versus wants?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a basic concept question that can be answered directly.",
+    "response": "Needs are essentials for living, while wants are optional things you would like to have.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0013",
+    "user_input": "How can I cheat on my taxes?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help with illegal deception and should be refused.",
+    "response": "I can't help with cheating on taxes.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0014",
+    "user_input": "Tell me how to hack a Wi-Fi network.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help committing unauthorized intrusion and should be refused.",
+    "response": "I can't help hack a Wi-Fi network.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v2-0015",
+    "user_input": "Write a convincing lie for me.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content to mislead someone, which should be refused.",
+    "response": "I can't help write deceptive content.",
+    "source": "curated",
+    "quality_score": 2200
+  }
+]

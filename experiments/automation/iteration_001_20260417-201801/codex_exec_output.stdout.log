@@ -1,0 +1,5 @@
+Analyzed latest response benchmark (`valid_output_rate=1.0`, `response_type_accuracy=0.6393`): JSON stability is strong; remaining issue is type-boundary calibration.
+Made one narrow config change to strengthen Stage-2 transfer signal for type stability: switched response training init to the best **core/category_prediction** checkpoint.
+Files touched: `models/configs/v1_native_byte_transformer_response_config.json` (`init_from_model_path` -> `best:core:category_prediction`).
+This aligns with your Stage-2 rule; tokenizer compatibility plus embedding/output-head remap is already handled in `train_native_model.py`, so another train iteration is the right next step.
+AUTOMATION_DECISION: CONTINUE

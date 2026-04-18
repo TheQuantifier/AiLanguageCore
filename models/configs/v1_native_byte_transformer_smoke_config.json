@@ -9,6 +9,8 @@
   "eval_batch_size": 16,
   "learning_rate": 0.0003,
   "weight_decay": 0.01,
+  "use_amp": false,
+  "use_tf32": true,
   "grad_clip": 1.0,
   "logging_steps": 14,
   "eval_steps": 28,

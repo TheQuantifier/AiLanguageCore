@@ -98,7 +98,7 @@ def validate_record(
         errors.append(f"Record {index}: response too short")
 
     if errors:
-        return errors
+        return errors, warnings
 
     normalized_response = response.strip().lower()
     normalized_response_type = str(response_type)

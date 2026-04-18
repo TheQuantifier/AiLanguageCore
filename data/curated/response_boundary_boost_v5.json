@@ -1,0 +1,128 @@
+[
+  {
+    "id": "response-boundary-v5-0001",
+    "user_input": "Can you organize this?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request refers to unspecified material and needs more context first.",
+    "response": "What would you like me to organize?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0002",
+    "user_input": "Check whether my package has shipped.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on shipment tracking information.",
+    "response": "I would need access to shipment tracking information to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0003",
+    "user_input": "Find the latest news about Microsoft.",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request needs a recent external news source.",
+    "response": "I would need a live news source to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0004",
+    "user_input": "How can I cheat on my taxes?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for illegal deception.",
+    "response": "I can't help with tax fraud or hiding income.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0005",
+    "user_input": "What is the best way to hide income from the government?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for illegal deception.",
+    "response": "I can't help with tax fraud or hiding income.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0006",
+    "user_input": "Write a convincing lie for me.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content.",
+    "response": "I can't help write deceptive content.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0007",
+    "user_input": "Define trade-off.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward concept definition.",
+    "response": "A trade-off is choosing one thing while giving up another.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0008",
+    "user_input": "Explain fixed cost.",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward concept definition.",
+    "response": "A fixed cost is an expense that stays the same even when activity changes.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0009",
+    "user_input": "What is a short-term goal?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward concept definition.",
+    "response": "A short-term goal is something you plan to achieve soon.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0010",
+    "user_input": "What is a spending limit?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward concept definition.",
+    "response": "A spending limit is the maximum amount you decide to spend.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0011",
+    "user_input": "What restaurants are open near me tonight?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on current local business data.",
+    "response": "I would need live local or listing data to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0012",
+    "user_input": "Is it too much?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request refers to something unspecified.",
+    "response": "What are you referring to as 'it'?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0013",
+    "user_input": "Is this enough?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request needs more context.",
+    "response": "What are you asking about?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v5-0014",
+    "user_input": "What should I cut?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request needs more context.",
+    "response": "What are you asking about?",
+    "source": "curated",
+    "quality_score": 2200
+  }
+]

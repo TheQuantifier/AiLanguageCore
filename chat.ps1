@@ -9,12 +9,12 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 . (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
+$py = Get-AiLanguageCorePythonPath -RepoRoot $repoRoot
 
 $responseSystemPrompt = 'Reply with valid JSON using exactly these keys: response_type, response. response_type must be one of DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE. Keep response to one short, well-formed sentence.'
 $fullResponseSystemPrompt = 'Reply with valid JSON using exactly these keys: response_type, reason, response. response_type must be one of DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE. Keep reason and response to one short, well-formed sentence each.'
 $labelOnlySystemPrompt = 'Reply with exactly one label: DIRECT_ANSWER, CLARIFICATION, TOOL_NEEDED, or OUT_OF_SCOPE.'
 
-$py = Join-Path $repoRoot '.python\python.exe'
 if (-not (Test-Path $py)) {
     throw "Python runtime not found at $py"
 }

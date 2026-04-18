@@ -241,26 +241,23 @@ def sanitize_structured_output(raw_text: str, user_prompt: str, forced_response_
     try:
         payload = json.loads(stripped)
     except json.JSONDecodeError:
-        payload = {}
+        payload = None
     if not isinstance(payload, dict):
-        payload = {}
+        return stripped
 
     response_type = forced_response_type or payload.get("response_type")
-    if response_type not in RESPONSE_TYPES:
-        response_type = infer_rule_based_response_type(user_prompt) or "CLARIFICATION"
-    payload["response_type"] = response_type
-
-    direct_answer_fallback = None
-    if response_type == "DIRECT_ANSWER":
-        direct_answer_fallback = build_fallback_response(user_prompt, response_type)
-        if direct_answer_fallback != "I do not have a reliable direct answer yet.":
-            payload["response"] = direct_answer_fallback
+    if response_type in RESPONSE_TYPES:
+        payload["response_type"] = response_type
+    elif "response_type" in payload:
+        del payload["response_type"]
 
     response = payload.get("response")
     if not isinstance(response, str) or not is_sentence_like(response):
-        payload["response"] = build_fallback_response(user_prompt, response_type)
+        extracted_response = extract_response_like_text(stripped)
+        if is_sentence_like(extracted_response):
+            payload["response"] = extracted_response
 
-    if "reason" in payload:
+    if "reason" in payload and response_type in RESPONSE_TYPES:
         reason = payload.get("reason")
         if not isinstance(reason, str) or not is_sentence_like(reason):
             fallback_reasons = {
@@ -357,6 +354,8 @@ def generate_free_text_segment(
 ):
     quote_token_id = tokenizer.char_to_id.get('"')
     newline_token_id = tokenizer.char_to_id.get("\n")
+    recent_window = 24
+    repetition_penalty = 1.5
     for generated_token_count in range(max_tokens):
         current_tensor = generated_tensor[:, -int(model_config["max_seq_length"]) :]
         logits = model(current_tensor)
@@ -364,6 +363,9 @@ def generate_free_text_segment(
         for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:
             next_token_logits[token_id] = float("-inf")
         next_token_logits[tokenizer.eos_token_id] = float("-inf")
+        recent_ids = generated_ids[-recent_window:]
+        for token_id in set(recent_ids):
+            next_token_logits[token_id] = next_token_logits[token_id] / repetition_penalty
         if quote_token_id is not None and generated_token_count < min_tokens:
             next_token_logits[quote_token_id] = float("-inf")
         if newline_token_id is not None and generated_token_count < 8:
@@ -793,8 +795,7 @@ def main() -> int:
     args = parse_args()
     args.model_path = args.model_path.resolve()
     runtime = load_runtime(args.model_path)
-    response_type_model_path = resolve_response_type_model_path(args.model_path)
-    args.response_type_runtime = load_runtime(response_type_model_path) if response_type_model_path else None
+    args.response_type_runtime = None
     prompt_text = " ".join(args.prompt).strip()
     if args.interactive or not prompt_text:
         return run_interactive(args, runtime)

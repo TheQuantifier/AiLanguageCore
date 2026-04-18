@@ -6,7 +6,7 @@ param(
     [int]$MaxIterations = 30,
     [int]$NumTrainEpochs,
     [string]$Config,
-    [string]$Prompt = 'Finished running train. Analyze the latest completed native run, apply the next improvement so I can run the next train, and stop only if another training iteration is not the right next step.',
+    [string]$Prompt = 'Finished running train. Look over the latest benchmark, analyze it, make the code/dataset/config changes needed for the next train, and stop only if another training iteration is not the right next step. Use as few Codex tokens as you can while still providing good fixes.',
     [string]$CodexPath,
     [string]$CodexModel = 'gpt-5.3-codex',
     [double]$RecoveryThreshold = 0.50,
@@ -244,6 +244,35 @@ function Test-AutomationDecisionPresent {
     }
 
     return [regex]::IsMatch($message, 'AUTOMATION_DECISION:\s*(CONTINUE|STOP)', 'IgnoreCase')
+}
+
+function Test-CodexTokenLimitHit {
+    param(
+        [string[]]$Lines
+    )
+
+    if (-not $Lines) {
+        return $false
+    }
+
+    $combined = ($Lines -join "`n").ToLowerInvariant()
+    $markers = @(
+        'usage limit reached',
+        'quota exceeded',
+        'insufficient credits',
+        'credit balance',
+        'token budget exhausted',
+        'token limit reached',
+        'rate limit exceeded',
+        'monthly usage limit',
+        'context length exceeded'
+    )
+    foreach ($marker in $markers) {
+        if ($combined.Contains($marker)) {
+            return $true
+        }
+    }
+    return $false
 }
 
 function Show-FilteredCodexOutput {
@@ -623,7 +652,7 @@ function Write-AutotrainStatus {
         [string]$BenchmarkStatusPath = ''
     )
 
-    $stageOrder = @('starting', 'training', 'benchmark_complete', 'codex', 'decision', 'stopped', 'interrupted', 'failed')
+    $stageOrder = @('starting', 'training', 'benchmark_complete', 'codex', 'decision', 'paused', 'stopped', 'interrupted', 'failed')
     $phaseIndex = [Array]::IndexOf($stageOrder, $Phase)
     if ($phaseIndex -lt 0) {
         $phaseIndex = 0
@@ -736,7 +765,7 @@ $Prompt
 
 Repo: AiLanguageCore
 Latest run just finished.
-Inspect the latest run in models/runs and benchmark report in experiments, then make the single best next change for another train.
+Inspect the latest run in models/runs and benchmark report in experiments, compare against the recent best response run when useful, then make the single best next change for another train.
 Type: $selectedType
 Category: $selectedCategory
 Metrics: valid_output_rate=$($BenchmarkMetrics.ValidOutputRate); response_type_accuracy=$($BenchmarkMetrics.ResponseTypeAccuracy)
@@ -746,8 +775,12 @@ $stage2Line
 $recoveryLine
 Rules:
 - Make one narrow, high-signal change.
+- Prefer benchmark-driven fixes in datasets, prompts, decoding, or training config over broad refactors.
+- If epoch tuning is needed, change the config file value; do not rely on CLI epoch overrides unless explicitly necessary.
+- Keep bare train/autotrain behavior aligned with config defaults.
 - Avoid speculative multi-change refactors.
 - Avoid class-balanced loss unless benchmark evidence specifically supports it.
+- Use as few Codex tokens as you can while still providing good fixes.
 - Keep your final response under 8 lines.
 - Final response must briefly state the change and files touched.
 - End with exactly one line: AUTOMATION_DECISION: CONTINUE or AUTOMATION_DECISION: STOP
@@ -761,6 +794,17 @@ Rules:
         if (-not $codexSucceeded -and (Test-AutomationDecisionPresent -MessagePath $messagePath)) {
             Write-Warning 'Codex exited without a usable exit code, but a valid final message was written. Continuing.'
             $codexSucceeded = $true
+        }
+        if (-not $codexSucceeded -and (Test-CodexTokenLimitHit -Lines $codexResult.Lines)) {
+            Write-Warning 'Codex appears to have hit a token or quota limit. Pausing automation.'
+            Write-AutotrainStatus -StatusPath $StatusPath -IterationLabel $IterationLabel -Phase 'paused' -Note 'Codex token or quota limit reached. Resume later.' -Workflow $Workflow -Metrics $BenchmarkMetrics -TrainingStatusPath $LatestTrainingStatusPath -BenchmarkStatusPath $LatestBenchmarkStatusPath
+            return [pscustomobject]@{
+                Decision = 'PAUSE_TOKENS'
+                SummaryLine = ("Loop {0} paused | codex token/quota limit reached" -f $IterationLabel)
+                MessagePath = $messagePath
+                DecisionPath = $decisionPath
+                LogPath = $codexLogPath
+            }
         }
         if (-not $codexSucceeded) {
             throw "Codex exec failed with exit code $($codexResult.ExitCode)"
@@ -788,7 +832,7 @@ Rules:
     }
 }
 
-$pythonPath = Join-Path $repoRoot '.python\python.exe'
+$pythonPath = Get-AiLanguageCorePythonPath -RepoRoot $repoRoot
 $hasEpochOverride = $PSBoundParameters.ContainsKey('NumTrainEpochs')
 
 # Backward/CLI compatibility: when invoked positionally as
@@ -927,6 +971,9 @@ try {
         Invoke-GitPublish -RepoRoot $repoRoot -CommitMessage $commitMessage | Out-Null
 
         Write-Host $improveResult.SummaryLine
+        if ($improveResult.Decision -eq 'PAUSE_TOKENS') {
+            return
+        }
         if ($improveResult.Decision -eq 'STOP') {
             Write-AutotrainStatus -StatusPath $statusPath -IterationLabel $iterationLabel -Phase 'stopped' -Note 'Standalone improve completed and requested stop.' -Workflow 'codex -> decision' -Metrics $benchmarkMetrics -TrainingStatusPath $latestTrainingStatusPath -BenchmarkStatusPath $latestBenchmarkStatusPath
         }
@@ -993,6 +1040,12 @@ try {
         $autotrainLock = Acquire-AutotrainLock -LockPath $lockPath
         $decision = $codexPass.Decision
         $lastSummaryLine = $codexPass.SummaryLine
+
+        if ($decision -eq 'PAUSE_TOKENS') {
+            Write-Host "Codex token/quota limit reached. Pausing automation."
+            Write-Host $lastSummaryLine
+            break
+        }
 
         if ($decision -eq 'STOP') {
             Write-Host "Codex requested stop. Ending automation loop."

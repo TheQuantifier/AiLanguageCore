@@ -1,5 +1,40 @@
-$AiLanguageCoreRoot = 'C:\Users\jhand\Documents\Github\AiLanguageCore'
-$py = Join-Path $AiLanguageCoreRoot '.python\python.exe'
+$ScriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$AiLanguageCoreRoot = Split-Path -Parent $ScriptDirectory
+$candidatePy = @(
+    (Join-Path $AiLanguageCoreRoot '.venv\Scripts\python.exe'),
+    (Join-Path $AiLanguageCoreRoot '.python\python.exe')
+)
+$py = $null
+foreach ($candidate in $candidatePy) {
+    if (-not (Test-Path $candidate)) {
+        continue
+    }
+    try {
+        $cudaAvailable = & $candidate -c "import torch; print('1' if torch.cuda.is_available() else '0')" 2>$null
+        if (($LASTEXITCODE -eq 0) -and ($cudaAvailable | Select-Object -Last 1).Trim() -eq '1') {
+            $py = $candidate
+            break
+        }
+    } catch {
+        continue
+    }
+}
+if (-not $py) {
+    foreach ($candidate in $candidatePy) {
+        if (Test-Path $candidate) {
+            $py = $candidate
+            break
+        }
+    }
+}
+if (-not (Test-Path $py)) {
+    $pythonCommand = Get-Command python -ErrorAction SilentlyContinue
+    if ($pythonCommand) { $py = $pythonCommand.Path }
+}
+if (-not (Test-Path $py)) {
+    $python3Command = Get-Command python3 -ErrorAction SilentlyContinue
+    if ($python3Command) { $py = $python3Command.Path }
+}
 if (Test-Path Alias:set) { Remove-Item Alias:set -Force }
 
 function create_data {

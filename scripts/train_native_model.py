@@ -195,7 +195,7 @@ def load_run_benchmark_metrics(run_dir: Path, training_status: dict) -> dict[str
     return metrics
 
 
-def infer_run_category(run_dir: Path) -> str:
+def infer_run_category(run_dir: Path) -> str | None:
     training_config_path = run_dir / "training_config.json"
     if training_config_path.exists():
         try:
@@ -218,10 +218,10 @@ def infer_run_category(run_dir: Path) -> str:
         return "response"
     if "category-prediction" in run_name:
         return "category_prediction"
-    return "category_prediction"
+    return None
 
 
-def infer_run_type(run_dir: Path) -> str:
+def infer_run_type(run_dir: Path) -> str | None:
     training_config_path = run_dir / "training_config.json"
     if training_config_path.exists():
         try:
@@ -241,7 +241,7 @@ def infer_run_type(run_dir: Path) -> str:
         return "stress_v2"
     if "-stress-" in run_name:
         return "stress"
-    return "core"
+    return None
 
 
 def parse_iso_timestamp(value: object) -> float | None:
@@ -1050,21 +1050,13 @@ def print_progress_block(
         details.append(f"train_loss={train_loss:.4f}")
     if validation_loss is not None:
         details.append(f"val_loss={validation_loss:.4f}")
-    progress_line = " | ".join(parts)
-    details_line = " | ".join(details)
-    clear_width = max(len(progress_line), len(details_line), 120)
-    if current > 1:
-        sys.stdout.write("\r")
-        sys.stdout.write("\x1b[1A")
-        sys.stdout.write("\r" + (" " * clear_width))
-        sys.stdout.write("\n")
-        sys.stdout.write((" " * clear_width))
-        sys.stdout.write("\x1b[1A")
-        sys.stdout.write("\r")
-    sys.stdout.write(progress_line.ljust(clear_width))
-    sys.stdout.write("\n")
-    sys.stdout.write(details_line.ljust(clear_width))
-    sys.stdout.flush()
+    line = " | ".join(parts + details)
+    if sys.stdout.isatty():
+        sys.stdout.write("\r" + line)
+        sys.stdout.flush()
+    else:
+        sys.stdout.write(line + "\n")
+        sys.stdout.flush()
 
 
 def main() -> int:
@@ -1088,6 +1080,20 @@ def main() -> int:
     from torch import nn
 
     device, device_label = detect_device(torch, config.get("device_preference", ["cuda", "cpu"]))
+    torch.backends.cudnn.enabled = True
+    if device.type == 'cuda':
+        use_tf32 = bool(config.get("use_tf32", True))
+        if hasattr(torch.backends, 'cuda') and hasattr(torch.backends.cuda, 'matmul'):
+            torch.backends.cuda.matmul.allow_tf32 = use_tf32
+        if hasattr(torch.backends, 'cudnn') and hasattr(torch.backends.cudnn, 'allow_tf32'):
+            torch.backends.cudnn.allow_tf32 = use_tf32
+        torch.backends.cudnn.benchmark = True
+    else:
+        use_tf32 = False
+
+    use_amp = bool(config.get("use_amp", device.type == 'cuda')) and device.type == 'cuda'
+    scaler = torch.cuda.amp.GradScaler() if use_amp else None
+
     train_rows = load_jsonl(train_file)
     validation_rows = load_jsonl(validation_file)
     required_tokenizer_chars = collect_required_tokenizer_chars(train_rows, validation_rows)
@@ -1217,7 +1223,9 @@ def main() -> int:
         f"epochs={int(config['num_train_epochs'])}, "
         f"batch_size={int(config['batch_size'])}, "
         f"eval_batch_size={int(config['eval_batch_size'])}, "
-        f"max_seq_length={max_seq_length}"
+        f"max_seq_length={max_seq_length}, "
+        f"use_amp={use_amp}, "
+        f"use_tf32={use_tf32}"
     )
     print(
         "Model settings: "
@@ -1281,16 +1289,15 @@ def main() -> int:
                 input_ids, labels = collate_batch(batch, tokenizer, torch)
                 input_ids = input_ids.to(device)
                 labels = labels.to(device)
-                logits = model(input_ids)
-                if not torch.isfinite(logits).all():
-                    raise RuntimeError("Non-finite logits encountered during validation.")
-                loss = F.cross_entropy(
-                    logits[:, :-1, :].reshape(-1, model.vocab_size),
-                    labels[:, 1:].reshape(-1),
-                    ignore_index=-100,
-                )
-                if not torch.isfinite(loss):
-                    raise RuntimeError("Non-finite validation loss encountered.")
+                with torch.amp.autocast('cuda', enabled=use_amp):
+                    logits = model(input_ids)
+                    if not torch.isfinite(logits).all():
+                        raise RuntimeError("Non-finite logits encountered during validation.")
+                    loss = F.cross_entropy(
+                        logits[:, :-1, :].reshape(-1, model.vocab_size),
+                        labels[:, 1:].reshape(-1),
+                        ignore_index=-100,
+                    )
                 losses.append(float(loss.item()))
                 del logits
                 del loss
@@ -1318,29 +1325,39 @@ def main() -> int:
                 labels = labels.to(device)
 
                 optimizer.zero_grad(set_to_none=True)
-                logits = model(input_ids)
-                if not torch.isfinite(logits).all():
-                    raise RuntimeError(
-                        f"Non-finite logits encountered during training at step {global_step}."
+                with torch.amp.autocast('cuda', enabled=use_amp):
+                    logits = model(input_ids)
+                    if not torch.isfinite(logits).all():
+                        raise RuntimeError(
+                            f"Non-finite logits encountered during training at step {global_step}."
+                        )
+                    loss = compute_batch_loss(
+                        logits=logits,
+                        labels=labels,
+                        batch=batch,
+                        vocab_size=model.vocab_size,
+                        class_weights=class_weights,
+                        torch_module=torch,
                     )
-                loss = compute_batch_loss(
-                    logits=logits,
-                    labels=labels,
-                    batch=batch,
-                    vocab_size=model.vocab_size,
-                    class_weights=class_weights,
-                    torch_module=torch,
-                )
                 if not torch.isfinite(loss):
                     raise RuntimeError(
                         f"Non-finite training loss encountered at step {global_step}."
                     )
                 loss_value = float(loss.item())
-                loss.backward()
-                grad_clip = float(config.get("grad_clip", 1.0))
-                if grad_clip > 0:
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
-                optimizer.step()
+                if use_amp:
+                    scaler.scale(loss).backward()
+                    grad_clip = float(config.get("grad_clip", 1.0))
+                    if grad_clip > 0:
+                        scaler.unscale_(optimizer)
+                        torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+                    scaler.step(optimizer)
+                    scaler.update()
+                else:
+                    loss.backward()
+                    grad_clip = float(config.get("grad_clip", 1.0))
+                    if grad_clip > 0:
+                        torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+                    optimizer.step()
 
                 current_epoch = epoch_index + (batch_offset / total_batches_per_epoch)
                 if global_step == 1 or global_step % int(config["logging_steps"]) == 0 or global_step == total_steps:

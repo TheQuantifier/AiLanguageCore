@@ -311,6 +311,8 @@ def generate_free_text_segment(
 ):
     quote_token_id = tokenizer.char_to_id.get('"')
     newline_token_id = tokenizer.char_to_id.get("\n")
+    recent_window = 24
+    repetition_penalty = 1.5
     for generated_token_count in range(max_tokens):
         current_tensor = generated_tensor[:, -int(model_config["max_seq_length"]) :]
         logits = model(current_tensor)
@@ -318,6 +320,9 @@ def generate_free_text_segment(
         for token_id in {tokenizer.pad_token_id, tokenizer.bos_token_id}:
             next_token_logits[token_id] = float("-inf")
         next_token_logits[tokenizer.eos_token_id] = float("-inf")
+        recent_ids = generated_ids[-recent_window:]
+        for token_id in set(recent_ids):
+            next_token_logits[token_id] = next_token_logits[token_id] / repetition_penalty
         if quote_token_id is not None and generated_token_count < min_tokens:
             next_token_logits[quote_token_id] = float("-inf")
         if newline_token_id is not None and generated_token_count < 8:
@@ -866,12 +871,6 @@ def main() -> int:
 
     device, _device_label = detect_device(torch)
     tokenizer, model_config, model = load_runtime(args.model_path, torch, device)
-    response_type_runtime = None
-    response_type_model_path = resolve_response_type_model_path(args.model_path)
-    if response_type_model_path is not None:
-        rt_tokenizer, rt_model_config, rt_model = load_runtime(response_type_model_path, torch, device)
-        response_type_runtime = (rt_tokenizer, rt_model_config, rt_model)
-
     benchmark_rows = load_jsonl(args.benchmark_file)
     results = []
     correct_response_type = 0
@@ -911,17 +910,6 @@ def main() -> int:
             expected_format = parsed_expected["format"]
 
             if expected_format in {"response", "full_response"}:
-                forced_response_type = None
-                if response_type_runtime is not None:
-                    rt_tokenizer, rt_model_config, rt_model = response_type_runtime
-                    forced_response_type = classify_response_type(
-                        torch_module=torch,
-                        tokenizer=rt_tokenizer,
-                        model=rt_model,
-                        model_config=rt_model_config,
-                        device=device,
-                        user_prompt=row["messages"][1]["content"],
-                    )
                 raw_generated_text = generate_structured_output(
                     expected_format=expected_format,
                     model=model,
@@ -930,12 +918,12 @@ def main() -> int:
                     device=device,
                     model_config=model_config,
                     prompt_ids=prompt_ids,
-                    forced_response_type=forced_response_type,
+                    forced_response_type=None,
                 )
                 generated_text = sanitize_structured_output(
                     raw_generated_text,
                     row["messages"][1]["content"],
-                    forced_response_type,
+                    None,
                 )
             else:
                 generated_ids = prompt_ids[:]

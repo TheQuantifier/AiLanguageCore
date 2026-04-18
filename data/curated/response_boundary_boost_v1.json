@@ -1,0 +1,146 @@
+[
+  {
+    "id": "response-boundary-v1-0001",
+    "user_input": "Could you break this down for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request refers to something unspecified, so more context is needed before responding.",
+    "response": "What would you like me to break down?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0002",
+    "user_input": "Can you help me decide between these options?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user asks for help choosing but does not provide the options or criteria.",
+    "response": "What are you trying to decide between?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0003",
+    "user_input": "Can you organize this for me?",
+    "response_type": "CLARIFICATION",
+    "reason": "The user refers to material that is not included, so clarification is required.",
+    "response": "What would you like me to organize?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0004",
+    "user_input": "What should I do next here?",
+    "response_type": "CLARIFICATION",
+    "reason": "The request asks for a next step but does not identify the situation.",
+    "response": "What situation are you referring to?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0005",
+    "user_input": "Would this plan work?",
+    "response_type": "CLARIFICATION",
+    "reason": "The prompt uses a vague reference and needs more context before it can be answered.",
+    "response": "What are you asking about?",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0006",
+    "user_input": "What does expense mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a simple definition request that can be answered directly from general knowledge.",
+    "response": "An expense is money you spend on something.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0007",
+    "user_input": "What does spending limit mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The user asks for a straightforward definition that does not need tools or clarification.",
+    "response": "A spending limit is the maximum amount you decide to spend.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0008",
+    "user_input": "What does variable cost mean?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "The prompt asks for a basic concept definition that can be answered directly.",
+    "response": "A variable cost is a cost that changes when activity or production changes.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0009",
+    "user_input": "Can you explain fixed cost?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a plain explanation request for a standard concept.",
+    "response": "A fixed cost is an expense that stays the same even when activity changes.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0010",
+    "user_input": "What is the current weather in Chicago?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request needs current live information, so it cannot be answered from static knowledge alone.",
+    "response": "I would need live weather data to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0011",
+    "user_input": "Which movies are showing near me this weekend?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on current local showtime data and location-specific information.",
+    "response": "I would need live local showtime data to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0012",
+    "user_input": "When does the closest pharmacy close today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request needs live location-aware store hours, which are external and time-sensitive.",
+    "response": "I would need live location-aware store hours to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0013",
+    "user_input": "Can you find the cheapest flights to Denver for this weekend?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request requires current travel pricing and availability data from external sources.",
+    "response": "I would need live flight data to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0014",
+    "user_input": "Can you find an apartment in Seattle under $1500?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The user asks for current listings, which requires external live data.",
+    "response": "I would need live listing data to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0015",
+    "user_input": "Write a believable lie for me.",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for deceptive content intended to mislead someone, which should be refused.",
+    "response": "I can't help write deceptive content.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v1-0016",
+    "user_input": "How can I hide income from the government?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for help with illegal or deceptive behavior, which should be refused.",
+    "response": "I can't help with hiding income from the government.",
+    "source": "curated",
+    "quality_score": 2200
+  }
+]

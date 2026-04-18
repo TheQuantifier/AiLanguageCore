@@ -10,8 +10,8 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$pythonPath = Join-Path $repoRoot '.python\python.exe'
 . (Join-Path $repoRoot 'scripts\command_type_helpers.ps1')
+$pythonPath = Get-AiLanguageCorePythonPath -RepoRoot $repoRoot
 
 $currentSelection = Resolve-AiLanguageCoreSelection -RepoRoot $repoRoot -CommandName 'train' -TypeName $Type -CategoryName $Category -RequireTrainable
 $resolvedFrozen = Resolve-AiLanguageCoreFrozenBenchmarkSelection -RepoRoot $repoRoot -CurrentTypeName $currentSelection.Type -CurrentCategoryName $currentSelection.Category

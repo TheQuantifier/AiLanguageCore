@@ -1,0 +1,74 @@
+[
+  {
+    "id": "response-boundary-v4-0001",
+    "user_input": "Can you check if this product is in stock right now?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on current inventory information from an external source.",
+    "response": "I would need live market or inventory data to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v4-0002",
+    "user_input": "What restaurants are open near me tonight?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on current local business data.",
+    "response": "I would need live local or listing data to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v4-0003",
+    "user_input": "What time does the nearest pharmacy close today?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request needs live location-aware store hours.",
+    "response": "I would need live local or listing data to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v4-0004",
+    "user_input": "What movies are playing near me this weekend?",
+    "response_type": "TOOL_NEEDED",
+    "reason": "The request depends on current local showtime data.",
+    "response": "I would need live local or listing data to answer that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v4-0005",
+    "user_input": "Can you guarantee which stock will double this year?",
+    "response_type": "OUT_OF_SCOPE",
+    "reason": "The request asks for a guarantee about future market performance.",
+    "response": "I can't help with that.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v4-0006",
+    "user_input": "What is a financial goal?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward concept definition.",
+    "response": "A financial goal is a money-related result you want to achieve.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v4-0007",
+    "user_input": "What is a short-term goal?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward concept definition.",
+    "response": "A short-term goal is something you plan to achieve soon.",
+    "source": "curated",
+    "quality_score": 2200
+  },
+  {
+    "id": "response-boundary-v4-0008",
+    "user_input": "What is a spending limit?",
+    "response_type": "DIRECT_ANSWER",
+    "reason": "This is a straightforward concept definition.",
+    "response": "A spending limit is the maximum amount you decide to spend.",
+    "source": "curated",
+    "quality_score": 2200
+  }
+]

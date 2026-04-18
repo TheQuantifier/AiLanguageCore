@@ -84,6 +84,53 @@ function Get-AiLanguageCoreDefaultSettingsPath {
     return Join-Path $RepoRoot 'config\command_defaults.json'
 }
 
+function Get-AiLanguageCorePythonPath {
+    param(
+        [string]$RepoRoot
+    )
+
+    if (-not $RepoRoot) {
+        return $null
+    }
+
+    $candidate1 = Join-Path $RepoRoot '.venv\Scripts\python.exe'
+    $candidate2 = Join-Path $RepoRoot '.python\python.exe'
+    $candidates = @($candidate1, $candidate2)
+
+    foreach ($candidate in $candidates) {
+        if (-not $candidate -or -not (Test-Path $candidate)) {
+            continue
+        }
+
+        try {
+            $cudaAvailable = & $candidate -c "import torch; print('1' if torch.cuda.is_available() else '0')" 2>$null
+            if (($LASTEXITCODE -eq 0) -and ($cudaAvailable | Select-Object -Last 1).Trim() -eq '1') {
+                return $candidate
+            }
+        } catch {
+            continue
+        }
+    }
+
+    foreach ($candidate in $candidates) {
+        if ($candidate -and (Test-Path $candidate)) {
+            return $candidate
+        }
+    }
+
+    $pythonCommand = Get-Command python -ErrorAction SilentlyContinue
+    if ($pythonCommand) {
+        return $pythonCommand.Path
+    }
+
+    $python3Command = Get-Command python3 -ErrorAction SilentlyContinue
+    if ($python3Command) {
+        return $python3Command.Path
+    }
+
+    return $null
+}
+
 function Get-AiLanguageCoreCanonicalType {
     param(
         [string]$TypeName
