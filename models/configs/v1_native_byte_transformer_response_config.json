@@ -14,7 +14,7 @@
   "weight_decay": 0.01,
   "use_amp": true,
   "use_tf32": true,
-  "use_class_balanced_loss": true,
+  "use_class_balanced_loss": false,
   "class_weight_power": 1.0,
   "grad_clip": 0.5,
   "logging_steps": 61,
