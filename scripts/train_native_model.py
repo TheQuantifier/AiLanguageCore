@@ -440,14 +440,14 @@ def resolve_init_model_path(
                 )
         except FileNotFoundError:
             # Keep stage-2 default on category_prediction, but avoid cold starts
-            # when category_prediction checkpoints are absent after retention.
+            # when type-specific category_prediction checkpoints are absent.
             if len(parts) == 3 and parts[2] == "category_prediction":
                 fallback_finder = find_latest_completed_run if mode == "latest" else find_best_completed_run
                 try:
                     return fallback_finder(
                         repo_root,
-                        parts[1],
-                        "response",
+                        None,
+                        "category_prediction",
                         required_tokenizer_chars=required_tokenizer_chars,
                     )
                 except FileNotFoundError:

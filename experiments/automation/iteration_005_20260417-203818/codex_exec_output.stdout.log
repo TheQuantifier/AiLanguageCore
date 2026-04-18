@@ -1,0 +1,5 @@
+Changed one high-signal thing: fixed Stage-2 init resolver so `best:core:category_prediction` no longer silently falls back to `response` checkpoints (which was happening in the latest run), and now only falls back to type-agnostic `category_prediction` runs.
+This preserves response-type stability policy and JSON safety priorities by preventing category drift from recursive response-to-response warm starts.
+Files touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)
+Validation: `resolve_init_model_path('best:core:category_prediction', repo_root)` now returns `None` in current workspace instead of a `...-response-...` run.
+AUTOMATION_DECISION: CONTINUE
