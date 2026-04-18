@@ -1,0 +1,5 @@
+Latest report confirms stable JSON (`valid_output_rate=1.0`) but poor semantics (`response_type_accuracy=0.3443`) and gibberish responses; the highest recent response run (`20260417-213309`, `0.3770`) is the one that actually did stage-2 init.
+I made one narrow fix so `best:core:category_prediction` won’t be filtered out by tokenizer-char checks before remap logic runs.
+Change: in `resolve_init_model_path`, disable required-char filtering specifically for `category_prediction` checkpoint lookup, preserving stage-2 embedding/head remap behavior.
+Files touched: `scripts/train_native_model.py`
+AUTOMATION_DECISION: CONTINUE

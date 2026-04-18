@@ -416,11 +416,15 @@ def resolve_init_model_path(
         parts = value.split(":")
         requested_type: str | None = None
         requested_category: str | None = None
+        lookup_required_chars = required_tokenizer_chars
         if len(parts) == 2:
             requested_category = parts[1]
         elif len(parts) == 3:
             requested_type = parts[1]
             requested_category = parts[2]
+        if requested_category == "category_prediction":
+            # Stage-2 intentionally supports tokenizer-vocab mismatch via remapping.
+            lookup_required_chars = None
         try:
             if len(parts) == 2:
                 selected = None
@@ -429,14 +433,14 @@ def resolve_init_model_path(
                         repo_root,
                         None,
                         parts[1],
-                        required_tokenizer_chars=required_tokenizer_chars,
+                        required_tokenizer_chars=lookup_required_chars,
                     )
                 else:
                     selected = find_best_completed_run(
                         repo_root,
                         None,
                         parts[1],
-                        required_tokenizer_chars=required_tokenizer_chars,
+                        required_tokenizer_chars=lookup_required_chars,
                     )
                 if requested_category and infer_run_category(selected) != requested_category:
                     raise FileNotFoundError("No matching checkpoint for requested category.")
@@ -448,14 +452,14 @@ def resolve_init_model_path(
                         repo_root,
                         parts[1],
                         parts[2],
-                        required_tokenizer_chars=required_tokenizer_chars,
+                        required_tokenizer_chars=lookup_required_chars,
                     )
                 else:
                     selected = find_best_completed_run(
                         repo_root,
                         parts[1],
                         parts[2],
-                        required_tokenizer_chars=required_tokenizer_chars,
+                        required_tokenizer_chars=lookup_required_chars,
                     )
                 if requested_type and infer_run_type(selected) != requested_type:
                     raise FileNotFoundError("No matching checkpoint for requested type.")
@@ -472,7 +476,7 @@ def resolve_init_model_path(
                         repo_root,
                         None,
                         "category_prediction",
-                        required_tokenizer_chars=required_tokenizer_chars,
+                        required_tokenizer_chars=lookup_required_chars,
                     )
                 except FileNotFoundError:
                     return None
