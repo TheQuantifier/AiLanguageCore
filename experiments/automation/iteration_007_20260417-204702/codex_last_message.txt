@@ -1,0 +1,5 @@
+Applied one narrow fix: hardened stage-2 checkpoint resolution so `init_from_model_path=best:core:category_prediction` cannot silently load a mismatched checkpoint type/category (the recent drop to `response_type_accuracy=0.3443` came with unstable init selection behavior).
+I inspected latest vs recent-best benchmarks (`20260417-204704` vs `20260417-203820`): JSON validity stayed at `1.0`, regression was response-type drift; tokenizer/embedding-output-head transfer logic is already present and left unchanged.
+Change made in [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py): added strict post-selection validation in `resolve_init_model_path(...)` for requested type/category before accepting a run.
+This keeps bare `train`/`autotrain` defaults aligned and preserves the stage-2 category-prediction-init intent without broad refactors.
+AUTOMATION_DECISION: CONTINUE

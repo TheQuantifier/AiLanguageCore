@@ -409,35 +409,54 @@ def resolve_init_model_path(
     if value.startswith("latest:") or value.startswith("best:"):
         mode = value.split(":", 1)[0]
         parts = value.split(":")
+        requested_type: str | None = None
+        requested_category: str | None = None
+        if len(parts) == 2:
+            requested_category = parts[1]
+        elif len(parts) == 3:
+            requested_type = parts[1]
+            requested_category = parts[2]
         try:
             if len(parts) == 2:
+                selected = None
                 if mode == "latest":
-                    return find_latest_completed_run(
+                    selected = find_latest_completed_run(
                         repo_root,
                         None,
                         parts[1],
                         required_tokenizer_chars=required_tokenizer_chars,
                     )
-                return find_best_completed_run(
-                    repo_root,
-                    None,
-                    parts[1],
-                    required_tokenizer_chars=required_tokenizer_chars,
-                )
+                else:
+                    selected = find_best_completed_run(
+                        repo_root,
+                        None,
+                        parts[1],
+                        required_tokenizer_chars=required_tokenizer_chars,
+                    )
+                if requested_category and infer_run_category(selected) != requested_category:
+                    raise FileNotFoundError("No matching checkpoint for requested category.")
+                return selected
             if len(parts) == 3:
+                selected = None
                 if mode == "latest":
-                    return find_latest_completed_run(
+                    selected = find_latest_completed_run(
                         repo_root,
                         parts[1],
                         parts[2],
                         required_tokenizer_chars=required_tokenizer_chars,
                     )
-                return find_best_completed_run(
-                    repo_root,
-                    parts[1],
-                    parts[2],
-                    required_tokenizer_chars=required_tokenizer_chars,
-                )
+                else:
+                    selected = find_best_completed_run(
+                        repo_root,
+                        parts[1],
+                        parts[2],
+                        required_tokenizer_chars=required_tokenizer_chars,
+                    )
+                if requested_type and infer_run_type(selected) != requested_type:
+                    raise FileNotFoundError("No matching checkpoint for requested type.")
+                if requested_category and infer_run_category(selected) != requested_category:
+                    raise FileNotFoundError("No matching checkpoint for requested category.")
+                return selected
         except FileNotFoundError:
             # Keep stage-2 default on category_prediction, but avoid cold starts
             # when type-specific category_prediction checkpoints are absent.
