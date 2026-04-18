@@ -202,11 +202,16 @@ def infer_run_category(run_dir: Path) -> str | None:
             training_config = load_json(training_config_path)
             train_file = str(training_config.get("train_file", ""))
             benchmark_file = str(training_config.get("benchmark_file", ""))
-            if "full_response" in train_file or "full_response" in benchmark_file:
+            combined = f"{train_file} {benchmark_file}".lower()
+            if "full_response" in combined:
                 return "full_response"
-            if "train_response" in train_file or "benchmark_response" in benchmark_file:
+            if "train_response" in combined or "benchmark_response" in combined:
                 return "response"
-            if "category_prediction" in train_file or "category_prediction" in benchmark_file:
+            if (
+                "category_prediction" in combined
+                or "train_stress" in combined
+                or "benchmark_stress" in combined
+            ):
                 return "category_prediction"
         except Exception:
             pass

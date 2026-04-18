@@ -1,0 +1,5 @@
+Latest benchmark regressed (`response_type_accuracy` 0.3443 vs 0.4098 in the recent best), and the run was effectively cold-start (no resolved stage-2 init checkpoint).
+Made one narrow fix so stage-2 init selection can actually find category-prediction checkpoints: `infer_run_category` now treats stress train/benchmark datasets as `category_prediction`.
+This keeps `init_from_model_path` default semantics (`best:core:category_prediction`) while enabling the existing fallback path to load a real checkpoint instead of training from scratch.
+Files touched: [scripts/train_native_model.py](C:\Users\jhand\Documents\Github\AiLanguageCore\scripts\train_native_model.py)
+AUTOMATION_DECISION: CONTINUE
